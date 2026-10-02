@@ -6,7 +6,11 @@ const apiTarget = process.env.API_PROXY_TARGET ?? "http://localhost:8000";
 
 const nextConfig: NextConfig = {
   async rewrites() {
-    return [{ source: "/api/:path*", destination: `${apiTarget}/api/:path*` }];
+    return [
+      { source: "/api/:path*", destination: `${apiTarget}/api/:path*` },
+      // Reading Room (WebSocket) juga lewat origin yang sama.
+      { source: "/ws/:path*", destination: `${apiTarget}/ws/:path*` },
+    ];
   },
 };
 

@@ -1,13 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { BadgeGrid } from "@/components/BadgeGrid";
 import { LevelProgress } from "@/components/LevelProgress";
 import { Avatar } from "@/components/PostCard";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { STATUS_STYLE, StatusBadge } from "@/features/authenticity/StatusBadge";
 import { api } from "@/lib/api";
-import type { LedgerEntry, LedgerPage, PointsSummary } from "@/lib/types";
+import type { Authenticity, Badge, LedgerEntry, LedgerPage, PointsSummary } from "@/lib/types";
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
@@ -15,9 +18,13 @@ export default function ProfilePage() {
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [authenticity, setAuthenticity] = useState<Authenticity | null>(null);
+  const [badges, setBadges] = useState<Badge[]>([]);
 
   useEffect(() => {
     api<PointsSummary>("/me/points").then(setSummary).catch(() => undefined);
+    api<Authenticity>("/me/authenticity").then(setAuthenticity).catch(() => undefined);
+    api<Badge[]>("/me/badges").then(setBadges).catch(() => undefined);
     api<LedgerPage>("/me/points/history?limit=15")
       .then((page) => {
         setEntries(page.items);
@@ -95,6 +102,59 @@ export default function ProfilePage() {
             </div>
           </section>
         </>
+      )}
+
+      {authenticity && (
+        <section className="rounded-3xl border border-border bg-surface p-4">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-extrabold">Reading Authenticity</h2>
+            <StatusBadge status={authenticity.status} label={authenticity.status_label} />
+          </div>
+          <p className="mt-2 text-sm text-muted">{STATUS_STYLE[authenticity.status].hint}</p>
+          <p className="mt-2 text-xs text-muted">
+            30 hari: {authenticity.own_notes} catatan · {authenticity.comments_given} komentar ·{" "}
+            {authenticity.likes_given} reaksi. 🔒 Hanya terlihat olehmu, Team Lead, dan Admin.
+          </p>
+        </section>
+      )}
+
+      <nav className="grid grid-cols-3 gap-2 text-center text-sm font-bold" aria-label="Gamifikasi">
+        <Link href="/quests" className="rounded-2xl border border-border bg-surface p-3">
+          <span className="block text-2xl" aria-hidden>
+            🎯
+          </span>
+          Quest
+        </Link>
+        <Link href="/buddy" className="rounded-2xl border border-border bg-surface p-3">
+          <span className="block text-2xl" aria-hidden>
+            🤝
+          </span>
+          Buddy
+        </Link>
+        <Link href="/room" className="rounded-2xl border border-border bg-surface p-3">
+          <span className="block text-2xl" aria-hidden>
+            🛋️
+          </span>
+          Reading Room
+        </Link>
+      </nav>
+      {(user.permissions.includes("authenticity.view_team") ||
+        user.permissions.includes("authenticity.view_all")) && (
+        <Link
+          href="/team"
+          className="rounded-2xl border-2 border-dashed border-primary/40 p-3 text-center font-bold text-primary"
+        >
+          🧭 Lihat Authenticity Index tim
+        </Link>
+      )}
+
+      {badges.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-lg font-extrabold">
+            Badge ({badges.filter((b) => b.earned).length}/{badges.length})
+          </h2>
+          <BadgeGrid badges={badges} />
+        </section>
       )}
 
       <section className="flex flex-col gap-2">

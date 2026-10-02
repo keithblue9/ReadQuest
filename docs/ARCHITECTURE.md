@@ -204,10 +204,36 @@ berikutnya (stabil seharian sehingga bisa di-cache browser) dan bisa dipakai lan
 
 ### 4.6 Reading Room (WebSocket)
 
-- Klien terhubung ke `/ws/rooms/{room_id}` dengan JWT.
-- Server menyiarkan presence (siapa sedang membaca, buku apa, durasi) dan reaksi ringan.
-- Untuk satu instance, state disimpan di memori. Bila backend di-scale horizontal,
-  ditambahkan **Redis pub/sub** (direncanakan di Fase 7).
+- Klien terhubung ke `/ws/rooms/{room}` (`global` atau ID buku) lewat origin yang sama — Next.js
+  meneruskan `/ws/*` ke FastAPI (rewrites mendukung upgrade WebSocket). Browser tidak bisa
+  mengirim header `Authorization` pada WebSocket, jadi access token dikirim sebagai query
+  `?token=`; token tidak valid → close `4401`, klien me-refresh token lalu menyambung ulang.
+- Pesan klien: `status {reading, book_title, elapsed_seconds}` (dikirim timer sesi baca, dibulatkan
+  per menit), `cheer {emoji, to}` (emoji dibatasi daftar, maks. 1 per 2 detik), `ping`.
+  Server menyiarkan `presence {members}` dan `cheer`.
+- State presence disimpan di memori proses (`app/ws/rooms.py`) — cukup untuk satu instance.
+  Bila backend di-scale horizontal, broadcast diganti **Redis pub/sub**.
+
+### 4.6.1 Authenticity Index & Gamifikasi
+
+- **Authenticity Index** (`services/authenticity_service.py`): Contribution Ratio 30 hari =
+  catatan / (catatan + komentar + reaksi yang diberikan). Ambang status dari
+  `authenticity.thresholds`; tanpa aktivitas = Silent. Visibilitas ditegakkan di server:
+  diri sendiri (`authenticity.view_self`), Team Lead untuk fungsi yang dipimpinnya beserta
+  sub-fungsinya (`authenticity.view_team`, `functions.lead_user_ids`, fallback fungsi sendiri),
+  Admin (`authenticity.view_all`). `run_daily()` menyimpan snapshot dan mengirim nudge lembut ke
+  Observer maks. sekali per 7 hari (dijadwalkan di Fase 8).
+- **Badge**: kriteria data-driven `{type, gte}` dengan `type` = metrik di
+  `services/user_stats.py` (sesi, menit baca, catatan per jenis, buku selesai, reaksi diterima,
+  komentar bermakna, streak terpanjang). Dievaluasi setelah sesi selesai, komentar bermakna, dan
+  reaksi pertama yang diterima.
+- **Quest**: quest berulang (`recurring: true`, periode minggu tim) atau bertanggal. Progres
+  dihitung ulang dari data mentah dalam jendela quest (bukan counter), hadiah poin lewat ledger
+  (`quest_reward`) sekali per user per periode (`user_quests.period_key`).
+- **Book of the Month**: dipilih Admin (`config.books.manage`); bila belum ada, otomatis buku
+  dengan posting terbanyak 30 hari terakhir.
+- **Reading Buddy**: satu pasangan aktif per user; permintaan → terima (permintaan lain
+  otomatis batal) → saling menyemangati (notifikasi, jeda 1 jam).
 
 ### 4.7 Job Terjadwal
 

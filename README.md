@@ -51,7 +51,8 @@ Selesai: autentikasi & onboarding (Fase 2), sesi baca dengan timer + catatan waj
 divalidasi, katalog buku bersama, dan unggah foto (Fase 3), sistem poin berbasis ledger dengan
 streak & level (Fase 4), feed sosial dengan reaksi, komentar berantai, mention, bookmark, kartu
 berbagi, dan diskusi per buku (Fase 5), leaderboard lima kategori dengan periode mingguan/
-bulanan/sepanjang masa (Fase 6). Berikutnya: Fase 7 — Authenticity Index & gamifikasi lanjutan.
+bulanan/sepanjang masa (Fase 6), Authenticity Index, badge, weekly quest, Book of the Month,
+Reading Buddy, dan Reading Room live via WebSocket (Fase 7). Berikutnya: Fase 8 — notifikasi.
 
 ## Dokumentasi
 

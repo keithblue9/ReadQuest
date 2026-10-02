@@ -87,6 +87,33 @@ async def seed(db: AsyncDatabase) -> dict[str, int]:
                 },
             ),
         )
+    for order, badge in enumerate(data.BADGES):
+        doc = {k: v for k, v in badge.items() if k != "code"}
+        await count(
+            "badges",
+            await _upsert(
+                db, "badges", {"code": badge["code"]}, {**doc, "order": order, "is_active": True}
+            ),
+        )
+    for order, quest in enumerate(data.QUESTS):
+        doc = {k: v for k, v in quest.items() if k != "code"}
+        await count(
+            "quests",
+            await _upsert(
+                db,
+                "quests",
+                {"code": quest["code"]},
+                {
+                    **doc,
+                    "period": "weekly",
+                    "recurring": True,
+                    "starts_at": None,
+                    "ends_at": None,
+                    "order": order,
+                    "is_active": True,
+                },
+            ),
+        )
     for key, value, description in data.APP_SETTINGS:
         await count(
             "app_settings",

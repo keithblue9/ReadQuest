@@ -177,7 +177,88 @@ export type LedgerEntry = {
 
 export type LedgerPage = { items: LedgerEntry[]; next_cursor: string | null };
 
-export type FinishResult = { session: ReadingSession; post: Post; points: PointsResult };
+export type Badge = {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  icon: string;
+  earned: boolean;
+  awarded_at: string | null;
+  progress: number;
+  target: number;
+};
+
+export type Quest = {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  goal_type: string;
+  target: number;
+  progress: number;
+  completed: boolean;
+  reward_points: number;
+  period_key: string;
+  ends_at: string | null;
+};
+
+export type FinishResult = {
+  session: ReadingSession;
+  post: Post;
+  points: PointsResult;
+  badges: Badge[];
+  quests_completed: Quest[];
+};
+
+export type AuthenticityStatus = "active_reader" | "warming_up" | "observer" | "silent";
+
+export type Authenticity = {
+  user_id: string;
+  name: string;
+  function_id: string | null;
+  window_days: number;
+  own_notes: number;
+  comments_given: number;
+  likes_given: number;
+  contribution_ratio: number;
+  status: AuthenticityStatus;
+  status_label: string;
+  computed_at: string;
+};
+
+export type AuthenticityTeam = {
+  counts: Record<AuthenticityStatus, number>;
+  members: Authenticity[];
+};
+
+export type BookOfMonth = {
+  month: string;
+  auto: boolean;
+  book: Book | null;
+  readers_this_month: number;
+};
+
+export type Buddies = {
+  buddy: {
+    pair_id: string;
+    user: UserMini;
+    read_today: boolean;
+    streak: number;
+    since: string | null;
+  } | null;
+  incoming: { pair_id: string; user: UserMini; created_at: string }[];
+  outgoing: { pair_id: string; user: UserMini; created_at: string }[];
+};
+
+export type RoomMember = {
+  user_id: string;
+  name: string;
+  avatar_url: string | null;
+  reading: boolean;
+  book_title: string | null;
+  elapsed_seconds: number;
+};
 
 export type UploadedPhoto = { key: string; url: string; width: number; height: number };
 

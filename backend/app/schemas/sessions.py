@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, model_validator
 
 from app.schemas.common import PyObjectId
+from app.schemas.gamification import BadgeOut, QuestOut
 from app.schemas.points import PointsResultOut
 from app.schemas.posts import PostOut
 
@@ -75,3 +76,5 @@ class FinishOut(BaseModel):
     session: SessionOut
     post: PostOut
     points: PointsResultOut
+    badges: list[BadgeOut] = []
+    quests_completed: list[QuestOut] = []

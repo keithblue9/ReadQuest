@@ -109,8 +109,12 @@ INDEXES: dict[str, list[IndexModel]] = {
         IndexModel([("is_active", ASC), ("starts_at", ASC), ("ends_at", ASC)]),
     ],
     "user_quests": [
-        IndexModel([("user_id", ASC), ("quest_id", ASC)], unique=True),
+        IndexModel([("user_id", ASC), ("quest_id", ASC), ("period_key", ASC)], unique=True),
         IndexModel([("quest_id", ASC), ("completed_at", ASC)]),
+    ],
+    "reading_buddies": [
+        IndexModel([("user_ids", ASC), ("status", ASC)]),
+        IndexModel([("addressee_id", ASC), ("status", ASC)]),
     ],
     "leaderboard_snapshots": [
         IndexModel([("category", ASC), ("period", ASC), ("period_key", ASC)], unique=True),
@@ -141,9 +145,15 @@ INDEXES: dict[str, list[IndexModel]] = {
 
 
 async def ensure_indexes(db: AsyncDatabase) -> None:
+    """Sinkronkan index secara deklaratif: buat yang belum ada, hapus yang tidak lagi
+    didefinisikan di sini (mis. unique index lama yang skemanya sudah berubah)."""
     existing = set(await db.list_collection_names())
     for name, models in INDEXES.items():
         if name not in existing:
             # Buat eksplisit agar transaksi tidak perlu membuat koleksi.
             await db.create_collection(name)
+        wanted = {m.document["name"] for m in models}
+        for index_name in await db[name].index_information():
+            if index_name != "_id_" and index_name not in wanted:
+                await db[name].drop_index(index_name)
         await db[name].create_indexes(models)

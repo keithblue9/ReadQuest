@@ -67,7 +67,7 @@ Pastikan semua cek di atas lolos sebelum push. Frontend memakai Next.js 16: baca
 | 4 | ✅ MVP: Sistem poin (ledger) |
 | 5 | ✅ MVP: Feed sosial |
 | 6 | ✅ MVP: Leaderboard |
-| 7 | Authenticity Index & gamifikasi lanjutan (level, badge, quest, Reading Room) |
+| 7 | ✅ Authenticity Index & gamifikasi lanjutan (level, badge, quest, Reading Room) |
 | 8 | Notifikasi (Web Push & in-app) |
 | 9 | Admin dashboard & Admin Config (RBAC, audit log, export) |
 | 10 | PWA polish, hardening, deployment |

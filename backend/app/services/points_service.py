@@ -98,6 +98,46 @@ async def award(
     return Award(rule_code=rule_code, name=rule["name"], points=rule["points"])
 
 
+async def award_amount(
+    db: AsyncDatabase,
+    *,
+    user: dict,
+    points: int,
+    rule_code: str,
+    source_type: str,
+    source_id: ObjectId,
+) -> Award | None:
+    """Poin dengan nilai dari data lain (mis. hadiah quest), tetap lewat ledger & idempoten."""
+    if points <= 0:
+        return None
+    if await ledger.exists(db, user["_id"], rule_code, source_type, source_id):
+        return None
+    rule = await get_rule(db, rule_code)
+    now = clock.now()
+    try:
+        await ledger.insert(
+            db,
+            {
+                "user_id": user["_id"],
+                "function_id": user.get("function_id"),
+                "rule_code": rule_code,
+                "points": points,
+                "source_type": source_type,
+                "source_id": source_id,
+                "actor_id": None,
+                "local_date": clock.local_date(now, user.get("timezone", "Asia/Jakarta")),
+                "reverses_id": None,
+                "note": None,
+                "created_at": now,
+            },
+        )
+    except DuplicateKeyError:
+        return None
+    await db["users"].update_one({"_id": user["_id"]}, {"$inc": {"stats.points_total": points}})
+    await leaderboard_cache.invalidate_open(db)
+    return Award(rule_code=rule_code, name=rule["name"] if rule else rule_code, points=points)
+
+
 async def adjust(
     db: AsyncDatabase,
     *,

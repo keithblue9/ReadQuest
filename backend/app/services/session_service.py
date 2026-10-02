@@ -26,7 +26,14 @@ from app.schemas.sessions import (
     SessionOut,
     TodayOut,
 )
-from app.services import points_service, post_service, social_service, streak_service
+from app.services import (
+    badge_service,
+    points_service,
+    post_service,
+    quest_service,
+    social_service,
+    streak_service,
+)
 from app.services.note_validation import NoteRules, check_note, message_for
 from app.services.upload_service import owns_key
 
@@ -339,10 +346,20 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
         await books.update(db, book["_id"], {"$set": {"stats.avg_rating": avg}})
 
     updated_session = await sessions.get_owned(db, session_id, user["_id"])
+    # Quest dulu (hadiahnya ikut terhitung di total poin), lalu badge.
+    _, quests_completed = await quest_service.evaluate(db, user)
+    badges = await badge_service.evaluate(db, user)
+    quest_awards = [
+        points_service.Award("quest_reward", f"Quest: {q.title}", q.reward_points)
+        for q in quests_completed
+        if q.reward_points
+    ]
     return FinishOut(
         session=to_out(updated_session, cfg.min_seconds),
         post=(await post_service.enrich(db, [post], user["_id"]))[0],
-        points=await points_result(db, user["_id"], points_before, awards, streak),
+        points=await points_result(db, user["_id"], points_before, awards + quest_awards, streak),
+        badges=badges,
+        quests_completed=quests_completed,
     )
 
 
