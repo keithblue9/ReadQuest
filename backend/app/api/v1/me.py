@@ -1,10 +1,13 @@
-from fastapi import APIRouter
+from typing import Annotated
+
+from fastapi import APIRouter, Query
 
 from app.api.deps import CurrentUser, Db
 from app.repositories import catalog
 from app.schemas.catalog import CategoryOut, FunctionOut, OnboardingOptionsOut
+from app.schemas.points import LedgerPageOut, PointsSummaryOut
 from app.schemas.user import MeOut, MeUpdateIn, OnboardingIn
-from app.services import user_service
+from app.services import points_service, user_service
 
 router = APIRouter(prefix="/me", tags=["me"])
 
@@ -18,6 +21,21 @@ async def get_me(db: Db, user: CurrentUser) -> MeOut:
 async def update_me(data: MeUpdateIn, db: Db, user: CurrentUser) -> MeOut:
     updated = await user_service.update_me(db, user, data)
     return await user_service.build_me(db, updated)
+
+
+@router.get("/points", response_model=PointsSummaryOut)
+async def my_points(db: Db, user: CurrentUser) -> PointsSummaryOut:
+    return await points_service.summary(db, user)
+
+
+@router.get("/points/history", response_model=LedgerPageOut)
+async def my_points_history(
+    db: Db,
+    user: CurrentUser,
+    cursor: str | None = None,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+) -> LedgerPageOut:
+    return await points_service.history(db, user["_id"], cursor, limit)
 
 
 @router.get("/onboarding/options", response_model=OnboardingOptionsOut)

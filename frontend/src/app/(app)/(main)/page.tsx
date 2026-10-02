@@ -4,21 +4,24 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { BookCover } from "@/components/BookCover";
-import { Button } from "@/components/ui";
+import { LevelProgress } from "@/components/LevelProgress";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { api } from "@/lib/api";
-import type { ReadingSession, Today } from "@/lib/types";
+import type { PointsSummary, ReadingSession, Today } from "@/lib/types";
 import { formatDuration } from "@/lib/words";
 
 export default function HomePage() {
-  const { user, logout } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [today, setToday] = useState<Today | null>(null);
   const [recent, setRecent] = useState<ReadingSession[]>([]);
+  const [points, setPoints] = useState<PointsSummary | null>(null);
 
   useEffect(() => {
     api<Today>("/sessions/today").then(setToday).catch(() => undefined);
     api<ReadingSession[]>("/sessions?limit=5").then(setRecent).catch(() => undefined);
-  }, []);
+    api<PointsSummary>("/me/points").then(setPoints).catch(() => undefined);
+    refreshUser();
+  }, [refreshUser]);
 
   if (!user) return null;
   const firstName = user.name.split(" ")[0];
@@ -59,8 +62,8 @@ export default function HomePage() {
 
       <dl className="grid grid-cols-3 gap-3 text-center">
         {[
-          ["Poin", user.stats.points_total],
-          ["Streak", `${user.stats.current_streak}🔥`],
+          ["Poin", points?.points_total ?? user.stats.points_total],
+          ["Streak", `${points?.streak.current ?? user.stats.current_streak}🔥`],
           ["Buku", user.stats.books_finished],
         ].map(([label, value]) => (
           <div key={label} className="rounded-2xl border border-border bg-surface p-4">
@@ -69,6 +72,17 @@ export default function HomePage() {
           </div>
         ))}
       </dl>
+
+      {points?.level && (
+        <Link href="/profile" className="rounded-3xl border border-border bg-surface p-4">
+          <LevelProgress level={points.level} points={points.points_total} />
+          {points.streak.current > 0 && !points.streak.read_today && (
+            <p className="mt-3 text-sm font-semibold text-accent">
+              ⚠️ Baca hari ini agar streak {points.streak.current} hari tidak putus!
+            </p>
+          )}
+        </Link>
+      )}
 
       <section>
         <h2 className="mb-3 text-lg font-extrabold">Sesi terakhir</h2>
@@ -107,10 +121,6 @@ export default function HomePage() {
           </ul>
         )}
       </section>
-
-      <Button variant="ghost" onClick={() => logout()}>
-        Keluar
-      </Button>
     </div>
   );
 }

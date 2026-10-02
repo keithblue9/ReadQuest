@@ -48,7 +48,8 @@ oleh seed). Detail: [`backend/README.md`](backend/README.md), [`frontend/README.
 ## Status
 
 Selesai: autentikasi & onboarding (Fase 2), sesi baca dengan timer + catatan wajib yang
-divalidasi, katalog buku bersama, dan unggah foto (Fase 3). Berikutnya: Fase 4 — sistem poin.
+divalidasi, katalog buku bersama, dan unggah foto (Fase 3), sistem poin berbasis ledger dengan
+streak & level (Fase 4). Berikutnya: Fase 5 — feed sosial.
 
 ## Dokumentasi
 

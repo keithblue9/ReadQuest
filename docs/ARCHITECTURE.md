@@ -127,6 +127,22 @@ mati, jaringan putus) tidak dihitung.
 - **Maks. 1 sesi poin penuh per hari** dijamin unique partial index; sesi berikutnya tetap
   tercatat tanpa poin penuh.
 
+**Poin saat sesi selesai** (`session_service._award_finish_points`, dalam transaksi yang sama
+dengan posting sehingga tidak ada poin "yatim" bila penyelesaian gagal):
+
+| Kondisi | Aturan (`point_rules.code`) |
+|---------|-----------------------------|
+| Sesi poin penuh pertama hari itu | `session_valid`, + `chapter_story` bila jenis catatan Chapter Story |
+| Sesi poin penuh → streak diperbarui; mencapai 7/14/30/100 hari | `streak_7` … `streak_100` (sekali per streak) |
+| Setiap catatan terkirim | `post_feed` (batas harian) |
+| Menandai buku selesai | `book_finished` (sekali per buku per user) |
+| Catatan berisi halaman saat ini + foto | `progress_photo` (maks. 1x/hari) |
+
+`points_service.award()` membaca nilai & batas harian dari `point_rules`, menolak aturan
+nonaktif, dan idempoten per (user, aturan, sumber). Saldo `users.stats.points_total` adalah
+cache; `recompute_total()` menghitung ulang dari ledger. Koreksi Admin memakai `adjust()`
+(entri baru `adjustment`/`reversal`, entri lama tidak pernah diubah).
+
 ### 4.3 Upload Foto Buku
 
 ```mermaid

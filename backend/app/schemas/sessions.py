@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, model_validator
 
 from app.schemas.common import PyObjectId
+from app.schemas.points import PointsResultOut
 from app.schemas.posts import PostOut
 
 NoteType = Literal["quick_note", "chapter_story", "book_review"]
@@ -72,3 +73,4 @@ class TodayOut(BaseModel):
 class FinishOut(BaseModel):
     session: SessionOut
     post: PostOut
+    points: PointsResultOut

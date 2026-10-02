@@ -242,7 +242,7 @@ Satu dokumen per user.
 | `current` | int | hari berturut-turut |
 | `longest` | int | |
 | `last_read_date` | string | `local_date` sesi valid terakhir |
-| `milestones_awarded` | int[] | mis. `[7, 14]`, mencegah bonus ganda |
+| `milestones_awarded` | int[] | mis. `[7, 14]`, mencegah bonus ganda; dikosongkan saat streak putus |
 | `freeze_tokens` | int | cadangan untuk fitur masa depan |
 | `updated_at` | Date | |
 

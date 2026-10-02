@@ -2,17 +2,23 @@ from datetime import UTC, datetime
 
 from pymongo.asynchronous.database import AsyncDatabase
 
+from app.core import clock
 from app.core.errors import AppError
 from app.repositories import catalog, users
 from app.schemas.user import MeOut, MeUpdateIn, OnboardingIn, RoleOut, UserStatsOut
-from app.services import permissions
+from app.services import permissions, points_service, streak_service
 
 DEFAULT_DAILY_TARGET = 15
 
 
 async def build_me(db: AsyncDatabase, user: dict) -> MeOut:
     role = await permissions.get_role(db, user["role_id"])
-    stats = user.get("stats") or {}
+    stats = dict(user.get("stats") or {})
+    today = clock.local_date(clock.now(), user.get("timezone", "Asia/Jakarta"))
+    stats["current_streak"] = streak_service.effective_current(
+        await streak_service.get(db, user["_id"]), today
+    )
+    level, upcoming = await points_service.level_for(db, int(stats.get("points_total", 0)))
     return MeOut(
         id=user["_id"],
         email=user["email"],
@@ -26,6 +32,7 @@ async def build_me(db: AsyncDatabase, user: dict) -> MeOut:
         timezone=user.get("timezone", "Asia/Jakarta"),
         onboarding_completed=user.get("onboarding_completed_at") is not None,
         stats=UserStatsOut(**{k: v for k, v in stats.items() if k in UserStatsOut.model_fields}),
+        level=points_service.level_out(level, upcoming),
     )
 
 
