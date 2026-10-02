@@ -38,3 +38,23 @@ async def test_seed_admin_login_and_legacy_migration(client, database, monkeypat
     legacy = await database["users"].find_one({"_id": legacy_id})
     assert legacy["phone"] == "+6281100000099"
     await database["users"].delete_one({"_id": legacy_id})
+
+
+async def test_seed_on_startup_runs_seed(database, monkeypatch):
+    from app import main as main_module
+    from app.core.config import get_settings
+
+    calls = []
+
+    async def fake_seed(db):
+        calls.append(db.name)
+        return {}
+
+    monkeypatch.setattr("app.seed.__main__.seed", fake_seed)
+    await main_module.prepare_database(database)
+    assert calls == []  # default: tidak seed
+
+    settings = get_settings().model_copy(update={"seed_on_startup": True})
+    monkeypatch.setattr(main_module, "get_settings", lambda: settings)
+    await main_module.prepare_database(database)
+    assert calls == [database.name]

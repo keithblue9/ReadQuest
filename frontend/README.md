@@ -21,6 +21,8 @@ npm run dev                   # http://localhost:3000 (backend harus jalan di :8
 
 Browser hanya memanggil `/api/*` di origin Next.js; `next.config.ts` meneruskannya ke FastAPI.
 `API_PROXY_TARGET` dibaca saat `next build` (rewrites ikut tersimpan di hasil build).
+Di Vercel, WebSocket tidak diteruskan rewrite: isi `NEXT_PUBLIC_WS_URL` (mis.
+`wss://readquest-api.onrender.com`) agar Reading Room terhubung langsung ke backend.
 
 Produksi lokal: `npm run build && npm start`. Image Docker (`Dockerfile`, output `standalone`):
 `docker build -t readquest-frontend --build-arg API_PROXY_TARGET=http://backend:8000 frontend`.

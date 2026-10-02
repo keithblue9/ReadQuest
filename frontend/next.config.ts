@@ -5,6 +5,8 @@ import type { NextConfig } from "next";
 // Catatan: nilai ini dibaca saat `next build` (rewrites ikut tersimpan di hasil build).
 const apiTarget = process.env.API_PROXY_TARGET ?? "http://localhost:8000";
 const isDev = process.env.NODE_ENV === "development";
+// WebSocket Reading Room langsung ke backend bila frontend di host tanpa proxy WebSocket (Vercel).
+const wsOrigin = process.env.NEXT_PUBLIC_WS_URL ? new URL(process.env.NEXT_PUBLIC_WS_URL).origin : "";
 
 // CSP tanpa nonce (panduan resmi Next.js) agar halaman tetap statis. 'unsafe-inline' untuk script
 // dibutuhkan oleh payload RSC & skrip tema; semua sumber lain dibatasi ke origin sendiri.
@@ -14,7 +16,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data:",
   "font-src 'self'",
-  `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
+  `connect-src 'self'${wsOrigin ? ` ${wsOrigin}` : ""}${isDev ? " ws: wss:" : ""}`,
   "media-src 'self'",
   "worker-src 'self' blob:",
   "manifest-src 'self'",

@@ -123,6 +123,7 @@ Error selalu berbentuk `{"error": {"code", "message", "fields?"}}`.
 | `app/ws/` | WebSocket Reading Room |
 | `app/jobs/` | scheduler (tick per menit + lease) dan job notifikasi terjadwal |
 | `app/scripts/` | utilitas CLI (mis. `generate_vapid`) |
+| `app/serve.py` | launcher production: soket dual-stack IPv4+IPv6 di `$PORT` (Docker & Render) |
 | `app/assets/` | font Nunito (OFL) untuk kartu berbagi & export PDF |
 | `tests/` | pytest (integrasi API terhadap MongoDB sungguhan) |
 

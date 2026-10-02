@@ -1,4 +1,4 @@
-"""Penyimpanan objek (foto). Backend S3-compatible atau folder lokal."""
+"""Penyimpanan objek (foto). Backend MongoDB, S3-compatible, atau folder lokal."""
 
 from pathlib import Path
 from typing import Protocol
@@ -108,6 +108,46 @@ class S3Storage:
         return await anyio.to_thread.run_sync(_get)
 
 
+class MongoStorage:
+    """Foto disimpan di koleksi `media` (cocok untuk host tanpa disk permanen, mis. Render).
+
+    Foto sudah dikompres klien (~1 MB) dan dibatasi `upload.max_bytes` (maks 10 MB), jadi muat
+    dalam satu dokumen BSON (batas 16 MB) tanpa GridFS.
+    """
+
+    async def ensure_ready(self) -> None:
+        # Index `key` unik dibuat oleh ensure_indexes (app/repositories/indexes.py).
+        return None
+
+    async def put(self, key: str, data: bytes, content_type: str) -> None:
+        from datetime import UTC, datetime
+
+        from bson import Binary
+
+        from app.core.db import get_db
+
+        await get_db()["media"].update_one(
+            {"key": key},
+            {
+                "$set": {
+                    "data": Binary(data),
+                    "content_type": content_type,
+                    "size": len(data),
+                    "created_at": datetime.now(UTC),
+                }
+            },
+            upsert=True,
+        )
+
+    async def get(self, key: str) -> tuple[bytes, str] | None:
+        from app.core.db import get_db
+
+        doc = await get_db()["media"].find_one({"key": key})
+        if doc is None:
+            return None
+        return bytes(doc["data"]), doc.get("content_type", DEFAULT_CONTENT_TYPE)
+
+
 _storage: Storage | None = None
 
 
@@ -115,9 +155,10 @@ def get_storage() -> Storage:
     global _storage
     if _storage is None:
         settings = get_settings()
-        _storage = (
-            LocalStorage(settings.local_storage_dir)
-            if settings.storage_backend == "local"
-            else S3Storage()
-        )
+        if settings.storage_backend == "local":
+            _storage = LocalStorage(settings.local_storage_dir)
+        elif settings.storage_backend == "mongo":
+            _storage = MongoStorage()
+        else:
+            _storage = S3Storage()
     return _storage

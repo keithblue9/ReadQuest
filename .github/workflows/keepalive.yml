@@ -1,0 +1,20 @@
+name: Keep-alive backend
+
+# Render Free menidurkan service setelah 15 menit tanpa trafik (scheduler notifikasi ikut berhenti).
+# Ping /health tiap 10 menit. Aktif hanya bila repo variable KEEPALIVE_URL diisi
+# (Settings → Secrets and variables → Actions → Variables), mis. https://readquest-api.onrender.com
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    if: vars.KEEPALIVE_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping health check
+        run: curl -fsS --retry 3 --retry-delay 20 --max-time 90 "${{ vars.KEEPALIVE_URL }}/health"

@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     # Batas ukuran body request (byte); upload foto dibatasi lagi oleh `upload.max_bytes`.
     max_request_bytes: int = 12 * 1024 * 1024
 
-    # Object storage untuk foto. "s3" (RustFS/S3/R2) atau "local" (folder, untuk test/dev).
-    storage_backend: Literal["s3", "local"] = "s3"
+    # Penyimpanan foto: "s3" (RustFS/S3/R2), "mongo" (koleksi `media`), "local" (folder test/dev).
+    storage_backend: Literal["s3", "local", "mongo"] = "s3"
     local_storage_dir: str = "./.storage"
     s3_endpoint_url: str | None = "http://localhost:9000"
     s3_region: str = "us-east-1"
@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     vapid_public_key: str | None = None
     vapid_private_key: str | None = None
     vapid_subject: str = "mailto:admin@example.com"
+
+    # Jalankan seed (idempoten) saat start — untuk host tanpa pre-deploy command (mis. Render Free).
+    seed_on_startup: bool = False
 
     # Scheduler internal (pengingat, nudge, ringkasan mingguan, pengiriman push).
     scheduler_enabled: bool = True

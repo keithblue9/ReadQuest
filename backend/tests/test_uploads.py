@@ -69,3 +69,33 @@ async def test_media_rejects_bad_signature(client):
     ).json()
     tampered = body["url"].replace("sig=", "sig=0")
     assert (await client.get(tampered)).status_code == 403
+
+
+async def test_mongo_storage_put_get_overwrite(database):
+    from app.core.storage import MongoStorage
+
+    storage = MongoStorage()
+    await storage.ensure_ready()
+    assert await storage.get("photos/tidak-ada.jpg") is None
+    await storage.put("photos/uji-mongo.jpg", b"abc", "image/jpeg")
+    await storage.put("photos/uji-mongo.jpg", b"abcd", "image/webp")
+    assert await storage.get("photos/uji-mongo.jpg") == (b"abcd", "image/webp")
+    assert await database["media"].count_documents({"key": "photos/uji-mongo.jpg"}) == 1
+    await database["media"].delete_one({"key": "photos/uji-mongo.jpg"})
+
+
+async def test_upload_and_serve_with_mongo_backend(client, database, monkeypatch):
+    from app.core import storage as storage_module
+
+    monkeypatch.setattr(storage_module, "_storage", storage_module.MongoStorage())
+    headers = await onboarded_user(client)
+    response = await client.post(
+        "/api/v1/uploads/photos",
+        files={"file": ("foto.jpg", jpeg_bytes(), "image/jpeg")},
+        headers=headers,
+    )
+    assert response.status_code == 201, response.text
+    key = response.json()["key"]
+    assert await database["media"].find_one({"key": key})
+    media = await client.get(response.json()["url"])
+    assert media.status_code == 200 and media.headers["content-type"] == "image/jpeg"

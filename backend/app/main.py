@@ -18,10 +18,19 @@ from app.repositories.indexes import ensure_indexes
 from app.ws import rooms
 
 
+async def prepare_database(database) -> None:
+    """Sinkronkan index; jalankan seed idempoten bila SEED_ON_STARTUP=true."""
+    await ensure_indexes(database)
+    if get_settings().seed_on_startup:
+        from app.seed.__main__ import seed
+
+        await seed(database)
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     await db.connect()
-    await ensure_indexes(db.get_db())
+    await prepare_database(db.get_db())
     await get_storage().ensure_ready()
     if get_settings().scheduler_enabled:
         scheduler.start(db.get_db)

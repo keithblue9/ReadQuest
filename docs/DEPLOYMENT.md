@@ -167,101 +167,98 @@ Backend dirancang untuk **satu instance**:
 Untuk satu tim/organisasi (ratusan hingga beberapa ribu anggota), satu instance backend sudah
 cukup.
 
-## 8. Alternatif: Layanan Terkelola (Railway + MongoDB Atlas + Cloudflare R2)
+## 8. Alternatif: Vercel (frontend) + Render (backend) + MongoDB Atlas
 
-Tanpa server sendiri dan tanpa domain: Railway memberi alamat HTTPS gratis
-`https://<nama>.up.railway.app` (cukup untuk PWA & Web Push). Domain sendiri bisa ditambahkan
-kapan saja.
+Tanpa server dan tanpa domain sendiri:
+- **Vercel** memberi alamat HTTPS gratis `https://<nama>.vercel.app` (cukup untuk PWA & Web Push).
+- **Render** menjalankan backend di paket Free.
+- **MongoDB Atlas** M0 (gratis) menyimpan data **dan foto** (`STORAGE_BACKEND=mongo`), jadi tidak
+  perlu layanan storage lain.
 
 ```mermaid
 flowchart LR
-  U[Browser / PWA] -- HTTPS --> F[Railway: frontend<br/>*.up.railway.app]
-  F -- "jaringan privat<br/>backend.railway.internal:8000" --> B[Railway: backend<br/>tanpa domain publik]
-  B --> M[(MongoDB Atlas M0)]
-  B --> R[(Cloudflare R2)]
+  U[Browser / PWA] -- "HTTPS: halaman + /api/* (rewrite)" --> V[Vercel: Next.js<br/>*.vercel.app]
+  V -- "/api/* diteruskan" --> R[Render Free: FastAPI<br/>*.onrender.com]
+  U -- "WSS langsung: Reading Room" --> R
+  R --> M[(MongoDB Atlas M0<br/>data + foto)]
 ```
 
-Perkiraan biaya awal: Atlas M0 & R2 (≤ 10 GB) gratis; Railway paket Hobby ± US$5/bulan
-(mencakup pemakaian kecil dua service).
+- **API lewat Vercel** (rewrite `/api/*`): browser hanya melihat origin Vercel, sehingga cookie
+  login `SameSite=Strict` bekerja tanpa CORS.
+- **WebSocket langsung ke Render**: rewrite Vercel tidak meneruskan WebSocket. Token dikirim sebagai
+  pesan pertama, dan backend hanya menerima `Origin` = `FRONTEND_ORIGIN`.
 
 ### 8.1 MongoDB Atlas
 
-1. Daftar di <https://cloud.mongodb.com> → **Create** cluster **M0 (Free)**. Pilih region terdekat
-   dengan region Railway, mis. Singapura (`ap-southeast-1`).
-2. **Database Access** → tambah user (mis. `readquest`) dengan password acak, role
-   *Read and write to any database*.
-3. **Network Access** → **Allow access from anywhere** (`0.0.0.0/0`). Railway Hobby tidak punya IP
-   statis, dan akses tetap dilindungi user + password.
-4. **Connect → Drivers** → salin connection string, lalu ganti `<password>`:
+1. Daftar di <https://cloud.mongodb.com> → **Create** → cluster **M0 (Free)**, provider AWS region
+   **Singapore (ap-southeast-1)**.
+2. **Security → Database Access → Add New Database User**: username `readquest`, password
+   *Autogenerate* (salin), role *Read and write to any database*.
+3. **Security → Network Access → Add IP Address → Allow access from anywhere** (`0.0.0.0/0`).
+   Render Free tidak punya IP tetap; akses tetap dilindungi user + password.
+4. **Database → Connect → Drivers** → salin connection string, lalu ganti `<db_password>`:
    `mongodb+srv://readquest:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority`
 
-### 8.2 Cloudflare R2
+### 8.2 Render (backend)
 
-1. Daftar di <https://dash.cloudflare.com> → **R2** → aktifkan (paket gratis tetap minta data
-   pembayaran) → **Create bucket** `readquest-photos` (lokasi *Asia-Pacific*). Bucket **tidak perlu
-   publik**: foto disajikan backend lewat URL bertanda tangan.
-2. **R2 → Manage API Tokens → Create API token**: izin *Object Read & Write*, dibatasi ke bucket
-   tersebut. Catat **Access Key ID**, **Secret Access Key**, dan endpoint
-   `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`.
+1. Daftar di <https://render.com> dengan akun GitHub → **New → Blueprint** → pilih repo
+   `ReadQuest` → Render membaca `render.yaml`:
+   - Service `readquest-api`, runtime Python, paket Free, region Singapore, Root `backend`.
+   - Build `uv sync`, start `python -m app.serve`, health check `/health`.
+   - `JWT_SECRET` dibuat otomatis.
+2. Isi variabel yang diminta (*sync: false*):
 
-### 8.3 Railway
+   | Variabel | Nilai |
+   |----------|-------|
+   | `MONGODB_URI` | connection string Atlas (8.1) |
+   | `FRONTEND_ORIGIN` | sementara `https://readquest.vercel.app`, diperbarui di 8.3 |
+   | `ADMIN_PHONE` | nomor HP admin, mis. `0812xxxxxxxx` |
+   | `ADMIN_PIN` | 6 angka, bukan pola mudah (123456/111111) |
+   | `ADMIN_NAME` | nama admin |
+   | `VAPID_*` | opsional, untuk Web Push (lihat bawah); boleh kosong |
 
-1. Daftar di <https://railway.com> dengan akun GitHub → **New Project → Deploy from GitHub repo**
-   → pilih `ReadQuest`. Ubah nama service pertama menjadi **`backend`** (nama ini dipakai sebagai
-   hostname privat `backend.railway.internal`).
-2. Service **backend** → *Settings*:
-   - **Root Directory**: `backend`. `backend/railway.toml` otomatis dipakai: build Dockerfile,
-     seed tiap deploy, health check `/health`, 1 instance.
-   - Jangan buat domain publik. Backend hanya diakses frontend lewat jaringan privat.
-3. Service **backend** → *Variables* (gunakan *Raw Editor*):
+3. **Apply** → tunggu deploy hijau. Salin URL service, mis. `https://readquest-api.onrender.com`.
+   Buka `https://readquest-api.onrender.com/health` → harus `{"status":"ok"}`. Saat start, seed
+   berjalan otomatis (`SEED_ON_STARTUP=true`): role, aturan poin, dan admin pertama.
 
-   ```env
-   PORT=8000
-   APP_ENV=production
-   FRONTEND_ORIGIN=https://<domain-frontend>.up.railway.app
-   COOKIE_SECURE=true
-   FORWARDED_ALLOW_IPS=*
-   MONGODB_URI=mongodb+srv://readquest:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
-   MONGODB_DB=readquest
-   JWT_SECRET=<openssl rand -base64 48>
-   STORAGE_BACKEND=s3
-   S3_ENDPOINT_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
-   S3_REGION=auto
-   S3_BUCKET=readquest-photos
-   S3_ACCESS_KEY=<Access Key ID R2>
-   S3_SECRET_KEY=<Secret Access Key R2>
-   ADMIN_PHONE=<nomor HP admin, mis. 0812xxxxxxxx>
-   ADMIN_PIN=<6 angka, bukan 123456/111111>
-   ADMIN_NAME=<nama admin>
-   VAPID_PUBLIC_KEY=
-   VAPID_PRIVATE_KEY=
-   VAPID_SUBJECT=mailto:<email admin>
-   ```
+### 8.3 Vercel (frontend)
 
-   `FRONTEND_ORIGIN` diisi setelah langkah 5. Backend boleh gagal start sebelum itu.
-   `FORWARDED_ALLOW_IPS=*` aman karena backend tidak punya domain publik.
-4. Tambah service kedua: **New → GitHub Repo → ReadQuest**, beri nama **`frontend`**:
-   - **Root Directory**: `frontend` (memakai `frontend/railway.toml`).
-   - *Variables*: `API_PROXY_TARGET=http://backend.railway.internal:8000`. Nilai ini dibaca saat
-     build; setelah mengubahnya, lakukan *Redeploy*.
-5. Service **frontend** → *Settings → Networking → Generate Domain*. Salin alamatnya
-   (mis. `https://readquest-production.up.railway.app`) ke `FRONTEND_ORIGIN` di backend, lalu
-   **Redeploy** backend.
-6. Buka alamat frontend → login dengan `ADMIN_PHONE` + `ADMIN_PIN` → selesaikan onboarding →
-   bagikan `https://<domain-frontend>/register` ke tim.
+1. Daftar di <https://vercel.com> dengan akun GitHub → **Add New → Project** → import `ReadQuest`.
+2. **Root Directory**: `frontend`. Framework Next.js terdeteksi otomatis; build/output biarkan
+   default.
+3. **Environment Variables** (Production). Keduanya dibaca saat build:
 
-**Web Push (opsional)**: buat kunci VAPID dari mesin yang punya `uv` (`cd backend && uv run python
--m app.scripts.generate_vapid`) atau Docker, isi `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` di backend,
-lalu redeploy.
+   | Variabel | Nilai |
+   |----------|-------|
+   | `API_PROXY_TARGET` | `https://readquest-api.onrender.com` |
+   | `NEXT_PUBLIC_WS_URL` | `wss://readquest-api.onrender.com` |
 
-### 8.4 Catatan
+4. **Deploy**. Salin domain produksi, mis. `https://readquest.vercel.app`.
+5. Kembali ke Render → service → **Environment**: set `FRONTEND_ORIGIN` ke domain Vercel itu
+   (tanpa `/` di akhir) → **Save, rebuild, and deploy**.
+6. Buka domain Vercel → login dengan `ADMIN_PHONE` + `ADMIN_PIN` → selesaikan onboarding → bagikan
+   `https://<domain-vercel>/register` ke tim.
 
-- Backend mendengarkan IPv4 **dan** IPv6 sekaligus (`python -m app.serve`), karena jaringan privat
-  Railway memakai IPv6.
-- Setiap push ke `main` otomatis di-deploy ulang oleh Railway. Atur di *Settings → Source* bila
-  ingin deploy manual.
-- **Domain sendiri** nanti: *Settings → Networking → Custom Domain* di service frontend, tambahkan
-  record CNAME di DNS, lalu ubah `FRONTEND_ORIGIN`.
-- **Backup**: Atlas M0 tidak punya backup otomatis. Jalankan `mongodump --uri "<MONGODB_URI>"`
-  secara berkala dari komputer lain, atau naik ke tier berbayar yang punya snapshot.
-- Backend tetap satu instance (`numReplicas = 1`). Lihat §7.
+Setiap perubahan variabel di Vercel butuh **Redeploy**. Setiap push ke `main` otomatis di-deploy
+ulang oleh Vercel dan Render.
+
+### 8.4 Batasan paket Free & keep-alive
+
+- Render Free **tidur setelah 15 menit tanpa trafik**. Akses berikutnya butuh ±1 menit untuk
+  bangun, dan saat tidur, notifikasi terjadwal (pengingat baca, streak terancam, ringkasan
+  mingguan) **tidak terkirim**.
+- Untuk menjaga tetap bangun, isi repo variable GitHub **`KEEPALIVE_URL`** =
+  `https://readquest-api.onrender.com` (*Settings → Secrets and variables → Actions → Variables*).
+  Workflow `.github/workflows/keepalive.yml` lalu mem-ping `/health` tiap 10 menit. Satu service
+  yang bangun 24 jam ≈ 744 jam/bulan, masih di bawah kuota gratis 750 jam. Jadwal GitHub Actions
+  bisa terlambat, jadi ini mengurangi tidur tetapi tidak menjamin. Untuk andal, naik ke paket
+  Starter.
+- Atlas M0: 512 MB (data + foto ±1 MB/foto, cukup untuk ratusan foto), tanpa backup otomatis.
+  Backup berkala: `mongodump --uri "<MONGODB_URI>" --archive=readquest.gz --gzip`.
+- Backend tetap satu instance (lihat §7).
+
+### 8.5 Web Push (opsional)
+
+Buat kunci VAPID sekali di komputer yang punya Python + `uv`:
+`cd backend && uv run python -m app.scripts.generate_vapid`. Isi `VAPID_PUBLIC_KEY`,
+`VAPID_PRIVATE_KEY`, dan `VAPID_SUBJECT` (`mailto:email-admin`) di Render, lalu deploy ulang.

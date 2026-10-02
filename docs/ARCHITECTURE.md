@@ -337,7 +337,7 @@ Leaderboard tidak butuh job: dihitung saat diminta dengan cache (lihat §4.5).
 | **PyMongo async (`AsyncMongoClient`) + Pydantic v2** (tanpa ODM) | Driver async resmi MongoDB (pengganti Motor yang sudah deprecated); query & index tetap eksplisit dan mudah dioptimasi. |
 | **MongoDB** | Skema fleksibel untuk konfigurasi data-driven (aturan poin, quest, template notifikasi); aggregation pipeline kuat untuk leaderboard dan heatmap. |
 | **JWT + refresh token rotasi** | Stateless untuk API & WebSocket; refresh token di cookie httpOnly mengurangi risiko XSS. |
-| **Object storage S3-compatible** | Foto tidak membebani database. Lokal memakai **RustFS** (Apache-2.0; image komunitas MinIO tidak lagi dipublikasikan), produksi S3/R2. Test memakai backend folder lokal. |
+| **Object storage S3-compatible** | Foto tidak membebani database. Lokal memakai **RustFS** (Apache-2.0; image komunitas MinIO tidak lagi dipublikasikan), produksi S3/R2. Untuk host tanpa disk permanen (Render) foto bisa disimpan di MongoDB (koleksi `media`). Test memakai backend folder lokal. |
 | **Web Push (VAPID) + pywebpush** | Standar terbuka, bekerja di Android & iOS 16.4+ (setelah Add to Home Screen). |
 | **Scheduler internal + lease MongoDB** | Cukup untuk satu instance tanpa infrastruktur antrean tambahan; lease `job_locks` mencegah job ganda bila backend lebih dari satu. |
 | **Docker Compose + Caddy** | Lokal: MongoDB + RustFS dengan satu perintah. Production: seluruh stack di satu host dengan HTTPS otomatis (Let's Encrypt). |
@@ -389,8 +389,10 @@ Lihat `.env.example` di masing-masing lokasi.
 Jalur utama: satu host dengan `deploy/docker-compose.yml`, yaitu **Caddy** (HTTPS otomatis) →
 **frontend** (Next.js standalone) → **backend** (FastAPI, satu instance) → **MongoDB** (replica
 set) + **RustFS**. Database & storage berada di jaringan internal tanpa port publik. Alternatif
-terkelola yang didokumentasikan langkah demi langkah: **Railway** (frontend publik `*.up.railway.app`,
-backend di jaringan privat) + **MongoDB Atlas** + **Cloudflare R2**. CI membangun kedua
+terkelola yang didokumentasikan langkah demi langkah: **Vercel** (frontend; `/api/*` di-rewrite ke
+backend) + **Render Free** (backend; `render.yaml`) + **MongoDB Atlas** (data & foto,
+`STORAGE_BACKEND=mongo`). Pada topologi ini Reading Room terhubung langsung ke backend
+(`NEXT_PUBLIC_WS_URL`), karena Vercel tidak meneruskan WebSocket. CI membangun kedua
 image dan menjalankan smoke test stack lengkap di setiap PR.
 
 Langkah, variabel lingkungan, backup, dan checklist keamanan: [`DEPLOYMENT.md`](DEPLOYMENT.md).
