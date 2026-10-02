@@ -53,6 +53,15 @@ uv run ruff check . && uv run ruff format --check .
 | POST | `/api/v1/sessions/{id}/heartbeat` | `{state: active\|paused}` tiap 15 detik |
 | POST | `/api/v1/sessions/{id}/finish` | Selesai + catatan wajib (divalidasi) → posting |
 | POST | `/api/v1/sessions/{id}/abandon` | Batalkan sesi |
+| GET | `/api/v1/feed?function_id=&book_id=&author_id=&topic=&type=&bookmarked=&cursor=` | Feed tim dengan filter |
+| GET | `/api/v1/posts/{id}` | Detail posting (+ status reaksi & bookmark milik viewer) |
+| PUT / DELETE | `/api/v1/posts/{id}/reaction` | `{type: like\|insightful\|inspiring}` |
+| PUT / DELETE | `/api/v1/posts/{id}/bookmark` | Simpan / hapus dari tersimpan |
+| GET / POST | `/api/v1/posts/{id}/comments` | Komentar berantai (`parent_id`), `mention_ids` |
+| DELETE | `/api/v1/posts/{id}/comments/{cid}` | Hapus komentar sendiri (atau moderator) |
+| GET | `/api/v1/posts/{id}/share-card.png` | Kartu berbagi 1080×1350 |
+| POST | `/api/v1/books/{id}/discussions` | Thread diskusi buku (tanpa poin) |
+| GET | `/api/v1/users?q=` | Autocomplete @mention |
 | GET | `/api/v1/me/points` | Total & poin hari ini, level, streak (efektif) |
 | GET | `/api/v1/me/points/history?cursor=` | Riwayat ledger poin |
 | GET | `/health` | Health check (termasuk ping MongoDB) |

@@ -166,9 +166,18 @@ berikutnya (stabil seharian sehingga bisa di-cache browser) dan bisa dipakai lan
 
 ### 4.4 Reaksi / Komentar → Poin & Notifikasi
 
-1. Pengguna memberi reaksi atau komentar → API menyimpan `reactions` / `comments`.
-2. Service poin mengecek `point_rules` dan batas harian, lalu menulis `points_ledger`
-   untuk penerima (dan pemberi, untuk komentar bermakna).
+1. Pengguna memberi reaksi atau komentar → API menyimpan `reactions` / `comments`
+   (`services/social_service.py`) dan memperbarui `posts.counts` dengan `$inc` atomik.
+2. Service poin mengecek `point_rules` dan batas harian, lalu menulis `points_ledger`:
+   - reaksi apa pun (Like/Insightful/Inspiring) dari orang lain → `like_received` untuk penulis.
+     Dokumen reaksi tidak pernah dihapus (`type = null` saat dibatalkan) sehingga sumber poin
+     tetap sama dan batal-lalu-like-lagi tidak memberi poin ganda;
+   - komentar **bermakna** (≥ `comment.meaningful_min_words` kata, rasio kata unik cukup, bukan
+     duplikat komentar sendiri) di posting orang lain → `meaningful_comment_given` (pemberi) dan
+     `meaningful_comment_received` (penulis);
+   - interaksi di posting sendiri tidak memberi poin.
+   - Posting **diskusi buku** (`POST /books/{id}/discussions`, tanpa sesi baca) tidak memberi
+     poin agar poin tetap berasal dari membaca.
 3. Service notifikasi membuat dokumen `notifications`. Reaksi **di-batch** per posting
    (mis. "Rani dan 4 orang lain menyukai catatanmu").
 4. Push dikirim bila sesuai preferensi pengguna dan di luar jam tenang. Lonceng in-app

@@ -80,6 +80,7 @@ INDEXES: dict[str, list[IndexModel]] = {
         IndexModel([("post_id", ASC), ("created_at", ASC)]),
         IndexModel([("root_id", ASC), ("created_at", ASC)]),
         IndexModel([("author_id", ASC), ("created_at", DESC)]),
+        IndexModel([("author_id", ASC), ("content_hash", ASC)]),
     ],
     "bookmarks": [
         IndexModel([("user_id", ASC), ("post_id", ASC)], unique=True),

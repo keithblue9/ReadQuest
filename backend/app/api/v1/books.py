@@ -6,8 +6,8 @@ from app.api.deps import CurrentUser, Db, require_permission
 from app.repositories import books, catalog
 from app.schemas.books import BookCreateIn, BookOut
 from app.schemas.common import PyObjectId
-from app.schemas.posts import PostPageOut
-from app.services import book_service, post_service
+from app.schemas.posts import DiscussionIn, PostOut, PostPageOut
+from app.services import book_service, post_service, social_service
 
 router = APIRouter(prefix="/books", tags=["books"])
 
@@ -49,9 +49,19 @@ async def get_book(book_id: PyObjectId, db: Db, _: CurrentUser) -> BookOut:
 async def book_posts(
     book_id: PyObjectId,
     db: Db,
-    _: CurrentUser,
+    user: CurrentUser,
     cursor: str | None = None,
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> PostPageOut:
     await book_service.get_or_404(db, book_id)
-    return await post_service.page(db, {"book_id": book_id}, cursor, limit)
+    return await post_service.page(db, {"book_id": book_id}, cursor, limit, viewer_id=user["_id"])
+
+
+@router.post("/{book_id}/discussions", response_model=PostOut, status_code=status.HTTP_201_CREATED)
+async def create_discussion(
+    book_id: PyObjectId,
+    data: DiscussionIn,
+    db: Db,
+    user: Annotated[dict, Depends(require_permission("post.create"))],
+) -> PostOut:
+    return await social_service.create_discussion(db, user, book_id, data)

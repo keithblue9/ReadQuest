@@ -2,26 +2,13 @@ from bson import ObjectId
 
 from app.core import db as db_module
 from app.services import points_service
-from tests.conftest import create_book, onboarded_user, read_for, upload_photo
+from tests.conftest import create_book, onboarded_user, quick_post
 from tests.test_sessions import QUICK_NOTE, _story
 
 
 async def _session(client, headers, fake_clock, book_id, **finish):
-    started = await client.post("/api/v1/sessions", json={"book_id": book_id}, headers=headers)
-    assert started.status_code == 201, started.text
-    session_id = started.json()["id"]
-    await read_for(client, headers, fake_clock, session_id, minutes=15)
-    payload = {
-        "note_type": "quick_note",
-        "content": QUICK_NOTE,
-        "image_keys": [(await upload_photo(client, headers))["key"]],
-        **finish,
-    }
-    response = await client.post(
-        f"/api/v1/sessions/{session_id}/finish", json=payload, headers=headers
-    )
-    assert response.status_code == 200, response.text
-    return response.json()
+    content = finish.pop("content", QUICK_NOTE)
+    return await quick_post(client, headers, book_id, content, **finish)
 
 
 def _codes(result) -> dict[str, int]:

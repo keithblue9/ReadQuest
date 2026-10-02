@@ -26,7 +26,7 @@ from app.schemas.sessions import (
     SessionOut,
     TodayOut,
 )
-from app.services import points_service, post_service, streak_service
+from app.services import points_service, post_service, social_service, streak_service
 from app.services.note_validation import NoteRules, check_note, message_for
 from app.services.upload_service import owns_key
 
@@ -260,6 +260,7 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
     if data.is_book_finished and await posts.has_finished_book(db, user["_id"], book["_id"]):
         raise AppError(422, "book_already_finished", "Kamu sudah pernah menyelesaikan buku ini")
 
+    mentions = await social_service.validate_mentions(db, data.mention_ids)
     category = await catalog.get_category(db, book["category_id"])
     local = clock.local_date(now, user.get("timezone", "Asia/Jakarta"))
     first_time_reader = not await sessions.has_completed_book(db, user["_id"], book["_id"])
@@ -293,7 +294,7 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
         "page_progress": page_progress,
         "is_book_finished": data.is_book_finished,
         "topics": _topics(data.content, category["code"] if category else None),
-        "mentions": [],
+        "mentions": mentions,
         "counts": {"like": 0, "insightful": 0, "inspiring": 0, "comments": 0, "bookmarks": 0},
         "visibility": "team",
         "moderation": {"status": "visible", "by": None, "reason": None, "at": None},
@@ -339,7 +340,7 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
     updated_session = await sessions.get_owned(db, session_id, user["_id"])
     return FinishOut(
         session=to_out(updated_session, cfg.min_seconds),
-        post=post_service.to_out(post),
+        post=(await post_service.enrich(db, [post], user["_id"]))[0],
         points=await points_result(db, user["_id"], points_before, awards, streak),
     )
 

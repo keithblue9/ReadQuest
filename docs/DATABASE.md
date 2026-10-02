@@ -294,8 +294,8 @@ Satu dokumen per user.
 | `post_id` | ObjectId → `posts` | |
 | `post_author_id` | ObjectId → `users` | denormalisasi untuk poin & statistik penerima |
 | `user_id` | ObjectId → `users` | pemberi reaksi |
-| `type` | string | `like` \| `insightful` \| `inspiring` |
-| `created_at` | Date | |
+| `type` | string \| null | `like` \| `insightful` \| `inspiring`; `null` = reaksi dibatalkan (dokumen dipertahankan agar poin idempoten) |
+| `created_at`, `updated_at` | Date | |
 
 **Index:**
 - `{ post_id: 1, user_id: 1 }` unique: satu reaksi per user per posting (bisa diganti tipenya)
@@ -314,13 +314,14 @@ Satu dokumen per user.
 | `root_id` | ObjectId \| null → `comments` | akar thread, memudahkan pengambilan thread |
 | `content` | string | |
 | `word_count` | int | |
+| `content_hash` | string | mendeteksi komentar duplikat (tidak dihitung bermakna) |
 | `is_meaningful` | bool | memenuhi ambang kata/kualitas dari `app_settings` → memicu poin |
 | `mentions` | ObjectId[] → `users` | |
 | `moderation` | object | sama seperti `posts` |
 | `deleted_at` | Date \| null | |
 | `created_at`, `updated_at` | Date | |
 
-**Index:** `{ post_id: 1, created_at: 1 }` · `{ root_id: 1, created_at: 1 }` · `{ author_id: 1, created_at: -1 }`
+**Index:** `{ post_id: 1, created_at: 1 }` · `{ root_id: 1, created_at: 1 }` · `{ author_id: 1, created_at: -1 }` · `{ author_id: 1, content_hash: 1 }`
 
 ### 7.4 `bookmarks`
 

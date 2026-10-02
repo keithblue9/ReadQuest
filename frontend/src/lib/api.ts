@@ -76,7 +76,8 @@ type RequestOptions = Omit<RequestInit, "body"> & {
   auth?: boolean;
 };
 
-export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+/** Request terautentikasi; refresh token sekali bila mendapat 401. Melempar ApiError bila gagal. */
+export async function apiFetch(path: string, options: RequestOptions = {}): Promise<Response> {
   const { json, body, auth = true, headers, ...init } = options;
 
   const send = () => {
@@ -102,6 +103,15 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   }
 
   if (!response.ok) throw await parseError(response);
+  return response;
+}
+
+export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const response = await apiFetch(path, options);
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
+}
+
+export async function apiBlob(path: string, options: RequestOptions = {}): Promise<Blob> {
+  return (await apiFetch(path, options)).blob();
 }

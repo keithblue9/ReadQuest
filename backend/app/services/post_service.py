@@ -14,7 +14,50 @@ from app.schemas.posts import (
     PostCountsOut,
     PostOut,
     PostPageOut,
+    UserMiniOut,
+    ViewerStateOut,
 )
+
+
+async def users_by_id(db: AsyncDatabase, ids: set[ObjectId]) -> dict[ObjectId, dict]:
+    if not ids:
+        return {}
+    cursor = db["users"].find({"_id": {"$in": list(ids)}}, {"name": 1, "avatar_url": 1})
+    return {u["_id"]: u async for u in cursor}
+
+
+def mini(user_id: ObjectId, users: dict[ObjectId, dict]) -> UserMiniOut | None:
+    user = users.get(user_id)
+    if not user:
+        return None
+    return UserMiniOut(id=user_id, name=user["name"], avatar_url=user.get("avatar_url"))
+
+
+async def enrich(
+    db: AsyncDatabase, posts_: list[dict], viewer_id: ObjectId | None
+) -> list[PostOut]:
+    """PostOut + status viewer (reaksi & bookmark) + nama user yang di-mention."""
+    ids = [p["_id"] for p in posts_]
+    reactions: dict[ObjectId, str] = {}
+    bookmarked: set[ObjectId] = set()
+    if viewer_id and ids:
+        async for r in db["reactions"].find(
+            {"post_id": {"$in": ids}, "user_id": viewer_id, "type": {"$ne": None}}
+        ):
+            reactions[r["post_id"]] = r["type"]
+        async for b in db["bookmarks"].find({"post_id": {"$in": ids}, "user_id": viewer_id}):
+            bookmarked.add(b["post_id"])
+    mention_ids = {m for p in posts_ for m in p.get("mentions", [])}
+    users = await users_by_id(db, mention_ids)
+    out = []
+    for p in posts_:
+        item = to_out(p)
+        item.viewer = ViewerStateOut(
+            reaction=reactions.get(p["_id"]), bookmarked=p["_id"] in bookmarked
+        )
+        item.mentions = [m for m in (mini(i, users) for i in p.get("mentions", [])) if m]
+        out.append(item)
+    return out
 
 
 def to_out(post: dict) -> PostOut:
@@ -63,11 +106,17 @@ def decode_cursor(cursor: str | None) -> tuple[datetime, ObjectId] | None:
         raise AppError(400, "invalid_cursor", "Cursor tidak valid") from exc
 
 
-async def page(db: AsyncDatabase, query: dict, cursor: str | None, limit: int) -> PostPageOut:
+async def page(
+    db: AsyncDatabase,
+    query: dict,
+    cursor: str | None,
+    limit: int,
+    viewer_id: ObjectId | None = None,
+) -> PostPageOut:
     rows = await posts.list_page(db, query, before=decode_cursor(cursor), limit=limit + 1)
     has_more = len(rows) > limit
     rows = rows[:limit]
     return PostPageOut(
-        items=[to_out(p) for p in rows],
+        items=await enrich(db, rows, viewer_id),
         next_cursor=encode_cursor(rows[-1]) if has_more and rows else None,
     )

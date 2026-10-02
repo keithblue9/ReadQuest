@@ -68,8 +68,40 @@ export type Post = {
   topics: string[];
   author: { id: string; name: string; avatar_url: string | null; function_id: string | null };
   book: { id: string; title: string; authors: string[]; category_id: string | null };
-  counts: { like: number; insightful: number; inspiring: number; comments: number; bookmarks: number };
+  counts: PostCounts;
+  mentions: UserMini[];
+  viewer: { reaction: ReactionType | null; bookmarked: boolean };
   created_at: string;
+};
+
+export type ReactionType = "like" | "insightful" | "inspiring";
+
+export type PostCounts = {
+  like: number;
+  insightful: number;
+  inspiring: number;
+  comments: number;
+  bookmarks: number;
+};
+
+export type UserMini = { id: string; name: string; avatar_url: string | null };
+
+export type Comment = {
+  id: string;
+  post_id: string;
+  parent_id: string | null;
+  root_id: string | null;
+  author: UserMini;
+  content: string;
+  is_meaningful: boolean;
+  deleted: boolean;
+  mentions: UserMini[];
+  created_at: string;
+};
+
+export type CommentCreated = {
+  comment: Comment;
+  points: { rule_code: string; name: string; points: number }[];
 };
 
 export type PostPage = { items: Post[]; next_cursor: string | null };
