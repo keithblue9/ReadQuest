@@ -15,17 +15,17 @@ import type { Me, TokenResponse } from "@/lib/types";
 type AuthStatus = "loading" | "authenticated" | "unauthenticated" | "offline";
 
 export type RegisterInput = {
-  email: string;
-  password: string;
   name: string;
-  invite_code: string;
+  function_id: string;
+  phone: string;
+  pin: string;
   timezone: string;
 };
 
 type AuthContextValue = {
   status: AuthStatus;
   user: Me | null;
-  login: (email: string, password: string) => Promise<Me>;
+  login: (phone: string, pin: string) => Promise<Me>;
   register: (input: RegisterInput) => Promise<Me>;
   logout: () => Promise<void>;
   setUser: (user: Me) => void;
@@ -86,11 +86,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [restore]);
 
   const login = useCallback(
-    async (email: string, password: string) =>
+    async (phone: string, pin: string) =>
       applySession(
         await api<TokenResponse>("/auth/login", {
           method: "POST",
-          json: { email, password },
+          json: { phone, pin },
           auth: false,
         }),
       ),

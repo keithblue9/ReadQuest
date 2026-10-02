@@ -86,6 +86,8 @@ VALIDATORS: dict[str, Callable[[Any], Any]] = {
     "team.timezone": _timezone,
     "leaderboard.cache_seconds": _int(0, 3600),
     "notifications.schedule": _schedule,
+    "auth.max_pin_attempts": _int(3, 20),
+    "auth.lockout_minutes": _int(1, 1440),
 }
 
 

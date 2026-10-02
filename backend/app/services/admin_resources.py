@@ -5,7 +5,6 @@ moderasi) punya service sendiri.
 """
 
 import re
-import secrets
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -130,23 +129,6 @@ class TemplateIn(BaseModel):
     body: str = Field(default="", max_length=500)
 
 
-class InviteIn(BaseModel):
-    code: str = Field(default="", max_length=32)
-    default_role_id: PyObjectId
-    default_function_id: PyObjectId | None = None
-    max_uses: int | None = Field(default=None, ge=1, le=100000)
-    expires_at: datetime | None = None
-    is_active: bool = True
-
-    @field_validator("code")
-    @classmethod
-    def _code(cls, v: str) -> str:
-        v = v.strip().upper()
-        if v and not re.fullmatch(r"[A-Z0-9]{4,32}", v):
-            raise ValueError("Kode undangan 4–32 huruf/angka")
-        return v
-
-
 # ---------- Hook validasi ----------
 
 
@@ -217,19 +199,6 @@ async def _validate_quest(db: AsyncDatabase, data: dict, existing: dict | None) 
             raise AppError(
                 422, "invalid_window", "Quest tidak berulang butuh tanggal mulai & selesai"
             )
-    return data
-
-
-async def _validate_invite(db: AsyncDatabase, data: dict, existing: dict | None) -> dict:
-    if not data.get("code"):
-        data["code"] = existing["code"] if existing else secrets.token_hex(4).upper()
-    if await db["roles"].find_one({"_id": data["default_role_id"]}) is None:
-        raise AppError(422, "invalid_role", "Role tidak ditemukan")
-    fn = data.get("default_function_id")
-    if fn and await db["functions"].find_one({"_id": fn}) is None:
-        raise AppError(422, "invalid_function", "Fungsi tidak ditemukan")
-    if not existing:
-        data["used_count"] = 0
     return data
 
 
@@ -346,15 +315,6 @@ RESOURCES: dict[str, Resource] = {
             creatable=False,
             before_delete=_no_delete,
             extra={"types": list(DEFAULT_TEMPLATES)},
-        ),
-        Resource(
-            "invite-codes",
-            "invite_codes",
-            "invites.manage",
-            InviteIn,
-            [("created_at", -1)],
-            validate=_validate_invite,
-            before_delete=_no_delete,
         ),
     ]
 }

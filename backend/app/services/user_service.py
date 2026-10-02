@@ -21,7 +21,8 @@ async def build_me(db: AsyncDatabase, user: dict) -> MeOut:
     level, upcoming = await points_service.level_for(db, int(stats.get("points_total", 0)))
     return MeOut(
         id=user["_id"],
-        email=user["email"],
+        phone=user.get("phone"),
+        email=user.get("email"),
         name=user["name"],
         avatar_url=user.get("avatar_url"),
         role=RoleOut(code=role["code"], name=role["name"]) if role else RoleOut(code="", name=""),

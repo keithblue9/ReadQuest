@@ -73,8 +73,8 @@ sequenceDiagram
     participant U as PWA
     participant A as FastAPI
     participant D as MongoDB
-    U->>A: POST /auth/login (email, password)
-    A->>D: cari user, verifikasi hash (argon2)
+    U->>A: POST /auth/login (nomor HP, PIN 6 angka)
+    A->>D: cari user by phone, cek kunci akun, verifikasi hash PIN (argon2)
     A-->>U: access token (JWT, ~15 menit) + refresh token (cookie httpOnly)
     U->>A: request API + Authorization: Bearer <access>
     A->>A: verifikasi JWT, muat role & permission
@@ -84,8 +84,13 @@ sequenceDiagram
     A-->>U: access token baru + refresh token baru
 ```
 
-Pendaftaran baru wajib membawa **kode undangan** (`invite_codes`). SSO (OIDC) memakai
-alur yang sama setelah identitas diverifikasi provider.
+Register (`POST /auth/register`) berisi nama, fungsi (`GET /auth/register-options`, publik),
+nomor HP, dan PIN; akun langsung ber-role Member. Nomor HP dinormalisasi ke E.164 (`0812…`,
+`62812…`, `+62 812…` dianggap sama). PIN mudah ditebak ditolak. Setelah `auth.max_pin_attempts`
+kali PIN salah, akun terkunci `auth.lockout_minutes` menit (keduanya di `app_settings`), ditambah
+rate limit per IP. Admin dapat reset PIN (`PUT /admin/users/{id}/pin`): kunci dibuka, refresh
+token dicabut, dan access token lama ditolak lewat `sessions_revoked_at`. Pengguna mengganti PIN
+lewat `PUT /me/pin`. SSO (OIDC) memakai alur yang sama setelah identitas diverifikasi provider.
 
 ### 4.2 Sesi Baca → Catatan → Poin
 
@@ -287,7 +292,7 @@ Leaderboard tidak butuh job: dihitung saat diminta dengan cache (lihat §4.5).
   dihitung ulang untuk sub-fungsi; role Admin tidak boleh kehilangan `config.roles.manage`;
   metrik badge/quest harus ada di `user_stats.METRICS`), dan penjaga hapus (data yang sudah
   dipakai cukup dinonaktifkan). Resource: fungsi, role, aturan poin, badge, quest, level,
-  kategori buku, template notifikasi, kode undangan. Satu komponen frontend
+  kategori buku, template notifikasi. Satu komponen frontend
   (`ResourceManager`) melayani semuanya; matriks permission punya halaman khusus.
 - **Pengaturan** (`app_settings`) divalidasi per kunci; perubahan zona waktu/cache langsung
   membatalkan snapshot leaderboard yang masih terbuka.

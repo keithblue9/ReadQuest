@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { Alert, Button, Field } from "@/components/ui";
+import { Alert, Button } from "@/components/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
-import { errorMessage } from "@/lib/errors";
+import { PhoneField, PinField } from "@/features/auth/PinField";
+import { errorMessage, fieldErrors } from "@/lib/errors";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [pending, setPending] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -17,9 +19,11 @@ export default function LoginPage() {
     const form = new FormData(event.currentTarget);
     setPending(true);
     setError(null);
+    setErrors({});
     try {
-      await login(String(form.get("email")), String(form.get("password")));
+      await login(String(form.get("phone")), String(form.get("pin")));
     } catch (err) {
+      setErrors(fieldErrors(err));
       setError(errorMessage(err));
       setPending(false);
     }
@@ -28,25 +32,20 @@ export default function LoginPage() {
   return (
     <div className="animate-pop-in">
       <h1 className="text-3xl font-extrabold">Selamat datang kembali 👋</h1>
-      <p className="mt-2 text-muted">Lanjutkan petualangan bacamu hari ini.</p>
+      <p className="mt-2 text-muted">Masuk dengan nomor HP dan PIN-mu.</p>
 
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4" noValidate>
         {error && <Alert>{error}</Alert>}
-        <Field label="Email" name="email" type="email" autoComplete="email" required />
-        <Field
-          label="Password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          required
-        />
+        <PhoneField error={errors.phone} />
+        <PinField autoComplete="current-password" error={errors.pin} />
         <Button type="submit" loading={pending} className="mt-2">
           Masuk
         </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-muted">
-        Punya kode undangan?{" "}
+      <p className="mt-4 text-center text-sm text-muted">Lupa PIN? Hubungi Admin tim untuk reset.</p>
+      <p className="mt-2 text-center text-sm text-muted">
+        Belum punya akun?{" "}
         <Link href="/register" className="font-bold text-primary">
           Daftar di sini
         </Link>

@@ -45,19 +45,11 @@ def at(fake_clock, iso: str) -> None:
 
 async def _user_with_role(client, database, role_code: str, function_id: str | None = None):
     role = await database["roles"].find_one({"code": role_code})
-    code = f"R{uuid.uuid4().hex[:7].upper()}"
-    await database["invite_codes"].insert_one(
-        {
-            "code": code,
-            "default_role_id": role["_id"],
-            "default_function_id": ObjectId(function_id) if function_id else None,
-            "max_uses": None,
-            "used_count": 0,
-            "expires_at": None,
-            "is_active": True,
-        }
-    )
-    return auth_header(await register(client, invite_code=code))
+    extra = {"function_id": function_id} if function_id else {}
+    headers = auth_header(await register(client, **extra))
+    user_id = ObjectId((await client.get("/api/v1/me", headers=headers)).json()["id"])
+    await database["users"].update_one({"_id": user_id}, {"$set": {"role_id": role["_id"]}})
+    return headers
 
 
 # ---------- Authenticity Index ----------

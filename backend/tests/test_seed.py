@@ -9,3 +9,32 @@ async def test_seed_is_idempotent(database):
     assert rules["session_valid"] == 20
     assert rules["chapter_story"] == 40
     assert rules["book_finished"] == 150
+
+
+async def test_seed_admin_login_and_legacy_migration(client, database, monkeypatch):
+    from app.core.config import get_settings
+    from app.seed import __main__ as seed_module
+    from tests.conftest import ADMIN_PHONE
+
+    admin = await database["users"].find_one({"phone": ADMIN_PHONE})
+    assert admin and admin["password_hash"].startswith("$argon2")
+    assert not await database["permissions"].find_one({"code": "invites.manage"})
+
+    # Akun admin lama (login email, tanpa nomor HP) mendapat nomor HP & PIN dari seed.
+    legacy_id = (
+        await database["users"].insert_one(
+            {"email": "lama@example.com", "name": "Admin Lama", "status": "active"}
+        )
+    ).inserted_id
+    settings = get_settings().model_copy(
+        update={
+            "admin_phone": "0811 0000 0099",
+            "admin_pin": "357913",
+            "admin_email": "lama@example.com",
+        }
+    )
+    monkeypatch.setattr(seed_module, "get_settings", lambda: settings)
+    await seed_module._seed_admin(database, {})
+    legacy = await database["users"].find_one({"_id": legacy_id})
+    assert legacy["phone"] == "+6281100000099"
+    await database["users"].delete_one({"_id": legacy_id})

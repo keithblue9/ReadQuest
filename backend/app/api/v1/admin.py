@@ -156,7 +156,6 @@ ADMIN_AREA_PERMISSIONS = {
     "users.manage",
     "post.moderate",
     "audit.view",
-    "invites.manage",
     "config.functions.manage",
     "config.roles.manage",
     "config.points.manage",
@@ -188,7 +187,7 @@ async def lookups(db: Db, user: CurrentUser) -> dict:
     )
     users = (
         await db["users"]
-        .find({"status": "active"}, {"name": 1, "email": 1})
+        .find({"status": "active"}, {"name": 1, "phone": 1})
         .sort("name", 1)
         .limit(1000)
         .to_list()
@@ -260,6 +259,18 @@ async def update_user(
     result = await admin_users_service.update_user(db, actor, user_id, data, m)
     permissions.clear_cache()
     return result
+
+
+@router.put("/users/{user_id}/pin", status_code=status.HTTP_204_NO_CONTENT)
+async def reset_user_pin(
+    user_id: PyObjectId,
+    data: admin_users_service.ResetPinIn,
+    db: Db,
+    actor: need("users.manage"),
+    m: Meta,
+) -> Response:
+    await admin_users_service.reset_pin(db, actor, user_id, data, m)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 # ---------- Katalog buku ----------

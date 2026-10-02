@@ -19,7 +19,9 @@ export default function OnboardingPage() {
   const router = useRouter();
 
   const [options, setOptions] = useState<OnboardingOptions | null>(null);
-  const [step, setStep] = useState<Step>("function");
+  // Fungsi sudah dipilih saat daftar → onboarding mulai dari minat baca.
+  const [skipFunction] = useState(() => Boolean(user?.function_id));
+  const [step, setStep] = useState<Step>(skipFunction ? "interests" : "function");
   const [functionId, setFunctionId] = useState<string | null>(user?.function_id ?? null);
   const [interests, setInterests] = useState<string[]>(user?.interests ?? []);
   const [target, setTarget] = useState<number | null>(null);
@@ -47,7 +49,9 @@ export default function OnboardingPage() {
   const savedTarget = user?.onboarding_completed ? user.daily_target_minutes : null;
   const dailyTarget = target ?? savedTarget ?? options.daily_target_default_minutes;
   const showInstall = step === "install";
-  const stepIndex = ["function", "interests", "target"].indexOf(step);
+  const steps: Step[] = skipFunction ? ["interests", "target"] : ["function", "interests", "target"];
+  const stepIndex = steps.indexOf(step);
+  const canGoBack = step === "target" || (step === "interests" && !skipFunction);
 
   function toggleInterest(id: string) {
     setInterests((current) =>
@@ -83,12 +87,12 @@ export default function OnboardingPage() {
       <header className="flex items-center justify-between">
         <Logo />
         {!showInstall && (
-          <span className="text-sm font-semibold text-muted">Langkah {stepIndex + 1}/3</span>
+          <span className="text-sm font-semibold text-muted">Langkah {stepIndex + 1}/{steps.length}</span>
         )}
       </header>
       {!showInstall && (
         <div className="mt-4 flex gap-2" aria-hidden>
-          {[0, 1, 2].map((i) => (
+          {steps.map((_, i) => (
             <span
               key={i}
               className={`h-1.5 flex-1 rounded-full transition-colors ${
@@ -194,10 +198,10 @@ export default function OnboardingPage() {
 
       <div
         className={`grid gap-3 pt-6 ${
-          step === "interests" || step === "target" ? "grid-cols-[1fr_2fr]" : "grid-cols-1"
+          canGoBack ? "grid-cols-[1fr_2fr]" : "grid-cols-1"
         }`}
       >
-        {step === "interests" || step === "target" ? (
+        {canGoBack ? (
           <Button
             variant="ghost"
             onClick={() => setStep(step === "target" ? "interests" : "function")}

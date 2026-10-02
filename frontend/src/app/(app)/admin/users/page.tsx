@@ -11,7 +11,9 @@ import { errorMessage } from "@/lib/errors";
 type AdminUser = {
   id: string;
   name: string;
-  email: string;
+  phone: string | null;
+  email: string | null;
+  locked: boolean;
   role: string | null;
   role_id: string | null;
   function: string | null;
@@ -35,6 +37,7 @@ export default function AdminUsersPage() {
   const [data, setData] = useState<{ total: number; items: AdminUser[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(() => {
     const params = new URLSearchParams({ offset: String(offset), limit: String(PAGE) });
@@ -65,19 +68,38 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function resetPin(target: AdminUser) {
+    const pin = window.prompt(`PIN baru untuk ${target.name} (6 angka). Sampaikan ke pengguna secara langsung.`);
+    if (pin === null) return;
+    setBusy(target.id);
+    setError(null);
+    setNotice(null);
+    try {
+      await api(`/admin/users/${target.id}/pin`, { method: "PUT", json: { pin: pin.trim() } });
+      setData((d) => d && { ...d, items: d.items.map((u) => (u.id === target.id ? { ...u, locked: false } : u)) });
+      setNotice(`PIN ${target.name} sudah di-reset. Semua sesi login-nya dicabut.`);
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setBusy(null);
+    }
+  }
+
   const functions = lookups ? treeOrder(lookups.functions) : [];
 
   return (
     <section className="flex flex-col gap-4">
       <header>
         <h1 className="text-2xl font-extrabold">Pengguna</h1>
-        <p className="text-sm text-muted">Ubah role, fungsi, atau nonaktifkan akun. Semua perubahan tercatat di audit log.</p>
+        <p className="text-sm text-muted">
+          Ubah role, fungsi, reset PIN, atau nonaktifkan akun. Semua perubahan tercatat di audit log.
+        </p>
       </header>
 
       <div className="flex flex-wrap gap-2">
         <input
           type="search"
-          placeholder="Cari nama atau email…"
+          placeholder="Cari nama atau nomor HP…"
           aria-label="Cari pengguna"
           className="min-w-48 flex-1 rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-primary"
           value={q}
@@ -118,6 +140,11 @@ export default function AdminUsersPage() {
       </div>
 
       {error && <Alert>{error}</Alert>}
+      {notice && (
+        <p role="status" className="rounded-2xl bg-success/10 px-4 py-3 text-sm font-semibold text-success">
+          {notice}
+        </p>
+      )}
 
       {!data ? (
         <p className="text-sm text-muted">Memuat…</p>
@@ -134,6 +161,11 @@ export default function AdminUsersPage() {
                       <p className="truncate font-bold">
                         {u.name}
                         {self && <span className="ml-2 text-xs font-semibold text-muted">(kamu)</span>}
+                        {u.locked && (
+                          <span className="ml-2 rounded-full bg-accent/15 px-2 py-0.5 text-xs font-bold text-accent">
+                            Terkunci
+                          </span>
+                        )}
                         {u.status === "suspended" && (
                           <span className="ml-2 rounded-full bg-danger/10 px-2 py-0.5 text-xs font-bold text-danger">
                             Nonaktif
@@ -141,10 +173,19 @@ export default function AdminUsersPage() {
                         )}
                       </p>
                       <p className="truncate text-xs text-muted">
-                        {u.email} · {u.points_total} poin
+                        {u.phone ?? u.email ?? "—"} · {u.points_total} poin
                       </p>
                     </div>
                     {!self && (
+                      <div className="flex shrink-0 gap-3">
+                      <button
+                        type="button"
+                        disabled={busy === u.id}
+                        className="text-sm font-bold text-primary"
+                        onClick={() => resetPin(u)}
+                      >
+                        Reset PIN
+                      </button>
                       <button
                         type="button"
                         disabled={busy === u.id}
@@ -153,6 +194,7 @@ export default function AdminUsersPage() {
                       >
                         {u.status === "active" ? "Nonaktifkan" : "Aktifkan"}
                       </button>
+                      </div>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">

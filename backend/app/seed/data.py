@@ -22,7 +22,6 @@ PERMISSIONS: list[tuple[str, str, str]] = [
     ("config.books.manage", "config", "Kelola katalog & kategori buku"),
     ("config.notifications.manage", "config", "Kelola jadwal & template notifikasi"),
     ("config.settings.manage", "config", "Kelola pengaturan aplikasi & threshold"),
-    ("invites.manage", "config", "Kelola kode undangan"),
     ("audit.view", "admin", "Melihat audit log"),
     ("users.manage", "admin", "Kelola pengguna (role, fungsi, status)"),
 ]
@@ -272,4 +271,6 @@ APP_SETTINGS: list[tuple[str, object, str]] = [
         },
         "Jadwal notifikasi (weekday 0 = Senin, zona waktu tim / user)",
     ),
+    ("auth.max_pin_attempts", 5, "Jumlah PIN salah berturut-turut sebelum akun dikunci"),
+    ("auth.lockout_minutes", 15, "Lama akun terkunci setelah PIN salah berulang (menit)"),
 ]

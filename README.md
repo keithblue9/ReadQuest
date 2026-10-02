@@ -36,7 +36,7 @@ deploy/              stack production (Docker Compose + Caddy HTTPS)
 cp .env.example .env                 # kredensial object storage
 docker compose up -d                 # MongoDB (replica set) + RustFS
 
-cd backend && cp .env.example .env   # isi ADMIN_EMAIL, ADMIN_PASSWORD, SEED_INVITE_CODE
+cd backend && cp .env.example .env   # isi ADMIN_PHONE & ADMIN_PIN (admin pertama)
 uv sync && uv run python -m app.seed
 uv run uvicorn app.main:app --reload --port 8000
 
@@ -44,13 +44,13 @@ cd ../frontend && cp .env.example .env.local
 npm install && npm run dev           # buka http://localhost:3000
 ```
 
-Daftar di `/register` memakai kode undangan dari `SEED_INVITE_CODE` (atau kode yang dicetak
-oleh seed). Detail: [`backend/README.md`](backend/README.md), [`frontend/README.md`](frontend/README.md).
+Daftar di `/register` cukup dengan nama, fungsi, nomor HP, dan PIN 6 angka. Admin pertama login
+dengan `ADMIN_PHONE` + `ADMIN_PIN`. Detail: [`backend/README.md`](backend/README.md), [`frontend/README.md`](frontend/README.md).
 
 ## Deployment Production
 
 ```bash
-cd deploy && cp .env.example .env    # DOMAIN, JWT_SECRET, kredensial S3, admin pertama
+cd deploy && cp .env.example .env    # DOMAIN, JWT_SECRET, kredensial S3, ADMIN_PHONE/ADMIN_PIN
 docker compose up -d --build
 docker compose --profile tools run --rm seed
 ```
@@ -72,7 +72,7 @@ Semua fase (0–10) dalam [`docs/SPEC.md`](docs/SPEC.md) sudah selesai:
 - PWA polish (offline, instal, pembaruan versi).
 - Hardening keamanan & deployment Docker.
 
-SSO (OIDC) masih opsional dan belum diimplementasikan; login memakai email/password.
+Login memakai nomor HP + PIN 6 angka; SSO (OIDC) masih opsional dan belum diimplementasikan.
 
 ## Dokumentasi
 

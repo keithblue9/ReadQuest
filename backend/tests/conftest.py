@@ -8,9 +8,8 @@ os.environ.update(
         "APP_ENV": "test",
         "JWT_SECRET": "test-secret-" + "x" * 32,
         "MONGODB_DB": f"readquest_test_{uuid.uuid4().hex[:8]}",
-        "ADMIN_EMAIL": "admin@example.com",
-        "ADMIN_PASSWORD": "admin-pass-123",
-        "SEED_INVITE_CODE": "TESTCODE",
+        "ADMIN_PHONE": "081100000001",
+        "ADMIN_PIN": "246810",
         "RATE_LIMIT_ENABLED": "true",
         "STORAGE_BACKEND": "local",
         "SCHEDULER_ENABLED": "false",
@@ -68,18 +67,29 @@ async def client():
         yield c
 
 
-def unique_email() -> str:
-    return f"user-{uuid.uuid4().hex[:10]}@example.com"
+ADMIN_PHONE = "+6281100000001"
+ADMIN_PIN = "246810"
+USER_PIN = "135790"
+
+
+def unique_phone() -> str:
+    return "0812" + str(uuid.uuid4().int)[:8]
+
+
+async def first_function_id(client: httpx.AsyncClient) -> str:
+    options = (await client.get("/api/v1/auth/register-options")).json()
+    return options["functions"][0]["id"]
 
 
 async def register(client: httpx.AsyncClient, **overrides) -> httpx.Response:
     payload = {
-        "email": unique_email(),
-        "password": "rahasia-123",
         "name": "Pembaca Uji",
-        "invite_code": "TESTCODE",
+        "phone": unique_phone(),
+        "pin": USER_PIN,
         **overrides,
     }
+    if "function_id" not in payload:
+        payload["function_id"] = await first_function_id(client)
     return await client.post("/api/v1/auth/register", json=payload)
 
 
@@ -215,6 +225,6 @@ async def me(client: httpx.AsyncClient, headers: dict[str, str]) -> dict:
 
 async def admin_headers(client: httpx.AsyncClient) -> dict[str, str]:
     response = await client.post(
-        "/api/v1/auth/login", json={"email": "admin@example.com", "password": "admin-pass-123"}
+        "/api/v1/auth/login", json={"phone": ADMIN_PHONE, "pin": ADMIN_PIN}
     )
     return auth_header(response)

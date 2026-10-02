@@ -17,7 +17,7 @@ pydantic-settings · PyJWT · argon2-cffi · boto3 (S3) · Pillow · pytest · r
 docker compose up -d
 
 cd backend
-cp .env.example .env          # isi JWT_SECRET, ADMIN_EMAIL/ADMIN_PASSWORD, SEED_INVITE_CODE
+cp .env.example .env          # isi JWT_SECRET, ADMIN_PHONE/ADMIN_PIN
 uv sync
 uv run python -m app.seed     # index + data awal (aman dijalankan berulang)
 uv run uvicorn app.main:app --reload --port 8000
@@ -48,8 +48,10 @@ uv run ruff check . && uv run ruff format --check .
 
 | Method | Path | Keterangan |
 |--------|------|------------|
-| POST | `/api/v1/auth/register` | Daftar dengan kode undangan |
-| POST | `/api/v1/auth/login` | Login email/password |
+| GET | `/api/v1/auth/register-options` | Daftar fungsi untuk form daftar (publik) |
+| POST | `/api/v1/auth/register` | Daftar: `{name, function_id, phone, pin}` → Member |
+| POST | `/api/v1/auth/login` | Login `{phone, pin}`; akun terkunci sementara setelah PIN salah berulang |
+| PUT | `/api/v1/me/pin` | Ganti PIN sendiri `{current_pin, new_pin}` |
 | POST | `/api/v1/auth/refresh` | Tukar refresh cookie → access token baru (rotasi) |
 | POST | `/api/v1/auth/logout` | Cabut sesi & hapus cookie |
 | GET / PATCH | `/api/v1/me` | Profil user saat ini |
@@ -92,11 +94,12 @@ uv run ruff check . && uv run ruff format --check .
 | GET | `/api/v1/admin/dashboard?days=` | Dashboard admin (`admin.dashboard.view`) |
 | GET | `/api/v1/admin/export.xlsx?days=` · `/admin/export.pdf?days=` | Export laporan (`admin.export`) |
 | GET | `/api/v1/admin/lookups` | Daftar ringkas role/fungsi/kategori/pengguna untuk form admin |
-| GET / POST | `/api/v1/admin/resources/{name}` | CRUD konfigurasi: `functions`, `roles`, `point-rules`, `badges`, `quests`, `levels`, `book-categories`, `notification-templates`, `invite-codes` |
+| GET / POST | `/api/v1/admin/resources/{name}` | CRUD konfigurasi: `functions`, `roles`, `point-rules`, `badges`, `quests`, `levels`, `book-categories`, `notification-templates` |
 | PUT / DELETE | `/api/v1/admin/resources/{name}/{id}` | Ubah / hapus (data terpakai ditolak — nonaktifkan saja) |
 | GET | `/api/v1/admin/permissions` | Katalog permission untuk matriks RBAC |
 | GET / PUT | `/api/v1/admin/settings[/{key}]` | Pengaturan aplikasi tervalidasi (`{value}`) |
 | GET / PUT | `/api/v1/admin/users[/{id}]` | Daftar pengguna, ubah role/fungsi/status |
+| PUT | `/api/v1/admin/users/{id}/pin` | Reset PIN pengguna (buka kunci, cabut semua sesi) |
 | PUT | `/api/v1/admin/books/{id}` | Koreksi info buku (posting ikut diperbarui) |
 | GET | `/api/v1/admin/moderation?status=flagged\|hidden` | Antrean moderasi |
 | POST | `/api/v1/admin/moderation/{posts\|comments}/{id}` | `{action: hide\|restore\|dismiss, reason, reverse_points}` |

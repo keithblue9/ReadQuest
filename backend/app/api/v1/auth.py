@@ -5,7 +5,8 @@ from fastapi import APIRouter, Cookie, Depends, Response, status
 from app.api.deps import Db, client_info
 from app.core.config import get_settings
 from app.core.rate_limit import rate_limiter
-from app.schemas.auth import LoginIn, RegisterIn, TokenOut
+from app.repositories import catalog
+from app.schemas.auth import FunctionOption, LoginIn, RegisterIn, RegisterOptionsOut, TokenOut
 from app.services import auth_service, user_service
 from app.services.auth_service import ClientInfo, IssuedTokens
 
@@ -54,6 +55,18 @@ async def _token_response(db: Db, response: Response, issued: IssuedTokens) -> T
 RefreshCookie = Annotated[str | None, Cookie(alias=REFRESH_COOKIE_NAME)]
 
 
+@router.get("/register-options", response_model=RegisterOptionsOut)
+async def register_options(db: Db) -> RegisterOptionsOut:
+    """Pilihan fungsi/bagian untuk form daftar (publik, tanpa login)."""
+    functions = await catalog.list_active_functions(db)
+    return RegisterOptionsOut(
+        functions=[
+            FunctionOption(id=f["_id"], name=f["name"], parent_id=f.get("parent_id"))
+            for f in functions
+        ]
+    )
+
+
 @router.post("/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
 async def register(data: RegisterIn, db: Db, response: Response, client: Client) -> TokenOut:
     # Per IP dibuat longgar: satu kantor (NAT) bisa mendaftar bersamaan saat rollout.
@@ -65,8 +78,7 @@ async def register(data: RegisterIn, db: Db, response: Response, client: Client)
 @router.post("/login", response_model=TokenOut)
 async def login(data: LoginIn, db: Db, response: Response, client: Client) -> TokenOut:
     rate_limiter.hit(f"login:ip:{client.ip}", limit=60, window_seconds=60)
-    # Perlindungan brute-force per akun tetap ketat.
-    rate_limiter.hit(f"login:email:{data.email.lower()}", limit=5, window_seconds=60)
+    # Brute-force PIN per akun dibatasi oleh kunci akun (auth.max_pin_attempts) di service.
     issued = await auth_service.login(db, data, client)
     return await _token_response(db, response, issued)
 

@@ -55,8 +55,7 @@ Isi `deploy/.env` (file ini **tidak di-commit**, sudah tercakup di `.gitignore`)
 | `S3_ACCESS_KEY`, `S3_SECRET_KEY` | ✅ | Kredensial RustFS (secret min. 8 karakter): `openssl rand -base64 24` |
 | `S3_BUCKET` | — | Default `readquest-photos` |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | — | Web Push. Kosong = push nonaktif, lonceng in-app tetap jalan |
-| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | seed | Admin pertama (password min. 8 karakter) |
-| `SEED_INVITE_CODE` | seed | Kode undangan awal untuk Member |
+| `ADMIN_PHONE`, `ADMIN_PIN`, `ADMIN_NAME` | seed | Admin pertama: login dengan nomor HP + PIN 6 angka |
 | `MONGODB_DB`, `TAG` | — | Nama database (default `readquest`) dan tag image |
 
 Build, jalankan, lalu seed data awal:
@@ -71,11 +70,12 @@ docker compose ps                                  # semua layanan harus "health
 docker compose --profile tools run --rm seed       # role, aturan poin, badge, admin pertama
 ```
 
-Buka `https://DOMAIN`, masuk sebagai admin, selesaikan onboarding, lalu bagikan tautan undangan
-dari **Panel Admin → Undangan** (`https://DOMAIN/register?code=KODE`).
+Buka `https://DOMAIN`, masuk sebagai admin (nomor HP + PIN), selesaikan onboarding, lalu bagikan
+alamat `https://DOMAIN/register` ke tim. Anggota cukup mengisi nama, fungsi, nomor HP, dan PIN.
+Pengguna yang lupa PIN di-reset lewat **Panel Admin → Pengguna → Reset PIN**.
 
 > Seed hanya menambah data yang belum ada, jadi aman dijalankan ulang. Setelah admin pertama
-> dibuat, `ADMIN_PASSWORD` boleh dihapus dari `.env`.
+> dibuat, `ADMIN_PIN` boleh dihapus dari `.env`.
 
 ### Build di balik proxy TLS korporat
 
@@ -97,7 +97,7 @@ docker compose logs -f backend          # tidak ada error startup; scheduler akt
 ```
 
 Cek manual:
-- Daftar via tautan undangan, mulai sesi baca, unggah foto, lalu posting muncul di feed.
+- Daftar di `/register`, mulai sesi baca, unggah foto, lalu posting muncul di feed.
 - **Reading Room** menampilkan "… di ruangan" (WebSocket lewat Caddy → Next.js → FastAPI).
 - **Pengaturan notifikasi → Kirim tes** (bila VAPID diisi; di iOS hanya setelah dipasang ke Layar Utama).
 - **Panel Admin → Dashboard → ⬇ PDF/Excel**.

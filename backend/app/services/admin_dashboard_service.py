@@ -21,11 +21,7 @@ async def build(db: AsyncDatabase, days: int) -> dict:
     dates = [(start + timedelta(days=i)).isoformat() for i in range(days)]
     since_dt = clock.now() - timedelta(days=days)
 
-    users = (
-        await db["users"]
-        .find({"status": "active"}, {"name": 1, "function_id": 1, "email": 1})
-        .to_list()
-    )
+    users = await db["users"].find({"status": "active"}, {"name": 1, "function_id": 1}).to_list()
     functions = {f["_id"]: f["name"] async for f in db["functions"].find({"is_active": True})}
     members_by_fn: dict = defaultdict(int)
     for u in users:
@@ -192,7 +188,7 @@ async def user_rows(db: AsyncDatabase, days: int) -> list[dict]:
         rows.append(
             {
                 "name": u["name"],
-                "email": u["email"],
+                "phone": u.get("phone") or u.get("email") or "-",
                 "function": functions.get(u.get("function_id"), "-"),
                 "sessions": len(sessions),
                 "minutes": round(sum(s["active_seconds"] for s in sessions) / 60),
