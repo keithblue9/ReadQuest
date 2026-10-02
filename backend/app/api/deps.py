@@ -37,8 +37,9 @@ async def get_current_user(
     if user is None or user["status"] != "active":
         raise unauthorized("Token tidak valid atau kedaluwarsa", code="token_invalid")
     # Token yang terbit sebelum sesi dicabut (mis. PIN di-reset Admin) tidak berlaku lagi.
+    # `iat` beresolusi detik: token yang terbit di detik yang sama dengan pencabutan ikut ditolak.
     revoked_at = user.get("sessions_revoked_at")
-    if revoked_at is not None and payload.get("iat", 0) < int(
+    if revoked_at is not None and payload.get("iat", 0) <= int(
         revoked_at.replace(tzinfo=UTC).timestamp()
     ):
         raise unauthorized("Sesi berakhir, silakan login lagi", code="token_invalid")
