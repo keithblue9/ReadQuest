@@ -16,7 +16,7 @@ from pymongo.errors import DuplicateKeyError
 from app.core import clock, media
 from app.core import db as db_module
 from app.core.errors import AppError
-from app.repositories import books, catalog, posts, sessions
+from app.repositories import books, catalog, leaderboard_cache, posts, sessions
 from app.schemas.points import AwardOut, PointsResultOut, StreakOut
 from app.schemas.sessions import (
     FinishIn,
@@ -333,6 +333,7 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
                 ) from exc
             raise
 
+    await leaderboard_cache.invalidate_open(db)
     if data.rating is not None:
         avg = await posts.rating_stats(db, book["_id"])
         await books.update(db, book["_id"], {"$set": {"stats.avg_rating": avg}})

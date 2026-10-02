@@ -62,6 +62,8 @@ uv run ruff check . && uv run ruff format --check .
 | GET | `/api/v1/posts/{id}/share-card.png` | Kartu berbagi 1080×1350 |
 | POST | `/api/v1/books/{id}/discussions` | Thread diskusi buku (tanpa poin) |
 | GET | `/api/v1/users?q=` | Autocomplete @mention |
+| GET | `/api/v1/leaderboard?category=&period=&period_key=` | Peringkat (top 50 + posisimu, navigasi periode) |
+| GET | `/api/v1/leaderboard/me?period=` | Ringkasan peringkatmu di semua kategori |
 | GET | `/api/v1/me/points` | Total & poin hari ini, level, streak (efektif) |
 | GET | `/api/v1/me/points/history?cursor=` | Riwayat ledger poin |
 | GET | `/health` | Health check (termasuk ping MongoDB) |

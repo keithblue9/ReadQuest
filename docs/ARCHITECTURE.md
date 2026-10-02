@@ -185,11 +185,22 @@ berikutnya (stabil seharian sehingga bisa di-cache browser) dan bisa dipakai lan
 
 ### 4.5 Leaderboard
 
-- Dihitung dengan **aggregation** atas `points_ledger` (dan `reading_sessions`/`posts`
-  untuk kategori non-poin) per periode.
-- Hasil di-cache di `leaderboard_snapshots`: diperbarui berkala oleh scheduler, dan
-  dibekukan setiap akhir minggu/bulan untuk riwayat.
-- Battle Antar-Fungsi: total poin per fungsi ÷ jumlah anggota aktif fungsi tersebut.
+`services/leaderboard_service.py` — aggregation MongoDB per kategori:
+
+| Kategori | Skor (tie-break) | Sumber |
+|----------|------------------|--------|
+| Top Storyteller | jumlah catatan baca (jumlah kata) | `posts` jenis Quick Note/Chapter Story/Book Review |
+| Streak Master | hari membaca berbeda dalam periode (menit baca); sepanjang masa = streak terpanjang | `reading_sessions` selesai / `streaks` |
+| Book Finisher | buku yang ditandai selesai | `posts.is_book_finished` |
+| Most Inspiring | reaksi yang diterima dari orang lain (jumlah ✨ Inspiring) | `reactions` |
+| Battle Antar-Fungsi | total poin ÷ anggota aktif fungsi (total poin) | `points_ledger.function_id` + `users` |
+
+- Periode **mingguan** (Senin–Minggu, ISO week) dan **bulanan** dihitung menurut zona waktu
+  tim (`team.timezone`); **sepanjang masa** tanpa batas. Peringkat kompetisi (1, 1, 3).
+- Ranking lengkap disimpan di `leaderboard_snapshots` selama `leaderboard.cache_seconds`.
+  Cache periode berjalan dibuang setiap ada aktivitas yang memengaruhi peringkat (poin,
+  catatan, reaksi) sehingga perubahan langsung terlihat; periode yang sudah lewat dibekukan
+  (`is_final`) dan bisa dibuka lewat `period_key` (navigasi ← →).
 
 ### 4.6 Reading Room (WebSocket)
 

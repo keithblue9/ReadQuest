@@ -10,7 +10,7 @@ const NAV = [
   { href: "/", label: "Beranda", icon: "🏠" },
   { href: "/feed", label: "Feed", icon: "💬" },
   { href: "/read", label: "Baca", icon: "⏱️" },
-  { href: "/books", label: "Buku", icon: "📚" },
+  { href: "/leaderboard", label: "Peringkat", icon: "🏆" },
   { href: "/profile", label: "Profil", icon: "🙂" },
 ];
 

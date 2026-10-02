@@ -180,3 +180,40 @@ export type LedgerPage = { items: LedgerEntry[]; next_cursor: string | null };
 export type FinishResult = { session: ReadingSession; post: Post; points: PointsResult };
 
 export type UploadedPhoto = { key: string; url: string; width: number; height: number };
+
+export type LeaderboardCategory =
+  | "top_storyteller"
+  | "streak_master"
+  | "book_finisher"
+  | "most_inspiring"
+  | "function_battle";
+
+export type LeaderboardPeriod = "weekly" | "monthly" | "all_time";
+
+export type LeaderboardEntry = {
+  rank: number;
+  score: number;
+  user: UserMini | null;
+  function: { id: string; name: string } | null;
+  detail: Record<string, number>;
+};
+
+export type Leaderboard = {
+  category: LeaderboardCategory;
+  period: LeaderboardPeriod;
+  period_key: string;
+  label: string;
+  is_final: boolean;
+  prev_key: string | null;
+  next_key: string | null;
+  entries: LeaderboardEntry[];
+  me: { rank: number; score: number; total_participants: number } | null;
+  computed_at: string;
+};
+
+export type LeaderboardSummaryItem = {
+  category: LeaderboardCategory;
+  rank: number | null;
+  score: number;
+  total_participants: number;
+};

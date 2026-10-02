@@ -7,7 +7,7 @@ from pymongo.errors import DuplicateKeyError
 
 from app.core import clock
 from app.core.errors import AppError, forbidden
-from app.repositories import books, catalog, posts
+from app.repositories import books, catalog, leaderboard_cache, posts
 from app.schemas.points import AwardOut
 from app.schemas.posts import (
     BookmarkStateOut,
@@ -73,6 +73,8 @@ async def react(db: AsyncDatabase, user: dict, post_id: ObjectId, type_: str) ->
             {"_id": post_id}, {"$inc": inc}, return_document=ReturnDocument.AFTER
         )
 
+    if previous != type_:
+        await leaderboard_cache.invalidate_open(db)
     if post["author_id"] != user["_id"]:
         reaction = await db["reactions"].find_one({"post_id": post_id, "user_id": user["_id"]})
         author = await db["users"].find_one({"_id": post["author_id"]})
@@ -101,6 +103,7 @@ async def unreact(db: AsyncDatabase, user: dict, post_id: ObjectId) -> ReactionS
             {"$inc": {f"counts.{before['type']}": -1}},
             return_document=ReturnDocument.AFTER,
         )
+        await leaderboard_cache.invalidate_open(db)
     return ReactionStateOut(reaction=None, counts=PostCountsOut(**post["counts"]))
 
 
