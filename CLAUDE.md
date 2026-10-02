@@ -20,7 +20,22 @@ frontend/            Next.js PWA (lihat frontend/README.md)
 backend/             FastAPI (lihat backend/README.md)
 docs/                SPEC, ARCHITECTURE, DATABASE
 docker-compose.yml   MongoDB (replica set) + MinIO untuk lokal
+.github/workflows/   CI: ruff + pytest (backend), lint + typecheck + test + build (frontend)
 ```
+
+## Perintah Penting
+
+```bash
+docker compose up -d                                   # MongoDB + MinIO
+cd backend && uv sync && uv run python -m app.seed      # index + data awal
+uv run uvicorn app.main:app --reload --port 8000        # API
+uv run pytest -q && uv run ruff check . && uv run ruff format --check .
+cd frontend && npm install && npm run dev               # http://localhost:3000
+npm run lint && npm run typecheck && npm test && npm run build
+```
+
+Pastikan semua cek di atas lolos sebelum push. Frontend memakai Next.js 16: baca
+`frontend/AGENTS.md` sebelum menulis kode frontend.
 
 ## Tech Stack
 
@@ -47,7 +62,7 @@ docker-compose.yml   MongoDB (replica set) + MinIO untuk lokal
 |------|---------|
 | 0 | ✅ Fondasi dokumentasi (SPEC, CLAUDE.md, .gitignore, README) |
 | 1 | ✅ Arsitektur, skema database, struktur folder |
-| 2 | MVP: Auth & onboarding (termasuk scaffold proyek Next.js & FastAPI + seed data) |
+| 2 | ✅ MVP: Auth & onboarding (termasuk scaffold proyek Next.js & FastAPI + seed data) |
 | 3 | MVP: Reading session + info buku/katalog |
 | 4 | MVP: Sistem poin (ledger) |
 | 5 | MVP: Feed sosial |

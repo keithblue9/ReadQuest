@@ -1,33 +1,49 @@
 # ReadQuest — Frontend
 
-PWA Next.js (App Router, TypeScript) yang mobile-first, mendukung dark mode, dan memakai
-mikro-animasi. Arsitektur lengkap: [`../docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md).
+PWA Next.js 16 (App Router, TypeScript) yang mobile-first dengan dark mode.
+Arsitektur: [`../docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md).
 
-> **Status:** kerangka folder saja (Fase 1). Proyek Next.js di-scaffold di awal Fase 2.
+> Next.js 16 punya perubahan besar dibanding versi lama (mis. `middleware` → `proxy`).
+> Lihat `AGENTS.md` dan dokumentasi di `node_modules/next/dist/docs/`.
 
-## Rencana Stack
+## Stack
 
-Next.js (App Router) · TypeScript · Tailwind CSS · next-themes · Framer Motion ·
-canvas-confetti · Serwist (service worker / PWA) · klien API dari OpenAPI backend
+Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · next-themes · Vitest
+
+## Menjalankan
+
+```bash
+cd frontend
+cp .env.example .env.local    # API_PROXY_TARGET=http://localhost:8000
+npm install
+npm run dev                   # http://localhost:3000 (backend harus jalan di :8000)
+```
+
+Browser hanya memanggil `/api/*` di origin Next.js; `next.config.ts` meneruskannya ke FastAPI.
+
+## Cek Kualitas
+
+```bash
+npm run lint && npm run typecheck && npm test && npm run build
+```
 
 ## Struktur Folder
 
 | Folder | Isi |
 |--------|-----|
-| `public/` | aset statis: ikon PWA, `manifest.webmanifest`, gambar |
-| `src/app/` | route App Router (`(auth)`, `(main)/feed`, `session`, `leaderboard`, `books/[id]`, `admin`, …) + layout |
-| `src/components/` | komponen UI generik yang dapat dipakai ulang (Button, Card, Modal, …) |
-| `src/features/` | modul per fitur (`auth`, `session`, `feed`, `leaderboard`, `books`, `notifications`, `admin`): komponen + hooks + panggilan API khusus fitur |
-| `src/lib/` | utilitas: klien API, klien WebSocket, kompresi & strip EXIF foto, helper auth |
-| `src/hooks/` | hooks lintas fitur (idle detection, online status, theme) |
-| `src/styles/` | CSS global & token tema Tailwind |
+| `src/app/(auth)/` | `/login`, `/register` (hanya untuk tamu) |
+| `src/app/(app)/` | halaman yang butuh login: `/` (beranda), `/onboarding`; guard di `layout.tsx` |
+| `src/app/manifest.ts` | Web App Manifest (PWA) |
+| `src/components/` | komponen UI generik (`ui.tsx`, `ThemeToggle`, `ThemeProvider`) |
+| `src/features/` | modul per fitur (`auth/AuthProvider`, `onboarding/`) |
+| `src/lib/` | klien API (`api.ts`), tipe, helper error & platform |
+| `src/hooks/`, `src/styles/` | disiapkan untuk fase berikutnya |
+| `public/icons/` | ikon PWA & apple-touch-icon |
 
 ## Konvensi
 
-- Komponen dalam PascalCase; hooks diawali `use`.
-- Panggilan ke backend hanya lewat `src/lib/` (tidak memanggil `fetch` langsung dari komponen).
-- Tidak ada secret di frontend. Hanya variabel `NEXT_PUBLIC_*` (lihat `.env.example`).
-
-## Konfigurasi
-
-Salin `.env.example` → `.env.local`, lalu isi nilainya.
+- Panggilan backend hanya lewat `src/lib/api.ts` (otomatis refresh token saat 401).
+- Access token hanya di memori; refresh token di cookie httpOnly (dikelola browser).
+- Warna memakai token tema (`bg-surface`, `text-muted`, `bg-primary`, …) dari `globals.css`
+  agar dark mode konsisten.
+- Tidak ada secret di frontend; hanya variabel `NEXT_PUBLIC_*` yang terlihat di browser.

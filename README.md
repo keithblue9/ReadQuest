@@ -28,17 +28,28 @@ docs/                spesifikasi, arsitektur, skema database
 docker-compose.yml   MongoDB + MinIO untuk pengembangan lokal
 ```
 
-## Menjalankan Layanan Lokal
+## Menjalankan Secara Lokal
 
 ```bash
-cp .env.example .env     # isi kredensial MinIO
-docker compose up -d     # MongoDB (replica set) + MinIO
+cp .env.example .env                 # kredensial MinIO
+docker compose up -d                 # MongoDB (replica set) + MinIO
+
+cd backend && cp .env.example .env   # isi ADMIN_EMAIL, ADMIN_PASSWORD, SEED_INVITE_CODE
+uv sync && uv run python -m app.seed
+uv run uvicorn app.main:app --reload --port 8000
+
+cd ../frontend && cp .env.example .env.local
+npm install && npm run dev           # buka http://localhost:3000
 ```
+
+Daftar di `/register` memakai kode undangan dari `SEED_INVITE_CODE` (atau kode yang dicetak
+oleh seed). Detail: [`backend/README.md`](backend/README.md), [`frontend/README.md`](frontend/README.md).
 
 ## Status
 
-Fase 1 selesai: arsitektur, skema database, dan kerangka folder. Kode aplikasi dimulai
-di Fase 2.
+Fase 2 selesai: autentikasi (daftar dengan kode undangan, login, refresh token), onboarding
+(fungsi, minat, target harian, panduan Add to Home Screen iOS), seed data, dan CI.
+Berikutnya: Fase 3 — sesi baca & katalog buku.
 
 ## Dokumentasi
 

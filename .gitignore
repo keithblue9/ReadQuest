@@ -56,3 +56,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Test coverage
+coverage/
