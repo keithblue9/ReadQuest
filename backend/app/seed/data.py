@@ -126,7 +126,16 @@ FUNCTIONS: list[tuple[str, str]] = [
 
 APP_SETTINGS: list[tuple[str, object, str]] = [
     ("session.min_minutes", 15, "Durasi minimal sesi baca (menit)"),
-    ("session.idle_timeout_seconds", 120, "Timer auto-pause setelah idle (detik)"),
+    (
+        "session.idle_timeout_seconds",
+        300,
+        'Cek kehadiran "Masih membaca?" setelah tidak ada interaksi (detik)',
+    ),
+    (
+        "session.heartbeat_max_gap_seconds",
+        45,
+        "Celah heartbeat maksimal yang masih dihitung sebagai waktu baca (detik)",
+    ),
     (
         "note.min_words",
         {"quick_note": 30, "chapter_story": 80, "book_review": 200},

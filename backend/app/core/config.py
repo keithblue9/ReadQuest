@@ -25,6 +25,15 @@ class Settings(BaseSettings):
 
     rate_limit_enabled: bool = True
 
+    # Object storage untuk foto. "s3" (RustFS/S3/R2) atau "local" (folder, untuk test/dev).
+    storage_backend: Literal["s3", "local"] = "s3"
+    local_storage_dir: str = "./.storage"
+    s3_endpoint_url: str | None = "http://localhost:9000"
+    s3_region: str = "us-east-1"
+    s3_access_key: str | None = None
+    s3_secret_key: str | None = None
+    s3_bucket: str = "readquest-photos"
+
     # Seed: admin pertama & kode undangan awal (opsional)
     admin_email: str | None = None
     admin_password: str | None = Field(default=None, min_length=8)

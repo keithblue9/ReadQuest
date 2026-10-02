@@ -46,6 +46,7 @@ htmlcov/
 
 # ---------- Local data ----------
 uploads/
+.storage/
 data/db/
 mongo-data/
 *.log
