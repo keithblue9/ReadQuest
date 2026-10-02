@@ -5,6 +5,18 @@ import type { NextConfig } from "next";
 const apiTarget = process.env.API_PROXY_TARGET ?? "http://localhost:8000";
 
 const nextConfig: NextConfig = {
+  async headers() {
+    return [
+      {
+        // Service worker selalu diambil versi terbaru.
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     return [
       { source: "/api/:path*", destination: `${apiTarget}/api/:path*` },

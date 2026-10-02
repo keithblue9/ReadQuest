@@ -127,7 +127,7 @@ INDEXES: dict[str, list[IndexModel]] = {
     "notifications": [
         IndexModel([("user_id", ASC), ("read_at", ASC), ("created_at", DESC)]),
         IndexModel([("user_id", ASC), ("group_key", ASC), ("read_at", ASC)]),
-        IndexModel([("push_status", ASC), ("created_at", ASC)]),
+        IndexModel([("push_status", ASC), ("deliver_after", ASC)]),
         IndexModel([("created_at", ASC)], expireAfterSeconds=90 * 24 * 3600),
     ],
     "notification_preferences": [IndexModel([("user_id", ASC)], unique=True)],
@@ -141,6 +141,9 @@ INDEXES: dict[str, list[IndexModel]] = {
         IndexModel([("created_at", DESC)]),
     ],
     "app_settings": [IndexModel([("key", ASC)], unique=True)],
+    "notification_templates": [IndexModel([("type", ASC)], unique=True)],
+    "scheduled_runs": [IndexModel([("ran_at", ASC)], expireAfterSeconds=120 * 24 * 3600)],
+    "job_locks": [],
 }
 
 
@@ -156,4 +159,5 @@ async def ensure_indexes(db: AsyncDatabase) -> None:
         for index_name in await db[name].index_information():
             if index_name != "_id_" and index_name not in wanted:
                 await db[name].drop_index(index_name)
-        await db[name].create_indexes(models)
+        if models:
+            await db[name].create_indexes(models)

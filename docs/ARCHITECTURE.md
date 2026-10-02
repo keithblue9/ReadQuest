@@ -237,14 +237,37 @@ berikutnya (stabil seharian sehingga bisa di-cache browser) dan bisa dipakai lan
 
 ### 4.7 Job Terjadwal
 
-| Job | Jadwal | Fungsi |
-|-----|--------|--------|
-| Pengingat baca | per jam, sesuai preferensi user | push pengingat bila belum baca hari ini |
-| Streak terancam | malam hari (zona waktu user) | push bila streak akan putus |
-| Snapshot leaderboard | tiap 15 menit + akhir periode | perbarui cache leaderboard |
-| Authenticity Index | harian | hitung Contribution Ratio 30 hari, simpan snapshot, kirim nudge Observer |
-| Batching notifikasi | tiap 5 menit | gabungkan reaksi & kirim push |
-| Weekly quest | awal minggu | aktifkan quest baru + notifikasi |
+Scheduler ringan di dalam proses backend (`app/jobs/scheduler.py`): satu loop asyncio yang
+berdetak tiap menit. Hanya satu instance yang menjalankan job (lease 90 detik di koleksi
+`job_locks`); job harian/mingguan ditandai di `scheduled_runs` agar tidak ganda. Jadwal diatur
+lewat `app_settings.notifications.schedule` (data-driven).
+
+| Job | Jadwal (default) | Fungsi |
+|-----|------------------|--------|
+| Pengingat baca | `reminder_time` tiap user (zona waktu user) | notifikasi bila belum ada sesi poin penuh hari itu |
+| Streak terancam | 20:00 zona waktu user | bila streak ≥ 1 hari dan hari ini belum membaca |
+| Leaderboard mingguan | Senin 09:00 zona waktu tim | ringkasan peringkat minggu lalu tiap user |
+| Quest baru | Senin 08:00 zona waktu tim | info weekly quest yang aktif |
+| Authenticity Index | 07:00 zona waktu tim | snapshot harian + nudge Observer (maks. 1x/7 hari) |
+| Pengiriman push | setiap tick | kirim notifikasi yang `deliver_after`-nya sudah lewat |
+
+Leaderboard tidak butuh job: dihitung saat diminta dengan cache (lihat §4.5).
+
+### 4.8 Notifikasi & Web Push
+
+- `notification_service.notify()` merender **template data-driven** (`notification_templates`),
+  menghormati **preferensi** user (per jenis: push/lonceng), lalu menghitung `deliver_after`:
+  jendela batching 5 menit untuk reaksi, **jam tenang** (push ditunda hingga jam tenang
+  berakhir), dan **frekuensi** (`realtime`, `batched` per jam, `daily_digest`).
+- **Batching**: notifikasi belum dibaca dengan `group_key` sama digabung ("Rani dan 3 lainnya
+  mengapresiasi catatanmu"). Satu orang hanya menerima satu notifikasi per komentar
+  (prioritas mention > balasan > komentar); tidak ada notifikasi untuk aksi sendiri.
+- **Web Push**: VAPID (`pywebpush`). Kunci publik diambil frontend dari `GET /push/config`;
+  langganan 404/410 dihapus, gagal berulang dibuang setelah 5 kali. Tanpa kunci VAPID, push
+  dinonaktifkan dan notifikasi tetap tampil di lonceng.
+- **Frontend**: `public/sw.js` (ditulis manual) menampilkan push dan membuka URL notifikasi saat
+  diklik; lonceng di header mem-poll jumlah belum dibaca tiap 60 detik & saat aplikasi aktif
+  kembali. Di iOS, push hanya tersedia setelah PWA dipasang ke Layar Utama (iOS 16.4+).
 
 ## 5. Alasan Pemilihan Teknologi
 

@@ -6,6 +6,7 @@ from app.api.v1 import (
     gamification,
     leaderboard,
     me,
+    notifications,
     posts,
     sessions,
     uploads,
@@ -22,3 +23,4 @@ api_router.include_router(posts.router)
 api_router.include_router(users.router)
 api_router.include_router(leaderboard.router)
 api_router.include_router(gamification.router)
+api_router.include_router(notifications.router)

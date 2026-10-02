@@ -298,3 +298,31 @@ export type LeaderboardSummaryItem = {
   score: number;
   total_participants: number;
 };
+
+export type AppNotification = {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  url: string | null;
+  actor_count: number;
+  read: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type NotificationPage = {
+  items: AppNotification[];
+  unread_count: number;
+  next_cursor: string | null;
+};
+
+export type ChannelPrefs = { push: boolean; in_app: boolean };
+
+export type NotificationPreferences = {
+  types: Record<string, ChannelPrefs>;
+  quiet_hours: { enabled: boolean; start: string; end: string };
+  reminder_time: string;
+  digest_time: string;
+  frequency: "realtime" | "batched" | "daily_digest";
+};

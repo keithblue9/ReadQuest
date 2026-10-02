@@ -189,13 +189,7 @@ async def run_daily(db: AsyncDatabase) -> dict[str, int]:
         )
         if nudge:
             nudged += 1
-            await notification_service.create(
-                db,
-                user_id=r.user_id,
-                type_="observer_nudge",
-                title="Ceritamu ditunggu, lho! 📖",
-                body="Kamu aktif menyemangati rekan. Yuk bagikan satu catatan bacaan minggu ini — "
-                "cukup 15 menit membaca dan beberapa kalimat.",
-                data={"url": "/read"},
+            await notification_service.notify(
+                db, user_id=r.user_id, type_="observer_nudge", url="/read"
             )
     return {"users": len(results), "nudged": nudged}

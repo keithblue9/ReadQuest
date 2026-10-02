@@ -11,6 +11,7 @@ from app.core.config import get_settings
 from app.core.security import hash_password
 from app.repositories.indexes import ensure_indexes
 from app.seed import data
+from app.services.notification_service import DEFAULT_TEMPLATES
 
 
 async def _upsert(db: AsyncDatabase, collection: str, key: dict, doc: dict) -> bool:
@@ -112,6 +113,13 @@ async def seed(db: AsyncDatabase) -> dict[str, int]:
                     "order": order,
                     "is_active": True,
                 },
+            ),
+        )
+    for type_, (title, body) in DEFAULT_TEMPLATES.items():
+        await count(
+            "notification_templates",
+            await _upsert(
+                db, "notification_templates", {"type": type_}, {"title": title, "body": body}
             ),
         )
     for key, value, description in data.APP_SETTINGS:

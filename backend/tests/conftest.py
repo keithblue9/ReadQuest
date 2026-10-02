@@ -13,6 +13,10 @@ os.environ.update(
         "SEED_INVITE_CODE": "TESTCODE",
         "RATE_LIMIT_ENABLED": "true",
         "STORAGE_BACKEND": "local",
+        "SCHEDULER_ENABLED": "false",
+        # Test hermetis: abaikan kunci VAPID di backend/.env lokal (push di-mock per test).
+        "VAPID_PUBLIC_KEY": "",
+        "VAPID_PRIVATE_KEY": "",
         "LOCAL_STORAGE_DIR": tempfile.mkdtemp(prefix="readquest-test-storage-"),
     }
 )

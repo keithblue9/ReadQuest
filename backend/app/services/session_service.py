@@ -341,6 +341,9 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
             raise
 
     await leaderboard_cache.invalidate_open(db)
+    await social_service.notify_mentions(
+        db, user, mentions, post["content"], f"/posts/{post['_id']}"
+    )
     if data.rating is not None:
         avg = await posts.rating_stats(db, book["_id"])
         await books.update(db, book["_id"], {"$set": {"stats.avg_rating": avg}})

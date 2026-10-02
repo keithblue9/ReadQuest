@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Nunito } from "next/font/google";
 
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full font-sans">
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
+          <ServiceWorkerRegister />
         </ThemeProvider>
       </body>
     </html>

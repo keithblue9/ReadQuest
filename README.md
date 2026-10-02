@@ -52,7 +52,9 @@ divalidasi, katalog buku bersama, dan unggah foto (Fase 3), sistem poin berbasis
 streak & level (Fase 4), feed sosial dengan reaksi, komentar berantai, mention, bookmark, kartu
 berbagi, dan diskusi per buku (Fase 5), leaderboard lima kategori dengan periode mingguan/
 bulanan/sepanjang masa (Fase 6), Authenticity Index, badge, weekly quest, Book of the Month,
-Reading Buddy, dan Reading Room live via WebSocket (Fase 7). Berikutnya: Fase 8 — notifikasi.
+Reading Buddy, dan Reading Room live via WebSocket (Fase 7), notifikasi Web Push & lonceng in-app
+dengan preferensi, jam tenang, batching, dan pengingat terjadwal (Fase 8). Berikutnya: Fase 9 —
+Admin dashboard & Admin Config.
 
 ## Dokumentasi
 

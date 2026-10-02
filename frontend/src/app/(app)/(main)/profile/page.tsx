@@ -198,6 +198,12 @@ export default function ProfilePage() {
         )}
       </section>
 
+      <Link
+        href="/settings/notifications"
+        className="rounded-2xl border border-border bg-surface p-3 text-center font-bold"
+      >
+        ⚙️ Pengaturan notifikasi
+      </Link>
       <Button variant="ghost" onClick={() => logout()}>
         Keluar
       </Button>

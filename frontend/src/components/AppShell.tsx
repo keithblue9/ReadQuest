@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { NotificationBell } from "@/features/notifications/NotificationBell";
+
 import { ThemeToggle } from "./ThemeToggle";
 import { Logo } from "./ui";
 
@@ -26,7 +28,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Link href="/" aria-label="Beranda">
           <Logo />
         </Link>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <ThemeToggle />
+        </div>
       </header>
       <main className="flex-1 px-5 pb-28">{children}</main>
       <nav

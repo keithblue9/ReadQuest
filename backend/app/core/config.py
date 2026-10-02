@@ -34,6 +34,14 @@ class Settings(BaseSettings):
     s3_secret_key: str | None = None
     s3_bucket: str = "readquest-photos"
 
+    # Web Push (VAPID). Kosong = push dinonaktifkan (notifikasi in-app tetap jalan).
+    vapid_public_key: str | None = None
+    vapid_private_key: str | None = None
+    vapid_subject: str = "mailto:admin@example.com"
+
+    # Scheduler internal (pengingat, nudge, ringkasan mingguan, pengiriman push).
+    scheduler_enabled: bool = True
+
     # Seed: admin pertama & kode undangan awal (opsional)
     admin_email: str | None = None
     admin_password: str | None = Field(default=None, min_length=8)

@@ -33,13 +33,14 @@ npm run lint && npm run typecheck && npm test && npm run build
 |--------|-----|
 | `src/app/(auth)/` | `/login`, `/register` (hanya untuk tamu) |
 | `src/app/(app)/` | halaman yang butuh login (guard di `layout.tsx`): `/onboarding`, `/read` (sesi baca layar penuh) |
-| `src/app/(app)/(main)/` | halaman dengan navigasi bawah (`AppShell`): `/` (beranda), `/feed`, `/posts/[id]`, `/leaderboard`, `/books`, `/books/[id]`, `/profile`, `/quests`, `/buddy`, `/room`, `/team` |
+| `src/app/(app)/(main)/` | halaman dengan navigasi bawah (`AppShell`): `/` (beranda), `/feed`, `/posts/[id]`, `/leaderboard`, `/books`, `/books/[id]`, `/profile`, `/quests`, `/buddy`, `/room`, `/team`, `/notifications`, `/settings/notifications` |
 | `src/app/manifest.ts` | Web App Manifest (PWA) |
 | `src/components/` | komponen UI generik (`ui.tsx`, `AppShell`, `BookCover`, `PostCard`, `PhotoPicker`, tema) |
 | `src/features/` | modul per fitur: `auth/`, `onboarding/`, `books/`, `reading/` (timer, catatan, perayaan), `feed/` (reaksi, komentar, @mention, share sheet, diskusi), `room/` (WebSocket Reading Room), `quests/`, `authenticity/`, `home/` |
 | `src/lib/` | klien API (`api.ts`), tipe, kompresi foto (`image.ts`), hitung kata (`words.ts`), helper error & platform |
 | `src/hooks/`, `src/styles/` | disiapkan untuk fase berikutnya |
 | `public/icons/` | ikon PWA & apple-touch-icon |
+| `public/sw.js` | service worker (Web Push & klik notifikasi), ditulis manual |
 
 ## Konvensi
 

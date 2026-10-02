@@ -506,13 +506,16 @@ Cache hasil agregasi leaderboard.
 | `actor_ids` | ObjectId[] → `users` | untuk batching ("A dan 4 lainnya") |
 | `group_key` | string \| null | kunci batching, mis. `reaction:<post_id>` |
 | `read_at` | Date \| null | |
+| `in_app` | bool | tampil di lonceng (sesuai preferensi) |
 | `push_status` | string | `pending` \| `sent` \| `skipped` \| `failed` |
+| `deliver_after` | Date | kapan push boleh dikirim (batching, jam tenang, frekuensi) |
+| `pushed_at` | Date \| null | |
 | `created_at`, `updated_at` | Date | |
 
 **Index:**
 - `{ user_id: 1, read_at: 1, created_at: -1 }`: lonceng in-app & hitung belum dibaca
 - `{ user_id: 1, group_key: 1, read_at: 1 }`: batching
-- `{ push_status: 1, created_at: 1 }`: job pengiriman push
+- `{ push_status: 1, deliver_after: 1 }`: job pengiriman push
 - `{ created_at: 1 }` TTL 90 hari (nilai dari konfigurasi saat deploy)
 
 ### 9.2 `notification_preferences`
@@ -521,8 +524,10 @@ Cache hasil agregasi leaderboard.
 |-------|------|------------|
 | `user_id` | ObjectId → `users` | |
 | `types` | object | `{ <type>: { push: bool, in_app: bool } }` |
-| `quiet_hours` | object | `{ start: "21:00", end: "07:00" }` |
+| `types` | — | kunci: `reading_reminder`, `streak_at_risk`, `reaction`, `comment` (termasuk balasan), `mention`, `weekly_leaderboard`, `new_quest`, `observer_nudge`, `badge_awarded`, `quest_completed`, `buddy` |
+| `quiet_hours` | object | `{ enabled, start: "21:00", end: "07:00" }` |
 | `reminder_time` | string | jam pengingat baca, mis. `"19:00"` |
+| `digest_time` | string | jam ringkasan harian, mis. `"08:00"` |
 | `frequency` | string | `realtime` \| `batched` \| `daily_digest` |
 | `updated_at` | Date | |
 
@@ -543,6 +548,16 @@ Cache hasil agregasi leaderboard.
 **Index:** `{ endpoint: 1 }` unique · `{ user_id: 1 }`
 
 ---
+
+### 9.4 `notification_templates`
+
+| Field | Tipe | Keterangan |
+|-------|------|------------|
+| `type` | string | jenis notifikasi (unik) |
+| `title`, `body` | string | template dengan placeholder, mis. `{actor}`, `{actors}`, `{excerpt}`, `{streak}`, `{summary}` |
+| `created_at`, `updated_at` | Date | |
+
+**Index:** `{ type: 1 }` unique
 
 ## 10. Sistem
 
@@ -588,10 +603,18 @@ Contoh kunci:
 | `onboarding.default_daily_target_minutes` | `15` |
 | `team.timezone` | `"Asia/Jakarta"` (batas periode leaderboard) |
 | `leaderboard.cache_seconds` | `300` |
+| `notifications.schedule` | `{ streak_risk_time: "20:00", weekly_leaderboard: {weekday: 0, time: "09:00"}, new_quest: {weekday: 0, time: "08:00"}, authenticity_time: "07:00" }` |
 
 **Index:** `{ key: 1 }` unique
 
 ---
+
+### 10.3 `scheduled_runs` & `job_locks`
+
+- `scheduled_runs`: `{ _id: "<job>:<periode>", ran_at }` — penanda job harian/mingguan sudah
+  berjalan (TTL 120 hari pada `ran_at`).
+- `job_locks`: `{ _id: "scheduler", owner, expires_at }` — lease agar hanya satu instance backend
+  menjalankan scheduler.
 
 ## 11. Aturan Integritas & Catatan Implementasi
 
