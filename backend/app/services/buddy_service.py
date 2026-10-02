@@ -89,14 +89,8 @@ async def request(db: AsyncDatabase, user: dict, target_id: ObjectId) -> None:
             "ended_at": None,
         }
     )
-    await notification_service.create(
-        db,
-        user_id=target_id,
-        type_="buddy_request",
-        title=f"{user['name']} mengajakmu jadi Reading Buddy 🤝",
-        body="Saling menyemangati agar rutin membaca setiap hari.",
-        data={"url": "/buddy"},
-        actor_ids=[user["_id"]],
+    await notification_service.notify(
+        db, user_id=target_id, type_="buddy_request", actor=user, url="/buddy"
     )
 
 
@@ -121,14 +115,8 @@ async def accept(db: AsyncDatabase, user: dict, pair_id: ObjectId) -> None:
         {"_id": {"$ne": pair_id}, "status": "pending", "user_ids": {"$in": pair["user_ids"]}},
         {"$set": {"status": "cancelled", "ended_at": now}},
     )
-    await notification_service.create(
-        db,
-        user_id=pair["requester_id"],
-        type_="buddy_accepted",
-        title=f"{user['name']} kini Reading Buddy-mu 🎉",
-        body="Yuk saling semangati membaca hari ini!",
-        data={"url": "/buddy"},
-        actor_ids=[user["_id"]],
+    await notification_service.notify(
+        db, user_id=pair["requester_id"], type_="buddy_accepted", actor=user, url="/buddy"
     )
 
 
@@ -151,12 +139,6 @@ async def cheer(db: AsyncDatabase, user: dict, pair_id: ObjectId) -> None:
         raise AppError(429, "cheer_cooldown", "Kamu baru saja menyemangati buddy-mu")
     other_id = next(u for u in pair["user_ids"] if u != user["_id"])
     await _col(db).update_one({"_id": pair_id}, {"$set": {f"last_cheer.{user['_id']}": now}})
-    await notification_service.create(
-        db,
-        user_id=other_id,
-        type_="buddy_cheer",
-        title=f"{user['name']} menyemangatimu 📣",
-        body="Ayo baca 15 menit hari ini, buddy-mu menunggu ceritamu!",
-        data={"url": "/read"},
-        actor_ids=[user["_id"]],
+    await notification_service.notify(
+        db, user_id=other_id, type_="buddy_cheer", actor=user, url="/read"
     )

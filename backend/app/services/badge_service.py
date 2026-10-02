@@ -46,13 +46,16 @@ async def evaluate(db: AsyncDatabase, user: dict) -> list[BadgeOut]:
         except DuplicateKeyError:
             continue
         new.append(to_out(badge, now, cache[metric]))
-        await notification_service.create(
+        await notification_service.notify(
             db,
             user_id=user["_id"],
             type_="badge_awarded",
-            title=f"Badge baru: {badge['name']} {badge.get('icon', '')}".strip(),
-            body=badge.get("description", ""),
-            data={"url": "/profile"},
+            context={
+                "name": badge["name"],
+                "icon": badge.get("icon", ""),
+                "description": badge.get("description", ""),
+            },
+            url="/profile",
         )
     return new
 

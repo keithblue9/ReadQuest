@@ -261,4 +261,14 @@ APP_SETTINGS: list[tuple[str, object, str]] = [
     ("onboarding.default_daily_target_minutes", 15, "Target harian default"),
     ("team.timezone", "Asia/Jakarta", "Zona waktu tim untuk batas periode leaderboard"),
     ("leaderboard.cache_seconds", 300, "Lama cache hasil leaderboard (detik)"),
+    (
+        "notifications.schedule",
+        {
+            "streak_risk_time": "20:00",
+            "weekly_leaderboard": {"weekday": 0, "time": "09:00"},
+            "new_quest": {"weekday": 0, "time": "08:00"},
+            "authenticity_time": "07:00",
+        },
+        "Jadwal notifikasi (weekday 0 = Senin, zona waktu tim / user)",
+    ),
 ]

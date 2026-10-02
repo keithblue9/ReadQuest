@@ -19,7 +19,14 @@ from app.schemas.posts import (
     PostOut,
     ReactionStateOut,
 )
-from app.services import badge_service, permissions, points_service, post_service, quest_service
+from app.services import (
+    badge_service,
+    notification_service,
+    permissions,
+    points_service,
+    post_service,
+    quest_service,
+)
 from app.services.note_validation import content_hash, tokenize
 from app.services.upload_service import owns_key
 
@@ -81,6 +88,16 @@ async def react(db: AsyncDatabase, user: dict, post_id: ObjectId, type_: str) ->
         if author:
             if previous is None:
                 await badge_service.evaluate(db, author)
+                await notification_service.notify(
+                    db,
+                    user_id=author["_id"],
+                    type_="reaction",
+                    context={"excerpt": notification_service.excerpt(post["content"])},
+                    actor=user,
+                    url=f"/posts/{post_id}",
+                    group_key=f"reaction:{post_id}",
+                    batch=True,
+                )
             await points_service.award(
                 db,
                 user=author,
@@ -268,8 +285,52 @@ async def create_comment(
     if meaningful:
         await quest_service.evaluate(db, user)
         await badge_service.evaluate(db, user)
+    await _notify_comment(db, user, post, parent, doc, mentions)
     users = await post_service.users_by_id(db, set(mentions))
     return CommentCreatedOut(comment=comment_out(doc, users), points=awarded)
+
+
+async def notify_mentions(
+    db: AsyncDatabase, actor: dict, mentions: list[ObjectId], text: str, url: str
+) -> set[ObjectId]:
+    notified = set()
+    for user_id in mentions:
+        if user_id == actor["_id"]:
+            continue
+        await notification_service.notify(
+            db,
+            user_id=user_id,
+            type_="mention",
+            context={"excerpt": notification_service.excerpt(text)},
+            actor=actor,
+            url=url,
+        )
+        notified.add(user_id)
+    return notified
+
+
+async def _notify_comment(
+    db: AsyncDatabase,
+    user: dict,
+    post: dict,
+    parent: dict | None,
+    comment: dict,
+    mentions: list[ObjectId],
+) -> None:
+    """Mention > balasan > komentar; satu orang hanya menerima satu notifikasi per komentar."""
+    url = f"/posts/{post['_id']}"
+    context = {"excerpt": notification_service.excerpt(comment["content"])}
+    notified = await notify_mentions(db, user, mentions, comment["content"], url)
+    notified.add(user["_id"])
+    if parent and parent["author_id"] not in notified:
+        await notification_service.notify(
+            db, user_id=parent["author_id"], type_="reply", context=context, actor=user, url=url
+        )
+        notified.add(parent["author_id"])
+    if post["author_id"] not in notified:
+        await notification_service.notify(
+            db, user_id=post["author_id"], type_="comment", context=context, actor=user, url=url
+        )
 
 
 async def delete_comment(
@@ -345,4 +406,5 @@ async def create_discussion(
     }
     post["_id"] = await posts.insert(db, post)
     await books.update(db, book_id, {"$inc": {"stats.posts_count": 1}})
+    await notify_mentions(db, user, mentions, post["content"], f"/posts/{post['_id']}")
     return (await post_service.enrich(db, [post], user["_id"]))[0]

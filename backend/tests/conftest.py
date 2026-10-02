@@ -13,6 +13,7 @@ os.environ.update(
         "SEED_INVITE_CODE": "TESTCODE",
         "RATE_LIMIT_ENABLED": "true",
         "STORAGE_BACKEND": "local",
+        "SCHEDULER_ENABLED": "false",
         "LOCAL_STORAGE_DIR": tempfile.mkdtemp(prefix="readquest-test-storage-"),
     }
 )

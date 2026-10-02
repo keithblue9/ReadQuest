@@ -25,6 +25,14 @@ uv run uvicorn app.main:app --reload --port 8000
 
 Dokumentasi API interaktif: http://localhost:8000/docs (non-production).
 
+**Web Push**: buat kunci VAPID sekali lalu salin ke `.env` (jangan commit private key):
+
+```bash
+uv run python -m app.scripts.generate_vapid
+```
+
+Scheduler notifikasi berjalan di dalam proses API (`SCHEDULER_ENABLED=true`, default).
+
 ## Test & Lint
 
 ```bash
@@ -69,6 +77,11 @@ uv run ruff check . && uv run ruff format --check .
 | GET / PUT | `/api/v1/book-of-the-month[/{book_id}]` | Book of the Month (PUT: `config.books.manage`) |
 | GET / POST / DELETE | `/api/v1/buddies` · `/buddies/{id}/accept` · `/buddies/{id}/cheer` | Reading Buddy |
 | WS | `/ws/rooms/{room}?token=` | Reading Room live (presence & cheer) |
+| GET | `/api/v1/notifications?cursor=` · `/notifications/unread-count` | Inbox lonceng |
+| POST | `/api/v1/notifications/read` | `{ids}` atau `{all: true}` |
+| GET / PUT | `/api/v1/me/notification-preferences` | Jenis (push/lonceng), jam tenang, jam pengingat, frekuensi |
+| GET | `/api/v1/push/config` | Kunci publik VAPID |
+| POST | `/api/v1/push/subscriptions` · `/push/unsubscribe` · `/push/test` | Langganan Web Push |
 | GET | `/api/v1/me/points` | Total & poin hari ini, level, streak (efektif) |
 | GET | `/api/v1/me/points/history?cursor=` | Riwayat ledger poin |
 | GET | `/health` | Health check (termasuk ping MongoDB) |
@@ -85,7 +98,10 @@ Error selalu berbentuk `{"error": {"code", "message", "fields?"}}`.
 | `app/services/` | logika bisnis (auth, onboarding, buku, sesi baca, validasi catatan, posting, upload) |
 | `app/repositories/` | akses MongoDB + definisi index semua koleksi (`indexes.py`) |
 | `app/seed/` | data awal & script seed (`python -m app.seed`) |
-| `app/models/`, `app/ws/`, `app/jobs/` | disiapkan untuk fase berikutnya |
+| `app/ws/` | WebSocket Reading Room |
+| `app/jobs/` | scheduler (tick per menit + lease) dan job notifikasi terjadwal |
+| `app/scripts/` | utilitas CLI (mis. `generate_vapid`) |
+| `app/models/` | disiapkan untuk fase berikutnya |
 | `tests/` | pytest (integrasi API terhadap MongoDB sungguhan) |
 
 ## Konvensi

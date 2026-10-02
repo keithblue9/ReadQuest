@@ -24,9 +24,7 @@ yarn-error.log*
 pnpm-debug.log*
 .pnpm-store/
 
-# PWA (generated service worker)
-**/public/sw.js
-**/public/sw.js.map
+# PWA (service worker hasil generate tool; frontend/public/sw.js ditulis manual & di-commit)
 **/public/workbox-*.js
 **/public/workbox-*.js.map
 

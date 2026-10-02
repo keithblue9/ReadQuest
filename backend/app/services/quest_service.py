@@ -92,13 +92,15 @@ async def evaluate(db: AsyncDatabase, user: dict) -> tuple[list[QuestOut], list[
                         source_type="quest",
                         source_id=doc["_id"],
                     )
-                await notification_service.create(
+                await notification_service.notify(
                     db,
                     user_id=user["_id"],
                     type_="quest_completed",
-                    title=f"Quest selesai: {quest['title']} 🎯",
-                    body=f"+{reward_points} poin" if reward_points else "Kerja bagus!",
-                    data={"url": "/quests"},
+                    context={
+                        "title": quest["title"],
+                        "reward": f"+{reward_points} poin" if reward_points else "Kerja bagus!",
+                    },
+                    url="/quests",
                 )
                 completed_now.append(item)
         out.append(item)

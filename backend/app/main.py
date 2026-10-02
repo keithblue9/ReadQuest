@@ -12,6 +12,7 @@ from app.core import db
 from app.core.config import get_settings
 from app.core.errors import register_error_handlers
 from app.core.storage import get_storage
+from app.jobs.scheduler import scheduler
 from app.repositories.indexes import ensure_indexes
 from app.ws import rooms
 
@@ -21,7 +22,10 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     await db.connect()
     await ensure_indexes(db.get_db())
     await get_storage().ensure_ready()
+    if get_settings().scheduler_enabled:
+        scheduler.start(db.get_db)
     yield
+    await scheduler.stop()
     await db.disconnect()
 
 
