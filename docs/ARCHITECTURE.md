@@ -206,8 +206,10 @@ berikutnya (stabil seharian sehingga bisa di-cache browser) dan bisa dipakai lan
 
 - Klien terhubung ke `/ws/rooms/{room}` (`global` atau ID buku) lewat origin yang sama — Next.js
   meneruskan `/ws/*` ke FastAPI (rewrites mendukung upgrade WebSocket). Browser tidak bisa
-  mengirim header `Authorization` pada WebSocket, jadi access token dikirim sebagai query
-  `?token=`; token tidak valid → close `4401`, klien me-refresh token lalu menyambung ulang.
+  mengirim header `Authorization` pada WebSocket, jadi pesan pertama wajib
+  `{type: "auth", token}` dalam 5 detik. Token sengaja tidak dikirim lewat query string agar
+  tidak tercatat di access log. Token tidak valid → close `4401`, lalu klien me-refresh token
+  dan menyambung ulang.
 - Pesan klien: `status {reading, book_title, elapsed_seconds}` (dikirim timer sesi baca, dibulatkan
   per menit), `cheer {emoji, to}` (emoji dibatasi daftar, maks. 1 per 2 detik), `ping`.
   Server menyiarkan `presence {members}` dan `cheer`.
@@ -299,6 +301,25 @@ Leaderboard tidak butuh job: dihitung saat diminta dengan cache (lihat §4.5).
   Book of the Month, dan export menyimpan aktor, aksi, snapshot `before`/`after`, IP, dan
   user agent. Halaman Audit Log menampilkan diff per field dengan paginasi cursor.
 
+### 4.10 PWA & Offline
+
+- **Service worker** (`public/sw.js`, ditulis manual & diberi versi `VERSION`): precache halaman
+  `/offline` beserta aset JS/CSS yang dirujuknya, ikon, dan manifest. Aset build ber-hash
+  (`/_next/static/*`) memakai cache-first. Navigasi memakai network-first dengan fallback ke
+  `/offline`. Data API (`/api/*`) dan WebSocket **tidak pernah di-cache** karena bersifat pribadi
+  dan harus selalu terbaru.
+- **Pembaruan versi**: SW baru tidak langsung `skipWaiting`. `PwaManager` menampilkan toast
+  "Versi baru tersedia · Muat ulang"; setelah ditekan, SW baru aktif, cache lama dihapus, dan
+  halaman dimuat ulang. Pembaruan dicek setiap kali aplikasi kembali dibuka.
+- **Offline-aware auth**: klien API membedakan `NetworkError` (server tak terjangkau) dari sesi
+  tidak valid. Saat offline, pengguna **tidak di-logout**. Aplikasi menampilkan layar offline
+  dan mencoba lagi otomatis saat event `online`; di tengah pemakaian muncul banner offline.
+- **Instal**: prompt `beforeinstallprompt` ditangkap dan ditawarkan lewat kartu "Pasang
+  ReadQuest" di profil. Di iOS kartu menampilkan panduan Add to Home Screen. Manifest punya
+  `id`, `scope`, ikon maskable, dan shortcut (Baca, Feed, Peringkat).
+- Halaman `not-found`, `error`, dan `global-error` yang ramah pengguna. Font Nunito dibundel
+  lokal (`next/font/local`) sehingga build tidak bergantung pada Google Fonts.
+
 ## 5. Alasan Pemilihan Teknologi
 
 | Teknologi | Alasan |
@@ -306,15 +327,15 @@ Leaderboard tidak butuh job: dihitung saat diminta dengan cache (lihat §4.5).
 | **Next.js 16 (App Router) + TypeScript** | SSR/streaming untuk feed, routing berbasis file, ekosistem PWA matang, type safety. `/api/*` di-proxy (rewrites) ke FastAPI sehingga browser hanya melihat satu origin. |
 | **Tailwind CSS + next-themes** | Mobile-first cepat, dark mode berbasis class. |
 | **Animasi CSS** (+ Framer Motion bila perlu) | Mikro-animasi & transisi; konfeti via `canvas-confetti` (Fase 4+). |
-| **Serwist** (`@serwist/next`, Fase 8) | Service worker modern untuk Next.js: offline cache & handler push. |
+| **Service worker manual** (`public/sw.js`) | Cukup kecil untuk ditulis tangan (push, klik notifikasi, cache aset, fallback offline) tanpa build step tambahan; versi & strategi cache eksplisit. |
 | **FastAPI** | Async, WebSocket native, validasi Pydantic, OpenAPI otomatis untuk kontrak frontend. |
 | **PyMongo async (`AsyncMongoClient`) + Pydantic v2** (tanpa ODM) | Driver async resmi MongoDB (pengganti Motor yang sudah deprecated); query & index tetap eksplisit dan mudah dioptimasi. |
 | **MongoDB** | Skema fleksibel untuk konfigurasi data-driven (aturan poin, quest, template notifikasi); aggregation pipeline kuat untuk leaderboard dan heatmap. |
 | **JWT + refresh token rotasi** | Stateless untuk API & WebSocket; refresh token di cookie httpOnly mengurangi risiko XSS. |
 | **Object storage S3-compatible** | Foto tidak membebani database. Lokal memakai **RustFS** (Apache-2.0; image komunitas MinIO tidak lagi dipublikasikan), produksi S3/R2. Test memakai backend folder lokal. |
 | **Web Push (VAPID) + pywebpush** | Standar terbuka, bekerja di Android & iOS 16.4+ (setelah Add to Home Screen). |
-| **APScheduler** | Cukup untuk satu instance tanpa infrastruktur antrean tambahan; dapat diganti worker terpisah bila skala bertambah. |
-| **Docker Compose** | Menjalankan MongoDB + RustFS secara lokal dengan satu perintah. |
+| **Scheduler internal + lease MongoDB** | Cukup untuk satu instance tanpa infrastruktur antrean tambahan; lease `job_locks` mencegah job ganda bila backend lebih dari satu. |
+| **Docker Compose + Caddy** | Lokal: MongoDB + RustFS dengan satu perintah. Production: seluruh stack di satu host dengan HTTPS otomatis (Let's Encrypt). |
 
 ## 6. Keamanan
 
@@ -330,6 +351,20 @@ Leaderboard tidak butuh job: dihitung saat diminta dengan cache (lihat §4.5).
 - Frontend memanggil API lewat proxy same-origin Next.js. CORS hanya mengizinkan origin frontend.
 - Refresh token di cookie `HttpOnly`, `SameSite=Strict`, `Path=/api/v1/auth`, dan `Secure` di production.
   Access token hanya disimpan di memori frontend.
+- **Header keamanan**: Next.js mengirim CSP tanpa nonce (`default-src 'self'`,
+  `frame-ancestors 'none'`, `object-src 'none'`, `connect-src 'self'`; `'unsafe-inline'` untuk
+  script dibutuhkan payload RSC agar halaman tetap statis), `X-Frame-Options: DENY`, `nosniff`,
+  `Referrer-Policy`, `Permissions-Policy`, dan COOP. FastAPI menambahkan `nosniff`, `DENY`,
+  `Referrer-Policy: no-referrer`, CORP, dan `Cache-Control: no-store` default untuk data API.
+  Caddy menambahkan HSTS.
+- **Batas ukuran request** 12 MB di Caddy dan middleware FastAPI (Content-Length & streaming).
+- **IP klien** untuk rate limit diambil dari `X-Forwarded-For` hanya bila peer tepercaya
+  (`--proxy-headers` + `FORWARDED_ALLOW_IPS`, backend tidak terekspos publik).
+- **Konfigurasi production divalidasi saat start**: secret JWT kuat, cookie `Secure`,
+  `FRONTEND_ORIGIN` HTTPS, dan kredensial S3 wajib ada. OpenAPI/docs dimatikan.
+- **Token WebSocket** dikirim sebagai pesan pertama, bukan query string, agar tidak tercatat di
+  access log.
+- Image Docker berjalan sebagai user non-root. Dependensi diaudit (`npm audit`, `pip-audit`).
 
 ## 7. Konfigurasi Lingkungan
 
@@ -338,17 +373,18 @@ Semua konfigurasi lewat variabel lingkungan:
 | File | Isi |
 |------|-----|
 | `.env` (root) | kredensial object storage (RustFS) untuk `docker-compose.yml` |
-| `backend/.env` | URL MongoDB, secret JWT, kredensial object storage, kunci VAPID, SSO |
-| `frontend/.env.local` | `API_PROXY_TARGET` (alamat FastAPI untuk proxy), kunci publik VAPID |
+| `backend/.env` | URL MongoDB, secret JWT, kredensial object storage, kunci VAPID, `MAX_REQUEST_BYTES` |
+| `frontend/.env.local` | `API_PROXY_TARGET` (alamat FastAPI untuk proxy; dibaca saat build). Kunci publik VAPID diambil dari backend |
+| `deploy/.env` | Seluruh konfigurasi stack production (domain, secret, admin pertama) — lihat `DEPLOYMENT.md` |
 
 Lihat `.env.example` di masing-masing lokasi.
 
-## 8. Deployment (Gambaran)
+## 8. Deployment
 
-- **Frontend**: Vercel atau container Node.
-- **Backend**: container (Docker) di layanan seperti Fly.io, Railway, atau Cloud Run.
-  Satu instance pada awalnya (scheduler & Reading Room di dalam proses).
-- **Database**: MongoDB Atlas.
-- **Object storage**: Cloudflare R2 atau AWS S3.
-- HTTPS wajib (syarat Service Worker & Web Push).
-- Detail deployment difinalkan di Fase 10.
+Jalur utama: satu host dengan `deploy/docker-compose.yml`, yaitu **Caddy** (HTTPS otomatis) →
+**frontend** (Next.js standalone) → **backend** (FastAPI, satu instance) → **MongoDB** (replica
+set) + **RustFS**. Database & storage berada di jaringan internal tanpa port publik. Alternatif
+terkelola: MongoDB Atlas, Cloudflare R2/S3, dan container di Fly.io/Cloud Run. CI membangun kedua
+image dan menjalankan smoke test stack lengkap di setiap PR.
+
+Langkah, variabel lingkungan, backup, dan checklist keamanan: [`DEPLOYMENT.md`](DEPLOYMENT.md).

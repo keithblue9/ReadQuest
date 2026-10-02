@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ApiError, api, refreshSession, setAccessToken, setSessionExpiredHandler } from "./api";
+import {
+  ApiError,
+  NetworkError,
+  api,
+  refreshSession,
+  setAccessToken,
+  setSessionExpiredHandler,
+} from "./api";
 
 function json(status: number, body: unknown) {
   return new Response(JSON.stringify(body), {
@@ -83,5 +90,24 @@ describe("api", () => {
     expect(error).toBeInstanceOf(ApiError);
     expect(error.status).toBe(422);
     expect(error.fields[0].loc).toEqual(["password"]);
+  });
+
+  it("offline: request gagal menjadi NetworkError tanpa mengakhiri sesi", async () => {
+    const expired = vi.fn();
+    setSessionExpiredHandler(expired);
+    fetchMock
+      .mockResolvedValueOnce(json(401, { error: { code: "token_invalid", message: "x" } }))
+      .mockRejectedValueOnce(new TypeError("Failed to fetch"));
+
+    await expect(api("/me")).rejects.toBeInstanceOf(NetworkError);
+    expect(expired).not.toHaveBeenCalled();
+
+    fetchMock.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    await expect(api("/feed")).rejects.toBeInstanceOf(NetworkError);
+  });
+
+  it("refresh saat server error 5xx dianggap gangguan jaringan, bukan logout", async () => {
+    fetchMock.mockResolvedValueOnce(new Response("bad gateway", { status: 502 }));
+    await expect(refreshSession()).rejects.toBeInstanceOf(NetworkError);
   });
 });

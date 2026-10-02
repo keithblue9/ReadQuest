@@ -18,6 +18,7 @@ from app.core.security import decode_access_token
 router = APIRouter()
 
 ALLOWED_CHEERS = {"👏", "🔥", "📚", "💪", "✨", "❤️"}
+AUTH_TIMEOUT_SECONDS = 5.0
 CHEER_MIN_INTERVAL = 2.0
 MAX_MESSAGE_BYTES = 2048
 
@@ -89,21 +90,37 @@ def _valid_room(room: str) -> bool:
     return room == "global" or ObjectId.is_valid(room)
 
 
-@router.websocket("/ws/rooms/{room}")
-async def reading_room(websocket: WebSocket, room: str) -> None:
-    # Browser tidak bisa mengirim header Authorization pada WebSocket → token lewat query.
-    payload = decode_access_token(websocket.query_params.get("token", ""))
-    if payload is None or not ObjectId.is_valid(payload.get("sub", "")) or not _valid_room(room):
-        await websocket.close(code=4401)
-        return
-    user = await get_db()["users"].find_one(
+async def _authenticate(websocket: WebSocket) -> dict | None:
+    """Pesan pertama wajib `{"type": "auth", "token": "<access token>"}`.
+
+    Token tidak dikirim lewat query string agar tidak tercatat di access log proxy/server.
+    """
+    try:
+        raw = await asyncio.wait_for(websocket.receive_text(), AUTH_TIMEOUT_SECONDS)
+        message = json.loads(raw)
+    except (TimeoutError, ValueError, WebSocketDisconnect):
+        return None
+    if not isinstance(message, dict) or message.get("type") != "auth":
+        return None
+    payload = decode_access_token(str(message.get("token", "")))
+    if payload is None or not ObjectId.is_valid(payload.get("sub", "")):
+        return None
+    return await get_db()["users"].find_one(
         {"_id": ObjectId(payload["sub"]), "status": "active"}, {"name": 1, "avatar_url": 1}
     )
+
+
+@router.websocket("/ws/rooms/{room}")
+async def reading_room(websocket: WebSocket, room: str) -> None:
+    await websocket.accept()
+    if not _valid_room(room):
+        await websocket.close(code=4404)
+        return
+    user = await _authenticate(websocket)
     if user is None:
         await websocket.close(code=4401)
         return
 
-    await websocket.accept()
     member = Member(user_id=str(user["_id"]), name=user["name"], avatar_url=user.get("avatar_url"))
     await manager.join(room, websocket, member)
     try:

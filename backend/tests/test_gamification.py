@@ -308,6 +308,10 @@ def _token(headers: dict[str, str]) -> str:
     return headers["Authorization"].removeprefix("Bearer ")
 
 
+async def _join(ws, headers: dict[str, str]) -> None:
+    await ws.send_json({"type": "auth", "token": _token(headers)})
+
+
 async def _next(ws, kind: str, where=lambda message: True):
     while True:
         message = await ws.receive_json()
@@ -319,10 +323,12 @@ async def test_reading_room_presence_and_cheers(client):
     room = str(ObjectId())
     a, b = await onboarded_user(client), await onboarded_user(client)
     a_id = (await me(client, a))["id"]
-    async with ws_client() as wc, aconnect_ws(f"/ws/rooms/{room}?token={_token(a)}", wc) as ws_a:
+    async with ws_client() as wc, aconnect_ws(f"/ws/rooms/{room}", wc) as ws_a:
+        await _join(ws_a, a)
         first = await _next(ws_a, "presence")
         assert [m["user_id"] for m in first["members"]] == [a_id]
-        async with aconnect_ws(f"/ws/rooms/{room}?token={_token(b)}", wc) as ws_b:
+        async with aconnect_ws(f"/ws/rooms/{room}", wc) as ws_b:
+            await _join(ws_b, b)
             both = await _next(ws_a, "presence", lambda m: len(m["members"]) == 2)
             assert len(both["members"]) == 2
 
@@ -360,9 +366,27 @@ def _close_codes(exc: BaseException) -> list[int]:
     return []
 
 
-async def test_reading_room_rejects_bad_token():
+@pytest.mark.parametrize(
+    "first_message",
+    [
+        {"type": "auth", "token": "invalid"},
+        {"type": "status", "reading": True},  # pesan pertama bukan auth
+    ],
+)
+async def test_reading_room_rejects_bad_auth(first_message):
     async with ws_client() as wc:
         with pytest.raises(BaseException) as exc:  # noqa: B017 - dibungkus ExceptionGroup
-            async with aconnect_ws("/ws/rooms/global?token=invalid", wc):
-                pass
+            async with aconnect_ws("/ws/rooms/global", wc) as ws:
+                await ws.send_json(first_message)
+                await ws.receive_json()
+    assert 4401 in _close_codes(exc.value)
+
+
+async def test_reading_room_ignores_token_in_query(client):
+    headers = await onboarded_user(client)
+    async with ws_client() as wc:
+        with pytest.raises(BaseException) as exc:  # noqa: B017 - dibungkus ExceptionGroup
+            async with aconnect_ws(f"/ws/rooms/global?token={_token(headers)}", wc) as ws:
+                await ws.send_json({"type": "ping"})
+                await ws.receive_json()
     assert 4401 in _close_codes(exc.value)

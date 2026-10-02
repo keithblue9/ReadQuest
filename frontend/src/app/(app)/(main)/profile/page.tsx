@@ -10,6 +10,7 @@ import { Button } from "@/components/ui";
 import { allowedSections } from "@/features/admin/sections";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { STATUS_STYLE, StatusBadge } from "@/features/authenticity/StatusBadge";
+import { InstallCard } from "@/features/pwa/InstallCard";
 import { api } from "@/lib/api";
 import type { Authenticity, Badge, LedgerEntry, LedgerPage, PointsSummary } from "@/lib/types";
 
@@ -200,6 +201,7 @@ export default function ProfilePage() {
         )}
       </section>
 
+      <InstallCard />
       {adminHome && (
         <Link
           href={adminHome}

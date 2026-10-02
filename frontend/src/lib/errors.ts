@@ -13,5 +13,6 @@ export function fieldErrors(error: unknown): Record<string, string> {
 
 export function errorMessage(error: unknown): string {
   if (error instanceof ApiError) return error.message;
+  if (typeof navigator !== "undefined" && !navigator.onLine) return "Kamu sedang offline. Coba lagi saat koneksi kembali.";
   return "Tidak dapat terhubung ke server. Periksa koneksi Anda.";
 }

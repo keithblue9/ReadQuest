@@ -3,18 +3,20 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { OfflineScreen } from "@/components/OfflineScreen";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { FullScreenSpinner, Logo } from "@/components/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
 
 export default function AuthLayout({ children }: LayoutProps<"/">) {
-  const { status } = useAuth();
+  const { status, retry } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (status === "authenticated") router.replace("/");
   }, [status, router]);
 
+  if (status === "offline") return <OfflineScreen onRetry={retry} />;
   if (status !== "unauthenticated") return <FullScreenSpinner />;
 
   return (

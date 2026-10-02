@@ -40,16 +40,21 @@ export function useReadingRoom(room: string, status?: Status) {
 
     async function connect() {
       let token = getAccessToken();
-      if (!token) token = (await refreshSession())?.access_token ?? null;
+      if (!token) token = (await refreshSession().catch(() => null))?.access_token ?? null;
+      if (!token && !closed) {
+        // Offline/sesi belum siap: coba lagi dengan backoff.
+        retry = setTimeout(connect, Math.min(MAX_BACKOFF_MS, 1000 * 2 ** attempt++));
+        return;
+      }
       if (!token || closed) return;
       const scheme = window.location.protocol === "https:" ? "wss" : "ws";
-      const ws = new WebSocket(
-        `${scheme}://${window.location.host}/ws/rooms/${room}?token=${encodeURIComponent(token)}`,
-      );
+      const ws = new WebSocket(`${scheme}://${window.location.host}/ws/rooms/${room}`);
       wsRef.current = ws;
 
       ws.onopen = () => {
         attempt = 0;
+        // Token dikirim sebagai pesan pertama (bukan query string) agar tidak tercatat di log.
+        ws.send(JSON.stringify({ type: "auth", token }));
         setConnected(true);
         if (statusRef.current) ws.send(JSON.stringify({ type: "status", ...statusRef.current }));
         ping = setInterval(() => ws.send(JSON.stringify({ type: "ping" })), PING_MS);
@@ -72,7 +77,7 @@ export function useReadingRoom(room: string, status?: Status) {
         setConnected(false);
         clearInterval(ping);
         if (closed) return;
-        if (event.code === 4401) await refreshSession();
+        if (event.code === 4401) await refreshSession().catch(() => null);
         const delay = Math.min(MAX_BACKOFF_MS, 1000 * 2 ** attempt++);
         retry = setTimeout(connect, delay);
       };

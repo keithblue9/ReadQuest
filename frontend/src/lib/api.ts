@@ -4,6 +4,13 @@ export const API_BASE = "/api/v1";
 
 export type FieldError = { loc: (string | number)[]; message: string };
 
+/** Server tidak terjangkau (offline / jaringan putus) — berbeda dari sesi yang tidak valid. */
+export class NetworkError extends Error {
+  constructor() {
+    super("Tidak dapat terhubung ke server. Periksa koneksi Anda.");
+  }
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -48,15 +55,24 @@ async function parseError(response: Response): Promise<ApiError> {
   );
 }
 
-/** Tukar refresh cookie dengan access token baru. Panggilan bersamaan berbagi satu request. */
+/**
+ * Tukar refresh cookie dengan access token baru. Panggilan bersamaan berbagi satu request.
+ * `null` = sesi tidak valid; melempar `NetworkError` bila server tidak terjangkau (sesi tetap dipertahankan).
+ */
 export function refreshSession(): Promise<TokenResponse | null> {
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
       try {
-        const response = await fetch(`${API_BASE}/auth/refresh`, {
-          method: "POST",
-          credentials: "same-origin",
-        });
+        let response: Response;
+        try {
+          response = await fetch(`${API_BASE}/auth/refresh`, {
+            method: "POST",
+            credentials: "same-origin",
+          });
+        } catch {
+          throw new NetworkError();
+        }
+        if (response.status >= 500) throw new NetworkError();
         if (!response.ok) {
           setAccessToken(null);
           return null;
@@ -64,8 +80,6 @@ export function refreshSession(): Promise<TokenResponse | null> {
         const data = (await response.json()) as TokenResponse;
         setAccessToken(data.access_token);
         return data;
-      } catch {
-        return null;
       } finally {
         refreshInFlight = null;
       }
@@ -84,16 +98,21 @@ type RequestOptions = Omit<RequestInit, "body"> & {
 export async function apiFetch(path: string, options: RequestOptions = {}): Promise<Response> {
   const { json, body, auth = true, headers, ...init } = options;
 
-  const send = () => {
+  const send = async () => {
     const finalHeaders = new Headers(headers);
     if (json !== undefined) finalHeaders.set("Content-Type", "application/json");
     if (auth && accessToken) finalHeaders.set("Authorization", `Bearer ${accessToken}`);
-    return fetch(`${API_BASE}${path}`, {
-      ...init,
-      credentials: "same-origin",
-      headers: finalHeaders,
-      body: json !== undefined ? JSON.stringify(json) : body,
-    });
+    try {
+      return await fetch(`${API_BASE}${path}`, {
+        ...init,
+        credentials: "same-origin",
+        headers: finalHeaders,
+        body: json !== undefined ? JSON.stringify(json) : body,
+      });
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") throw err;
+      throw new NetworkError();
+    }
   };
 
   let response = await send();

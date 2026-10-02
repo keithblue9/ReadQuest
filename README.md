@@ -14,6 +14,7 @@ berbagi insight, dan kumpulkan poin.
 - Reading Authenticity Index
 - Notifikasi Web Push & in-app
 - Admin dashboard & konfigurasi data-driven (RBAC, aturan poin, audit log)
+- PWA: bisa dipasang ke layar utama, layar offline, pembaruan versi dengan satu ketukan
 
 ## Tech Stack
 
@@ -24,8 +25,9 @@ Next.js (PWA) · FastAPI · MongoDB · JWT · WebSocket
 ```
 frontend/            Next.js PWA
 backend/             FastAPI
-docs/                spesifikasi, arsitektur, skema database
+docs/                spesifikasi, arsitektur, skema database, deployment
 docker-compose.yml   MongoDB + RustFS untuk pengembangan lokal
+deploy/              stack production (Docker Compose + Caddy HTTPS)
 ```
 
 ## Menjalankan Secara Lokal
@@ -45,23 +47,37 @@ npm install && npm run dev           # buka http://localhost:3000
 Daftar di `/register` memakai kode undangan dari `SEED_INVITE_CODE` (atau kode yang dicetak
 oleh seed). Detail: [`backend/README.md`](backend/README.md), [`frontend/README.md`](frontend/README.md).
 
+## Deployment Production
+
+```bash
+cd deploy && cp .env.example .env    # DOMAIN, JWT_SECRET, kredensial S3, admin pertama
+docker compose up -d --build
+docker compose --profile tools run --rm seed
+```
+
+Panduan lengkap (HTTPS, backup, update, checklist keamanan): [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
 ## Status
 
-Selesai: autentikasi & onboarding (Fase 2), sesi baca dengan timer + catatan wajib yang
-divalidasi, katalog buku bersama, dan unggah foto (Fase 3), sistem poin berbasis ledger dengan
-streak & level (Fase 4), feed sosial dengan reaksi, komentar berantai, mention, bookmark, kartu
-berbagi, dan diskusi per buku (Fase 5), leaderboard lima kategori dengan periode mingguan/
-bulanan/sepanjang masa (Fase 6), Authenticity Index, badge, weekly quest, Book of the Month,
-Reading Buddy, dan Reading Room live via WebSocket (Fase 7), notifikasi Web Push & lonceng in-app
-dengan preferensi, jam tenang, batching, dan pengingat terjadwal (Fase 8), Admin dashboard
-(heatmap per fungsi, daftar Observer, export Excel/PDF) dan Admin Config data-driven — fungsi
-bertingkat, matriks role/permission, aturan poin, badge/quest/level, katalog, jadwal & template
-notifikasi, pengaturan, kode undangan, moderasi laporan, dan audit log (Fase 9). Berikutnya:
-Fase 10 — PWA polish, hardening, deployment.
+Semua fase (0–10) dalam [`docs/SPEC.md`](docs/SPEC.md) sudah selesai:
+- Autentikasi & onboarding.
+- Sesi baca dengan timer + catatan wajib yang divalidasi.
+- Katalog buku & unggah foto.
+- Poin berbasis ledger dengan streak & level.
+- Feed sosial.
+- Leaderboard lima kategori.
+- Authenticity Index & gamifikasi (badge, quest, Book of the Month, Reading Buddy, Reading Room live).
+- Notifikasi Web Push & in-app.
+- Admin dashboard & Admin Config data-driven dengan audit log.
+- PWA polish (offline, instal, pembaruan versi).
+- Hardening keamanan & deployment Docker.
+
+SSO (OIDC) masih opsional dan belum diimplementasikan; login memakai email/password.
 
 ## Dokumentasi
 
 - [Spesifikasi lengkap](docs/SPEC.md)
 - [Arsitektur](docs/ARCHITECTURE.md)
 - [Skema database](docs/DATABASE.md)
+- [Deployment](docs/DEPLOYMENT.md)
 - [Konteks & aturan kerja](CLAUDE.md)

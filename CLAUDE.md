@@ -12,15 +12,18 @@ mengerjakan fitur apa pun.
 Dokumen pendukung:
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — komponen, alur data, alasan teknologi.
 - [`docs/DATABASE.md`](docs/DATABASE.md) — skema koleksi MongoDB, relasi, index.
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — deployment production (Docker Compose + Caddy), backup, operasional.
 
 ## Struktur Repo
 
 ```
 frontend/            Next.js PWA (lihat frontend/README.md)
 backend/             FastAPI (lihat backend/README.md)
-docs/                SPEC, ARCHITECTURE, DATABASE
+docs/                SPEC, ARCHITECTURE, DATABASE, DEPLOYMENT
 docker-compose.yml   MongoDB (replica set) + RustFS untuk lokal
-.github/workflows/   CI: ruff + pytest (backend), lint + typecheck + test + build (frontend)
+deploy/              stack production: docker-compose.yml + Caddyfile + .env.example
+.github/workflows/   CI: ruff + pytest (backend), lint + typecheck + test + build (frontend),
+                     build image Docker + smoke test stack production
 ```
 
 ## Perintah Penting
@@ -70,4 +73,4 @@ Pastikan semua cek di atas lolos sebelum push. Frontend memakai Next.js 16: baca
 | 7 | ✅ Authenticity Index & gamifikasi lanjutan (level, badge, quest, Reading Room) |
 | 8 | ✅ Notifikasi (Web Push & in-app) |
 | 9 | ✅ Admin dashboard & Admin Config (RBAC, audit log, export) |
-| 10 | PWA polish, hardening, deployment |
+| 10 | ✅ PWA polish, hardening, deployment |

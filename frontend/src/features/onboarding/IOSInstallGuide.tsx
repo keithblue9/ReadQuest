@@ -4,14 +4,18 @@ const steps = [
   { icon: "✅", text: "Ketuk “Tambah”, lalu buka ReadQuest dari ikon di Layar Utama." },
 ];
 
-export function IOSInstallGuide() {
+export function IOSInstallGuide({ compact = false }: { compact?: boolean }) {
   return (
     <div>
-      <h2 className="text-2xl font-extrabold">Pasang di iPhone 📲</h2>
-      <p className="mt-2 text-muted">
-        Agar pengingat baca dan notifikasi bisa muncul, pasang ReadQuest ke Layar Utama.
-      </p>
-      <ol className="mt-6 flex flex-col gap-3">
+      {!compact && (
+        <>
+          <h2 className="text-2xl font-extrabold">Pasang di iPhone 📲</h2>
+          <p className="mt-2 text-muted">
+            Agar pengingat baca dan notifikasi bisa muncul, pasang ReadQuest ke Layar Utama.
+          </p>
+        </>
+      )}
+      <ol className={`${compact ? "" : "mt-6"} flex flex-col gap-3`}>
         {steps.map((step, index) => (
           <li
             key={step.text}

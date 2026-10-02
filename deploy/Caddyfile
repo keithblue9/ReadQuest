@@ -1,0 +1,21 @@
+# Caddy: HTTPS otomatis untuk {$DOMAIN}, kompresi, HSTS, dan batas ukuran body.
+# Service Worker & Web Push mensyaratkan HTTPS.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	request_body {
+		max_size 12MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains"
+		-Server
+	}
+
+	# Next.js meneruskan /api/* dan /ws/* (termasuk WebSocket Reading Room) ke backend.
+	reverse_proxy frontend:3000
+}

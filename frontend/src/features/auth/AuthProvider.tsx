@@ -4,13 +4,15 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 import {
   api,
+  NetworkError,
   refreshSession,
   setAccessToken,
   setSessionExpiredHandler,
 } from "@/lib/api";
 import type { Me, TokenResponse } from "@/lib/types";
 
-type AuthStatus = "loading" | "authenticated" | "unauthenticated";
+/** `offline`: sesi belum bisa dipulihkan karena server tidak terjangkau (bukan logout). */
+type AuthStatus = "loading" | "authenticated" | "unauthenticated" | "offline";
 
 export type RegisterInput = {
   email: string;
@@ -28,6 +30,8 @@ type AuthContextValue = {
   logout: () => Promise<void>;
   setUser: (user: Me) => void;
   refreshUser: () => Promise<void>;
+  /** Coba pulihkan sesi lagi (dipakai layar offline). */
+  retry: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -49,20 +53,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setStatus("unauthenticated");
   }, []);
 
+  const restore = useCallback(
+    () =>
+      refreshSession().then(
+        (data) => (data ? applySession(data) : clearSession()),
+        (err) => {
+          if (err instanceof NetworkError) setStatus("offline");
+          else clearSession();
+        },
+      ),
+    [applySession, clearSession],
+  );
+
   // Saat halaman dimuat, pulihkan sesi dari refresh cookie.
   useEffect(() => {
-    let cancelled = false;
-    refreshSession().then((data) => {
-      if (cancelled) return;
-      if (data) applySession(data);
-      else clearSession();
-    });
+    restore();
     setSessionExpiredHandler(clearSession);
-    return () => {
-      cancelled = true;
-      setSessionExpiredHandler(null);
-    };
-  }, [applySession, clearSession]);
+    return () => setSessionExpiredHandler(null);
+  }, [restore, clearSession]);
+
+  // Offline saat membuka aplikasi: coba lagi otomatis begitu koneksi kembali.
+  useEffect(() => {
+    if (status !== "offline") return;
+    const onOnline = () => restore();
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, [status, restore]);
+
+  const retry = useCallback(() => {
+    setStatus("loading");
+    restore();
+  }, [restore]);
 
   const login = useCallback(
     async (email: string, password: string) =>
@@ -103,8 +124,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, user, login, register, logout, setUser, refreshUser }),
-    [status, user, login, register, logout, setUser, refreshUser],
+    () => ({ status, user, login, register, logout, setUser, refreshUser, retry }),
+    [status, user, login, register, logout, setUser, refreshUser, retry],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
