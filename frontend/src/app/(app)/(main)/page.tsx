@@ -7,7 +7,13 @@ import { BookCover } from "@/components/BookCover";
 import { LevelProgress } from "@/components/LevelProgress";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { api } from "@/lib/api";
-import type { PointsSummary, ReadingSession, Today } from "@/lib/types";
+import { categoryInfo } from "@/features/leaderboard/categories";
+import type {
+  LeaderboardSummaryItem,
+  PointsSummary,
+  ReadingSession,
+  Today,
+} from "@/lib/types";
 import { formatDuration } from "@/lib/words";
 
 export default function HomePage() {
@@ -15,11 +21,15 @@ export default function HomePage() {
   const [today, setToday] = useState<Today | null>(null);
   const [recent, setRecent] = useState<ReadingSession[]>([]);
   const [points, setPoints] = useState<PointsSummary | null>(null);
+  const [ranks, setRanks] = useState<LeaderboardSummaryItem[]>([]);
 
   useEffect(() => {
     api<Today>("/sessions/today").then(setToday).catch(() => undefined);
     api<ReadingSession[]>("/sessions?limit=5").then(setRecent).catch(() => undefined);
     api<PointsSummary>("/me/points").then(setPoints).catch(() => undefined);
+    api<LeaderboardSummaryItem[]>("/leaderboard/me?period=weekly")
+      .then(setRanks)
+      .catch(() => undefined);
     refreshUser();
   }, [refreshUser]);
 
@@ -83,6 +93,47 @@ export default function HomePage() {
           )}
         </Link>
       )}
+
+      <section>
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="text-lg font-extrabold">Peringkat minggu ini</h2>
+          <Link href="/leaderboard" className="text-sm font-bold text-primary">
+            Lihat semua →
+          </Link>
+        </div>
+        <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
+          {ranks.map((r) => {
+            const info = categoryInfo(r.category);
+            return (
+              <Link
+                key={r.category}
+                href={`/leaderboard?category=${r.category}`}
+                className="w-32 shrink-0 rounded-2xl border border-border bg-surface p-3"
+              >
+                <p className="text-xl" aria-hidden>
+                  {info.emoji}
+                </p>
+                <p className="mt-1 truncate text-xs font-semibold text-muted">{info.label}</p>
+                <p className="text-lg font-extrabold">{r.rank ? `#${r.rank}` : "—"}</p>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      <Link
+        href="/books"
+        className="flex items-center gap-3 rounded-3xl border border-border bg-surface p-4"
+      >
+        <span className="text-3xl" aria-hidden>
+          📚
+        </span>
+        <span className="flex-1">
+          <span className="block font-extrabold">Katalog Buku</span>
+          <span className="text-sm text-muted">Cari buku & ikuti diskusinya</span>
+        </span>
+        <span aria-hidden>→</span>
+      </Link>
 
       <section>
         <h2 className="mb-3 text-lg font-extrabold">Sesi terakhir</h2>

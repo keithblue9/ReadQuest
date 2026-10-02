@@ -14,7 +14,7 @@ from pymongo.asynchronous.database import AsyncDatabase
 from pymongo.errors import DuplicateKeyError
 
 from app.core import clock
-from app.repositories import ledger
+from app.repositories import leaderboard_cache, ledger
 from app.schemas.points import (
     LedgerEntryOut,
     LedgerPageOut,
@@ -92,6 +92,9 @@ async def award(
     await db["users"].update_one(
         {"_id": user["_id"]}, {"$inc": {"stats.points_total": rule["points"]}}, session=session
     )
+    if session is None:
+        # Di dalam transaksi, pemanggil yang membuang cache setelah commit.
+        await leaderboard_cache.invalidate_open(db)
     return Award(rule_code=rule_code, name=rule["name"], points=rule["points"])
 
 
@@ -123,6 +126,7 @@ async def adjust(
         },
     )
     await db["users"].update_one({"_id": user["_id"]}, {"$inc": {"stats.points_total": points}})
+    await leaderboard_cache.invalidate_open(db)
 
 
 async def recompute_total(db: AsyncDatabase, user_id: ObjectId) -> int:

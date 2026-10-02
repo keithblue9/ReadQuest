@@ -33,7 +33,7 @@ npm run lint && npm run typecheck && npm test && npm run build
 |--------|-----|
 | `src/app/(auth)/` | `/login`, `/register` (hanya untuk tamu) |
 | `src/app/(app)/` | halaman yang butuh login (guard di `layout.tsx`): `/onboarding`, `/read` (sesi baca layar penuh) |
-| `src/app/(app)/(main)/` | halaman dengan navigasi bawah (`AppShell`): `/` (beranda), `/feed`, `/posts/[id]`, `/books`, `/books/[id]`, `/profile` |
+| `src/app/(app)/(main)/` | halaman dengan navigasi bawah (`AppShell`): `/` (beranda), `/feed`, `/posts/[id]`, `/leaderboard`, `/books`, `/books/[id]`, `/profile` |
 | `src/app/manifest.ts` | Web App Manifest (PWA) |
 | `src/components/` | komponen UI generik (`ui.tsx`, `AppShell`, `BookCover`, `PostCard`, `PhotoPicker`, tema) |
 | `src/features/` | modul per fitur: `auth/`, `onboarding/`, `books/` (cari & tambah buku), `reading/` (timer, catatan, perayaan), `feed/` (reaksi, komentar, @mention, share sheet, diskusi) |

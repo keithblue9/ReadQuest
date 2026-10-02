@@ -151,4 +151,6 @@ APP_SETTINGS: list[tuple[str, object, str]] = [
     ),
     ("upload.max_bytes", 1048576, "Ukuran maksimal foto (byte)"),
     ("onboarding.default_daily_target_minutes", 15, "Target harian default"),
+    ("team.timezone", "Asia/Jakarta", "Zona waktu tim untuk batas periode leaderboard"),
+    ("leaderboard.cache_seconds", 300, "Lama cache hasil leaderboard (detik)"),
 ]

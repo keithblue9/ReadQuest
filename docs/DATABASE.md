@@ -451,7 +451,8 @@ Cache hasil agregasi leaderboard.
 | `period` | string | `weekly` \| `monthly` \| `all_time` |
 | `period_key` | string | mis. `2026-W40`, `2026-10`, `all` |
 | `is_final` | bool | `true` setelah periode berakhir (dibekukan) |
-| `entries` | object[] | `{ rank, user_id \| function_id, name, score, members_count? }` (top N) |
+| `ranking` | object[] | semua peserta `{ id (user_id \| function_id), rank, score, detail }` — untuk "posisimu" |
+| `entries` | object[] | 50 teratas (subset `ranking`) |
 | `computed_at` | Date | |
 
 **Index:** `{ category: 1, period: 1, period_key: 1 }` unique
@@ -569,6 +570,8 @@ Contoh kunci:
 | `authenticity.thresholds` | `{ active_reader: 0.5, warming_up: 0.25, observer: 0.0 }` (+ `silent` = tanpa aktivitas) |
 | `upload.max_bytes` | `1048576` |
 | `onboarding.default_daily_target_minutes` | `15` |
+| `team.timezone` | `"Asia/Jakarta"` (batas periode leaderboard) |
+| `leaderboard.cache_seconds` | `300` |
 
 **Index:** `{ key: 1 }` unique
 
