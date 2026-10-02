@@ -34,7 +34,9 @@ uv run python -m app.scripts.generate_vapid
 Scheduler notifikasi berjalan di dalam proses API (`SCHEDULER_ENABLED=true`, default).
 
 **Docker**: `docker build -t readquest-backend backend` (dari root repo) menghasilkan image
-production (user non-root, `APP_ENV=production`, health check `/health`). Stack lengkap ada di
+production (user non-root, `APP_ENV=production`, health check `/health`). Di container, API
+dijalankan dengan `python -m app.serve`, yang membuka soket dual-stack IPv4+IPv6 di `$PORT`
+(default 8000). Stack lengkap ada di
 [`../deploy/`](../deploy) dan [`../docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md).
 
 ## Test & Lint

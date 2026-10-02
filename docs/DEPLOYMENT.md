@@ -167,14 +167,101 @@ Backend dirancang untuk **satu instance**:
 Untuk satu tim/organisasi (ratusan hingga beberapa ribu anggota), satu instance backend sudah
 cukup.
 
-## 8. Alternatif: Layanan Terkelola
+## 8. Alternatif: Layanan Terkelola (Railway + MongoDB Atlas + Cloudflare R2)
 
-| Komponen | Opsi | Konfigurasi |
-|----------|------|-------------|
-| Database | MongoDB Atlas (replica set bawaan) | `MONGODB_URI=mongodb+srv://…` |
-| Object storage | Cloudflare R2 / AWS S3 | `S3_ENDPOINT_URL`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET` |
-| Backend | Fly.io, Cloud Run, Railway (image `backend/Dockerfile`) | Satu instance minimum & maksimum. Set `FORWARDED_ALLOW_IPS` ke alamat proxy platform |
-| Frontend | Container `frontend/Dockerfile` di platform yang sama | Build arg `API_PROXY_TARGET=https://alamat-backend-internal` |
+Tanpa server sendiri dan tanpa domain: Railway memberi alamat HTTPS gratis
+`https://<nama>.up.railway.app` (cukup untuk PWA & Web Push). Domain sendiri bisa ditambahkan
+kapan saja.
 
-Backend tetap harus dipanggil lewat origin frontend (rewrites Next.js) agar cookie refresh
-token `SameSite=Strict` bekerja.
+```mermaid
+flowchart LR
+  U[Browser / PWA] -- HTTPS --> F[Railway: frontend<br/>*.up.railway.app]
+  F -- "jaringan privat<br/>backend.railway.internal:8000" --> B[Railway: backend<br/>tanpa domain publik]
+  B --> M[(MongoDB Atlas M0)]
+  B --> R[(Cloudflare R2)]
+```
+
+Perkiraan biaya awal: Atlas M0 & R2 (≤ 10 GB) gratis; Railway paket Hobby ± US$5/bulan
+(mencakup pemakaian kecil dua service).
+
+### 8.1 MongoDB Atlas
+
+1. Daftar di <https://cloud.mongodb.com> → **Create** cluster **M0 (Free)**. Pilih region terdekat
+   dengan region Railway, mis. Singapura (`ap-southeast-1`).
+2. **Database Access** → tambah user (mis. `readquest`) dengan password acak, role
+   *Read and write to any database*.
+3. **Network Access** → **Allow access from anywhere** (`0.0.0.0/0`). Railway Hobby tidak punya IP
+   statis, dan akses tetap dilindungi user + password.
+4. **Connect → Drivers** → salin connection string, lalu ganti `<password>`:
+   `mongodb+srv://readquest:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority`
+
+### 8.2 Cloudflare R2
+
+1. Daftar di <https://dash.cloudflare.com> → **R2** → aktifkan (paket gratis tetap minta data
+   pembayaran) → **Create bucket** `readquest-photos` (lokasi *Asia-Pacific*). Bucket **tidak perlu
+   publik**: foto disajikan backend lewat URL bertanda tangan.
+2. **R2 → Manage API Tokens → Create API token**: izin *Object Read & Write*, dibatasi ke bucket
+   tersebut. Catat **Access Key ID**, **Secret Access Key**, dan endpoint
+   `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`.
+
+### 8.3 Railway
+
+1. Daftar di <https://railway.com> dengan akun GitHub → **New Project → Deploy from GitHub repo**
+   → pilih `ReadQuest`. Ubah nama service pertama menjadi **`backend`** (nama ini dipakai sebagai
+   hostname privat `backend.railway.internal`).
+2. Service **backend** → *Settings*:
+   - **Root Directory**: `backend`. `backend/railway.toml` otomatis dipakai: build Dockerfile,
+     seed tiap deploy, health check `/health`, 1 instance.
+   - Jangan buat domain publik. Backend hanya diakses frontend lewat jaringan privat.
+3. Service **backend** → *Variables* (gunakan *Raw Editor*):
+
+   ```env
+   PORT=8000
+   APP_ENV=production
+   FRONTEND_ORIGIN=https://<domain-frontend>.up.railway.app
+   COOKIE_SECURE=true
+   FORWARDED_ALLOW_IPS=*
+   MONGODB_URI=mongodb+srv://readquest:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+   MONGODB_DB=readquest
+   JWT_SECRET=<openssl rand -base64 48>
+   STORAGE_BACKEND=s3
+   S3_ENDPOINT_URL=https://<ACCOUNT_ID>.r2.cloudflarestorage.com
+   S3_REGION=auto
+   S3_BUCKET=readquest-photos
+   S3_ACCESS_KEY=<Access Key ID R2>
+   S3_SECRET_KEY=<Secret Access Key R2>
+   ADMIN_PHONE=<nomor HP admin, mis. 0812xxxxxxxx>
+   ADMIN_PIN=<6 angka, bukan 123456/111111>
+   ADMIN_NAME=<nama admin>
+   VAPID_PUBLIC_KEY=
+   VAPID_PRIVATE_KEY=
+   VAPID_SUBJECT=mailto:<email admin>
+   ```
+
+   `FRONTEND_ORIGIN` diisi setelah langkah 5. Backend boleh gagal start sebelum itu.
+   `FORWARDED_ALLOW_IPS=*` aman karena backend tidak punya domain publik.
+4. Tambah service kedua: **New → GitHub Repo → ReadQuest**, beri nama **`frontend`**:
+   - **Root Directory**: `frontend` (memakai `frontend/railway.toml`).
+   - *Variables*: `API_PROXY_TARGET=http://backend.railway.internal:8000`. Nilai ini dibaca saat
+     build; setelah mengubahnya, lakukan *Redeploy*.
+5. Service **frontend** → *Settings → Networking → Generate Domain*. Salin alamatnya
+   (mis. `https://readquest-production.up.railway.app`) ke `FRONTEND_ORIGIN` di backend, lalu
+   **Redeploy** backend.
+6. Buka alamat frontend → login dengan `ADMIN_PHONE` + `ADMIN_PIN` → selesaikan onboarding →
+   bagikan `https://<domain-frontend>/register` ke tim.
+
+**Web Push (opsional)**: buat kunci VAPID dari mesin yang punya `uv` (`cd backend && uv run python
+-m app.scripts.generate_vapid`) atau Docker, isi `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` di backend,
+lalu redeploy.
+
+### 8.4 Catatan
+
+- Backend mendengarkan IPv4 **dan** IPv6 sekaligus (`python -m app.serve`), karena jaringan privat
+  Railway memakai IPv6.
+- Setiap push ke `main` otomatis di-deploy ulang oleh Railway. Atur di *Settings → Source* bila
+  ingin deploy manual.
+- **Domain sendiri** nanti: *Settings → Networking → Custom Domain* di service frontend, tambahkan
+  record CNAME di DNS, lalu ubah `FRONTEND_ORIGIN`.
+- **Backup**: Atlas M0 tidak punya backup otomatis. Jalankan `mongodump --uri "<MONGODB_URI>"`
+  secara berkala dari komputer lain, atau naik ke tier berbayar yang punya snapshot.
+- Backend tetap satu instance (`numReplicas = 1`). Lihat §7.

@@ -59,3 +59,51 @@ def test_production_settings_validation():
         with pytest.raises(ValidationError):
             _prod(**bad)
     assert _prod(storage_backend="local", s3_access_key=None).storage_backend == "local"
+
+
+@pytest.mark.parametrize(
+    ("code", "created", "raises"),
+    [
+        ("404", True, False),
+        ("NoSuchBucket", True, False),
+        ("403", False, False),
+        ("500", False, True),
+    ],
+)
+async def test_s3_ensure_ready_bucket_handling(code, created, raises):
+    from botocore.exceptions import ClientError
+
+    from app.core.storage import S3Storage
+
+    class FakeClient:
+        made = False
+
+        def head_bucket(self, Bucket):  # noqa: N803 - nama argumen boto3
+            raise ClientError({"Error": {"Code": code}}, "HeadBucket")
+
+        def create_bucket(self, Bucket):  # noqa: N803
+            FakeClient.made = True
+
+    storage = S3Storage.__new__(S3Storage)
+    storage.client, storage.bucket = FakeClient(), "foto"
+    if raises:
+        with pytest.raises(ClientError):
+            await storage.ensure_ready()
+    else:
+        await storage.ensure_ready()
+    assert FakeClient.made is created
+
+
+def test_listen_socket_accepts_ipv4():
+    import socket
+
+    from app.serve import listen_socket
+
+    server = listen_socket(0)
+    server.listen()
+    port = server.getsockname()[1]
+    try:
+        with socket.create_connection(("127.0.0.1", port), timeout=2):
+            pass
+    finally:
+        server.close()

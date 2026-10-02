@@ -389,7 +389,8 @@ Lihat `.env.example` di masing-masing lokasi.
 Jalur utama: satu host dengan `deploy/docker-compose.yml`, yaitu **Caddy** (HTTPS otomatis) →
 **frontend** (Next.js standalone) → **backend** (FastAPI, satu instance) → **MongoDB** (replica
 set) + **RustFS**. Database & storage berada di jaringan internal tanpa port publik. Alternatif
-terkelola: MongoDB Atlas, Cloudflare R2/S3, dan container di Fly.io/Cloud Run. CI membangun kedua
+terkelola yang didokumentasikan langkah demi langkah: **Railway** (frontend publik `*.up.railway.app`,
+backend di jaringan privat) + **MongoDB Atlas** + **Cloudflare R2**. CI membangun kedua
 image dan menjalankan smoke test stack lengkap di setiap PR.
 
 Langkah, variabel lingkungan, backup, dan checklist keamanan: [`DEPLOYMENT.md`](DEPLOYMENT.md).

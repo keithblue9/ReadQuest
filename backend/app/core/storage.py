@@ -76,8 +76,13 @@ class S3Storage:
         def _ensure() -> None:
             try:
                 self.client.head_bucket(Bucket=self.bucket)
-            except ClientError:
-                self.client.create_bucket(Bucket=self.bucket)
+            except ClientError as exc:
+                code = str(exc.response.get("Error", {}).get("Code", ""))
+                if code in {"404", "NoSuchBucket", "NotFound"}:
+                    self.client.create_bucket(Bucket=self.bucket)
+                elif code not in {"403", "AccessDenied", "Forbidden"}:
+                    raise
+                # 403: token hanya berhak atas objek (mis. Cloudflare R2) — bucket dibuat manual.
 
         await anyio.to_thread.run_sync(_ensure)
 

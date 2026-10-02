@@ -1,0 +1,10 @@
+# Konfigurasi Railway untuk service frontend (Root Directory: frontend). Lihat docs/DEPLOYMENT.md §8.
+# Variabel API_PROXY_TARGET (mis. http://backend.railway.internal:8000) dipakai saat build.
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/offline"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
