@@ -1,9 +1,18 @@
+import pytest
 from bson import ObjectId
 
 from app.core import db as db_module
 from app.services import points_service
 from tests.conftest import create_book, onboarded_user, quick_post
 from tests.test_sessions import QUICK_NOTE, _story
+
+
+@pytest.fixture(autouse=True)
+async def _without_quests(database):
+    """Tes aturan poin dasar tanpa hadiah quest (quest diuji di test_gamification)."""
+    await database["quests"].update_many({}, {"$set": {"is_active": False}})
+    yield
+    await database["quests"].update_many({}, {"$set": {"is_active": True}})
 
 
 async def _session(client, headers, fake_clock, book_id, **finish):

@@ -19,7 +19,7 @@ from app.schemas.posts import (
     PostOut,
     ReactionStateOut,
 )
-from app.services import permissions, points_service, post_service
+from app.services import badge_service, permissions, points_service, post_service, quest_service
 from app.services.note_validation import content_hash, tokenize
 from app.services.upload_service import owns_key
 
@@ -79,6 +79,8 @@ async def react(db: AsyncDatabase, user: dict, post_id: ObjectId, type_: str) ->
         reaction = await db["reactions"].find_one({"post_id": post_id, "user_id": user["_id"]})
         author = await db["users"].find_one({"_id": post["author_id"]})
         if author:
+            if previous is None:
+                await badge_service.evaluate(db, author)
             await points_service.award(
                 db,
                 user=author,
@@ -263,6 +265,9 @@ async def create_comment(
                 local_date=_local_date(author),
                 actor_id=user["_id"],
             )
+    if meaningful:
+        await quest_service.evaluate(db, user)
+        await badge_service.evaluate(db, user)
     users = await post_service.users_by_id(db, set(mentions))
     return CommentCreatedOut(comment=comment_out(doc, users), points=awarded)
 

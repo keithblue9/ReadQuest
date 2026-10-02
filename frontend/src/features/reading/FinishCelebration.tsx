@@ -60,6 +60,35 @@ export function FinishCelebration({ result }: { result: FinishResult }) {
         )}
       </section>
 
+      {result.badges.length > 0 && (
+        <section className="animate-pop-in rounded-3xl border-2 border-accent bg-accent/10 p-4">
+          <p className="font-extrabold">Badge baru! 🏅</p>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {result.badges.map((b) => (
+              <li key={b.id} className="flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-sm font-bold">
+                <span className="text-xl" aria-hidden>
+                  {b.icon}
+                </span>
+                {b.name}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {result.quests_completed.length > 0 && (
+        <section className="animate-pop-in rounded-3xl border-2 border-success/50 bg-success/10 p-4">
+          <p className="font-extrabold">Quest selesai! 🎯</p>
+          <ul className="mt-1 text-sm">
+            {result.quests_completed.map((q) => (
+              <li key={q.id}>
+                ✅ {q.title} <span className="font-bold text-success">+{q.reward_points}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {points.level_up && points.level && (
         <div className="animate-pop-in rounded-3xl border-2 border-accent bg-accent/10 p-4 text-center">
           <p className="text-3xl" aria-hidden>

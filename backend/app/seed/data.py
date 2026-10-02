@@ -86,6 +86,114 @@ POINT_RULES: list[dict] = [
         "points": 1000,
         "daily_cap_count": None,
     },
+    # Nilai diambil dari quest masing-masing (reward.points); entri ini hanya nama di riwayat.
+    {"code": "quest_reward", "name": "Hadiah quest", "points": 0, "daily_cap_count": None},
+]
+
+# criteria.type = metrik di app/services/user_stats.py
+BADGES: list[dict] = [
+    {
+        "code": "first-step",
+        "name": "Langkah Pertama",
+        "icon": "👣",
+        "description": "Menyelesaikan sesi baca pertama.",
+        "criteria": {"type": "sessions_count", "gte": 1},
+    },
+    {
+        "code": "storyteller-5",
+        "name": "Pencerita",
+        "icon": "📝",
+        "description": "Menulis 5 Chapter Story.",
+        "criteria": {"type": "chapter_story_count", "gte": 5},
+    },
+    {
+        "code": "critic-3",
+        "name": "Kritikus",
+        "icon": "⭐",
+        "description": "Menulis 3 Book Review.",
+        "criteria": {"type": "book_review_count", "gte": 3},
+    },
+    {
+        "code": "finisher-1",
+        "name": "Penamat Buku",
+        "icon": "🎉",
+        "description": "Menyelesaikan buku pertama.",
+        "criteria": {"type": "books_finished", "gte": 1},
+    },
+    {
+        "code": "bookworm-5",
+        "name": "Kutu Buku",
+        "icon": "🐛",
+        "description": "Menyelesaikan 5 buku.",
+        "criteria": {"type": "books_finished", "gte": 5},
+    },
+    {
+        "code": "streak-7",
+        "name": "Api Seminggu",
+        "icon": "🔥",
+        "description": "Streak membaca 7 hari.",
+        "criteria": {"type": "streak_longest", "gte": 7},
+    },
+    {
+        "code": "streak-30",
+        "name": "Api Sebulan",
+        "icon": "🌋",
+        "description": "Streak membaca 30 hari.",
+        "criteria": {"type": "streak_longest", "gte": 30},
+    },
+    {
+        "code": "inspirer-25",
+        "name": "Inspirator",
+        "icon": "✨",
+        "description": "Menerima 25 reaksi dari rekan.",
+        "criteria": {"type": "reactions_received", "gte": 25},
+    },
+    {
+        "code": "discussant-10",
+        "name": "Teman Diskusi",
+        "icon": "💬",
+        "description": "Memberi 10 komentar bermakna.",
+        "criteria": {"type": "meaningful_comments_given", "gte": 10},
+    },
+    {
+        "code": "marathon-600",
+        "name": "Maraton Baca",
+        "icon": "🏃",
+        "description": "Total membaca 600 menit.",
+        "criteria": {"type": "reading_minutes", "gte": 600},
+    },
+]
+
+# Weekly quest berulang (periode mengikuti minggu tim). goal.type = metrik user_stats.
+QUESTS: list[dict] = [
+    {
+        "code": "weekly-3-days",
+        "title": "Baca 3 hari minggu ini",
+        "description": "Selesaikan sesi baca di 3 hari berbeda.",
+        "goal": {"type": "reading_days", "target": 3},
+        "reward": {"points": 30},
+    },
+    {
+        "code": "weekly-60-min",
+        "title": "60 menit membaca",
+        "description": "Kumpulkan total 60 menit membaca minggu ini.",
+        "goal": {"type": "reading_minutes", "target": 60},
+        "reward": {"points": 20},
+    },
+    {
+        "code": "weekly-chapter-story",
+        "title": "Satu Chapter Story",
+        "description": "Tulis minimal satu Chapter Story.",
+        "goal": {"type": "chapter_story_count", "target": 1},
+        "reward": {"points": 25},
+    },
+    {
+        "code": "weekly-3-comments",
+        "title": "Teman diskusi",
+        "description": "Beri 3 komentar bermakna di catatan rekan.",
+        "goal": {"type": "meaningful_comments_given", "target": 3},
+        "reward": {"points": 15},
+    },
 ]
 
 LEVELS: list[dict] = [

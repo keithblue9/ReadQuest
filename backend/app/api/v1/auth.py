@@ -56,14 +56,16 @@ RefreshCookie = Annotated[str | None, Cookie(alias=REFRESH_COOKIE_NAME)]
 
 @router.post("/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
 async def register(data: RegisterIn, db: Db, response: Response, client: Client) -> TokenOut:
-    rate_limiter.hit(f"register:ip:{client.ip}", limit=5, window_seconds=60)
+    # Per IP dibuat longgar: satu kantor (NAT) bisa mendaftar bersamaan saat rollout.
+    rate_limiter.hit(f"register:ip:{client.ip}", limit=30, window_seconds=60)
     issued = await auth_service.register(db, data, client)
     return await _token_response(db, response, issued)
 
 
 @router.post("/login", response_model=TokenOut)
 async def login(data: LoginIn, db: Db, response: Response, client: Client) -> TokenOut:
-    rate_limiter.hit(f"login:ip:{client.ip}", limit=20, window_seconds=60)
+    rate_limiter.hit(f"login:ip:{client.ip}", limit=60, window_seconds=60)
+    # Perlindungan brute-force per akun tetap ketat.
     rate_limiter.hit(f"login:email:{data.email.lower()}", limit=5, window_seconds=60)
     issued = await auth_service.login(db, data, client)
     return await _token_response(db, response, issued)
@@ -73,7 +75,7 @@ async def login(data: LoginIn, db: Db, response: Response, client: Client) -> To
 async def refresh(
     db: Db, response: Response, client: Client, rq_refresh: RefreshCookie = None
 ) -> TokenOut:
-    rate_limiter.hit(f"refresh:ip:{client.ip}", limit=60, window_seconds=60)
+    rate_limiter.hit(f"refresh:ip:{client.ip}", limit=300, window_seconds=60)
     issued = await auth_service.refresh(db, rq_refresh, client)
     return await _token_response(db, response, issued)
 

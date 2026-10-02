@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { BookCover } from "@/components/BookCover";
 import { LevelProgress } from "@/components/LevelProgress";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { HomeExtras } from "@/features/home/HomeExtras";
 import { api } from "@/lib/api";
 import { categoryInfo } from "@/features/leaderboard/categories";
 import type {
@@ -93,6 +94,8 @@ export default function HomePage() {
           )}
         </Link>
       )}
+
+      <HomeExtras />
 
       <section>
         <div className="mb-3 flex items-baseline justify-between">

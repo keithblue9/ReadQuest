@@ -1,7 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { BookCover } from "@/components/BookCover";
 import { Button } from "@/components/ui";
+import { useAuth } from "@/features/auth/AuthProvider";
+import { CheerToasts } from "@/features/room/CheerToasts";
+import { useReadingRoom } from "@/features/room/useReadingRoom";
 import type { ReadingSession, SessionConfig } from "@/lib/types";
 
 import { TimerRing } from "./TimerRing";
@@ -23,7 +28,20 @@ type Props = {
 
 export function ReadingTimer({ initial, config, onFinish, onAbandon, notice }: Props) {
   const timer = useReadingTimer(initial, config);
+  const { user } = useAuth();
   const reached = timer.elapsedSeconds >= config.min_seconds;
+  // Presence di Reading Room (dibulatkan per menit agar tidak mengirim pesan tiap detik).
+  const elapsedMinute = Math.floor(timer.elapsedSeconds / 60) * 60;
+  const roomStatus = useMemo(
+    () => ({
+      reading: timer.running,
+      book_title: timer.session.book.title,
+      elapsed_seconds: elapsedMinute,
+    }),
+    [timer.running, timer.session.book.title, elapsedMinute],
+  );
+  const room = useReadingRoom("global", roomStatus);
+  const othersReading = room.members.filter((m) => m.reading && m.user_id !== user?.id).length;
 
   async function finish() {
     await timer.pause("manual");
@@ -39,6 +57,17 @@ export function ReadingTimer({ initial, config, onFinish, onAbandon, notice }: P
           <p className="truncate text-sm text-muted">{timer.session.book.authors.join(", ")}</p>
         </div>
       </div>
+
+      <CheerToasts cheers={room.cheers} myId={user?.id} />
+      {othersReading > 0 && (
+        <a
+          href="/room"
+          className="flex items-center gap-2 rounded-2xl bg-success/10 px-4 py-2 text-sm font-semibold text-success"
+        >
+          <span className="size-2 animate-pulse rounded-full bg-success" aria-hidden />
+          {othersReading} rekan sedang membaca bersamamu
+        </a>
+      )}
 
       {notice && (
         <p className="rounded-2xl bg-accent/15 px-4 py-3 text-sm font-semibold text-accent">

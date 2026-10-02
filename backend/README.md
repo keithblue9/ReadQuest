@@ -64,6 +64,11 @@ uv run ruff check . && uv run ruff format --check .
 | GET | `/api/v1/users?q=` | Autocomplete @mention |
 | GET | `/api/v1/leaderboard?category=&period=&period_key=` | Peringkat (top 50 + posisimu, navigasi periode) |
 | GET | `/api/v1/leaderboard/me?period=` | Ringkasan peringkatmu di semua kategori |
+| GET | `/api/v1/me/authenticity` · `/api/v1/authenticity/users/{id}` · `/api/v1/authenticity/team` | Authenticity Index (diri sendiri / Team Lead / Admin) |
+| GET | `/api/v1/me/badges` · `/api/v1/quests` | Badge dengan progres, quest aktif (hadiah otomatis) |
+| GET / PUT | `/api/v1/book-of-the-month[/{book_id}]` | Book of the Month (PUT: `config.books.manage`) |
+| GET / POST / DELETE | `/api/v1/buddies` · `/buddies/{id}/accept` · `/buddies/{id}/cheer` | Reading Buddy |
+| WS | `/ws/rooms/{room}?token=` | Reading Room live (presence & cheer) |
 | GET | `/api/v1/me/points` | Total & poin hari ini, level, streak (efektif) |
 | GET | `/api/v1/me/points/history?cursor=` | Riwayat ledger poin |
 | GET | `/health` | Health check (termasuk ping MongoDB) |

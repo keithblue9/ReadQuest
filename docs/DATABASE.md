@@ -397,7 +397,8 @@ Koreksi dibuat sebagai entri baru bertipe `adjustment`/`reversal`.
 | `code` | string | unik |
 | `name`, `description` | string | |
 | `icon` | string | |
-| `criteria` | object | data-driven, mis. `{ type: "books_finished", gte: 5 }`, `{ type: "streak", gte: 30 }` |
+| `criteria` | object | data-driven `{ type, gte }`; `type` = metrik `user_stats` (`sessions_count`, `reading_minutes`, `notes_count`, `chapter_story_count`, `book_review_count`, `books_finished`, `reactions_received`, `meaningful_comments_given`, `streak_longest`, …) |
+| `order` | int | urutan tampil |
 | `is_active` | bool | |
 | `created_at`, `updated_at` | Date | |
 
@@ -420,8 +421,10 @@ Koreksi dibuat sebagai entri baru bertipe `adjustment`/`reversal`.
 | `code` | string | unik |
 | `title`, `description` | string | |
 | `period` | string | `weekly` \| `monthly` \| `once` |
-| `starts_at`, `ends_at` | Date | |
-| `goal` | object | data-driven, mis. `{ type: "chapter_story_count", target: 3 }` |
+| `recurring` | bool | `true` = berulang setiap periode tim (weekly quest); `false` = pakai `starts_at`/`ends_at` |
+| `starts_at`, `ends_at` | Date \| null | jendela quest non-berulang |
+| `goal` | object | data-driven, mis. `{ type: "chapter_story_count", target: 3 }`; `type` = metrik `user_stats` |
+| `order` | int | urutan tampil |
 | `reward` | object | `{ points: 50, badge_id: null }` |
 | `is_active` | bool | |
 | `created_at`, `updated_at` | Date | |
@@ -434,12 +437,25 @@ Koreksi dibuat sebagai entri baru bertipe `adjustment`/`reversal`.
 |-------|------|------------|
 | `user_id` | ObjectId → `users` | |
 | `quest_id` | ObjectId → `quests` | |
-| `progress` | int | |
+| `period_key` | string | mis. `2026-W41` (quest berulang) atau ID quest |
+| `progress` | int | dihitung ulang dari data aktivitas |
 | `completed_at` | Date \| null | |
 | `rewarded_at` | Date \| null | |
 | `updated_at` | Date | |
 
-**Index:** `{ user_id: 1, quest_id: 1 }` unique · `{ quest_id: 1, completed_at: 1 }`
+**Index:** `{ user_id: 1, quest_id: 1, period_key: 1 }` unique · `{ quest_id: 1, completed_at: 1 }`
+
+### 8.7.1 `reading_buddies`
+
+| Field | Tipe | Keterangan |
+|-------|------|------------|
+| `user_ids` | ObjectId[2] → `users` | pasangan |
+| `requester_id`, `addressee_id` | ObjectId → `users` | pengirim & penerima permintaan |
+| `status` | string | `pending` \| `active` \| `ended` \| `cancelled` |
+| `last_cheer` | object | `{ <user_id>: Date }` untuk jeda menyemangati |
+| `created_at`, `accepted_at`, `ended_at` | Date \| null | |
+
+**Index:** `{ user_ids: 1, status: 1 }` · `{ addressee_id: 1, status: 1 }`
 
 ### 8.8 `leaderboard_snapshots`
 
@@ -484,7 +500,7 @@ Cache hasil agregasi leaderboard.
 | Field | Tipe | Keterangan |
 |-------|------|------------|
 | `user_id` | ObjectId → `users` | penerima |
-| `type` | string | `reading_reminder` \| `streak_at_risk` \| `reaction` \| `comment` \| `mention` \| `weekly_leaderboard` \| `new_quest` \| `observer_nudge` \| `badge_awarded` |
+| `type` | string | `reading_reminder` \| `streak_at_risk` \| `reaction` \| `comment` \| `mention` \| `weekly_leaderboard` \| `new_quest` \| `observer_nudge` \| `badge_awarded` \| `quest_completed` \| `buddy_request` \| `buddy_accepted` \| `buddy_cheer` |
 | `title`, `body` | string | hasil render template |
 | `data` | object | `{ post_id?, comment_id?, url }` untuk deep link |
 | `actor_ids` | ObjectId[] → `users` | untuk batching ("A dan 4 lainnya") |

@@ -13,6 +13,7 @@ from app.core.config import get_settings
 from app.core.errors import register_error_handlers
 from app.core.storage import get_storage
 from app.repositories.indexes import ensure_indexes
+from app.ws import rooms
 
 
 @asynccontextmanager
@@ -64,6 +65,7 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     app.include_router(api_router)
+    app.include_router(rooms.router)
     return app
 
 
