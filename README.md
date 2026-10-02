@@ -19,11 +19,30 @@ berbagi insight, dan kumpulkan poin.
 
 Next.js (PWA) · FastAPI · MongoDB · JWT · WebSocket
 
+## Struktur Repo
+
+```
+frontend/            Next.js PWA
+backend/             FastAPI
+docs/                spesifikasi, arsitektur, skema database
+docker-compose.yml   MongoDB + MinIO untuk pengembangan lokal
+```
+
+## Menjalankan Layanan Lokal
+
+```bash
+cp .env.example .env     # isi kredensial MinIO
+docker compose up -d     # MongoDB (replica set) + MinIO
+```
+
 ## Status
 
-Tahap dokumentasi — belum ada kode aplikasi.
+Fase 1 selesai: arsitektur, skema database, dan kerangka folder. Kode aplikasi dimulai
+di Fase 2.
 
 ## Dokumentasi
 
 - [Spesifikasi lengkap](docs/SPEC.md)
+- [Arsitektur](docs/ARCHITECTURE.md)
+- [Skema database](docs/DATABASE.md)
 - [Konteks & aturan kerja](CLAUDE.md)
