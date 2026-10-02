@@ -17,6 +17,7 @@ from app.core import clock, media
 from app.core import db as db_module
 from app.core.errors import AppError
 from app.repositories import books, catalog, posts, sessions
+from app.schemas.points import AwardOut, PointsResultOut, StreakOut
 from app.schemas.sessions import (
     FinishIn,
     FinishOut,
@@ -25,7 +26,7 @@ from app.schemas.sessions import (
     SessionOut,
     TodayOut,
 )
-from app.services import post_service
+from app.services import points_service, post_service, streak_service
 from app.services.note_validation import NoteRules, check_note, message_for
 from app.services.upload_service import owns_key
 
@@ -301,12 +302,14 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
         "updated_at": now,
     }
 
+    points_before = int((user.get("stats") or {}).get("points_total", 0))
     full_points = not await sessions.has_full_points_on(db, user["_id"], local)
     while True:
         post.pop("_id", None)
         try:
-            await _commit_finish(
+            awards, streak = await _commit_finish(
                 db,
+                user=user,
                 session=session,
                 post=post,
                 book=book,
@@ -335,13 +338,41 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
 
     updated_session = await sessions.get_owned(db, session_id, user["_id"])
     return FinishOut(
-        session=to_out(updated_session, cfg.min_seconds), post=post_service.to_out(post)
+        session=to_out(updated_session, cfg.min_seconds),
+        post=post_service.to_out(post),
+        points=await points_result(db, user["_id"], points_before, awards, streak),
+    )
+
+
+async def points_result(
+    db: AsyncDatabase,
+    user_id: ObjectId,
+    points_before: int,
+    awards: list[points_service.Award],
+    streak: streak_service.StreakUpdate,
+) -> PointsResultOut:
+    fresh = await db["users"].find_one({"_id": user_id}, {"stats": 1})
+    total = int((fresh.get("stats") or {}).get("points_total", 0))
+    level_before, _ = await points_service.level_for(db, points_before)
+    level, upcoming = await points_service.level_for(db, total)
+    if level:
+        await db["users"].update_one({"_id": user_id}, {"$set": {"stats.level_id": level["_id"]}})
+    return PointsResultOut(
+        awarded=[AwardOut(rule_code=a.rule_code, name=a.name, points=a.points) for a in awards],
+        total_awarded=sum(a.points for a in awards),
+        points_total=total,
+        level=points_service.level_out(level, upcoming),
+        level_up=bool(level and (not level_before or level["level"] > level_before["level"])),
+        streak=StreakOut(
+            current=streak.current, longest=streak.longest, milestone=streak.milestone
+        ),
     )
 
 
 async def _commit_finish(
     db: AsyncDatabase,
     *,
+    user: dict,
     session: dict,
     post: dict,
     book: dict,
@@ -351,7 +382,7 @@ async def _commit_finish(
     first_time_reader: bool,
     total_pages: int | None,
     validation,
-) -> None:
+) -> tuple[list[points_service.Award], streak_service.StreakUpdate]:
     now = post["created_at"]
     async with db_module.get_client().start_session() as tx:
         async with await tx.start_transaction():
@@ -396,3 +427,60 @@ async def _commit_finish(
             if post["is_book_finished"]:
                 user_inc["stats.books_finished"] = 1
             await db["users"].update_one({"_id": post["author_id"]}, {"$inc": user_inc}, session=tx)
+            return await _award_finish_points(
+                db,
+                user=user,
+                session=session,
+                post=post,
+                local_date=local_date,
+                full_points=full_points,
+                tx=tx,
+            )
+
+
+async def _award_finish_points(
+    db: AsyncDatabase,
+    *,
+    user: dict,
+    session: dict,
+    post: dict,
+    local_date: str,
+    full_points: bool,
+    tx,
+) -> tuple[list[points_service.Award], streak_service.StreakUpdate]:
+    """Aturan poin saat sesi selesai (nilai & batas dari `point_rules`)."""
+    awards: list[points_service.Award | None] = []
+
+    async def give(rule_code: str, source_type: str, source_id: ObjectId) -> None:
+        awards.append(
+            await points_service.award(
+                db,
+                user=user,
+                rule_code=rule_code,
+                source_type=source_type,
+                source_id=source_id,
+                local_date=local_date,
+                session=tx,
+            )
+        )
+
+    if full_points:
+        await give("session_valid", "reading_session", session["_id"])
+        if post["type"] == "chapter_story":
+            await give("chapter_story", "post", post["_id"])
+        streak = await streak_service.record_read(db, user["_id"], local_date, session=tx)
+        if streak.milestone:
+            await give(f"streak_{streak.milestone}", "streak", session["_id"])
+    else:
+        existing = await db["streaks"].find_one({"user_id": user["_id"]}, session=tx) or {}
+        streak = streak_service.StreakUpdate(
+            current=existing.get("current", 0), longest=existing.get("longest", 0), milestone=None
+        )
+
+    await give("post_feed", "post", post["_id"])
+    if post["is_book_finished"]:
+        await give("book_finished", "post", post["_id"])
+    progress = post.get("page_progress") or {}
+    if progress.get("current_page") and post["image_keys"]:
+        await give("progress_photo", "post", post["_id"])
+    return [a for a in awards if a], streak

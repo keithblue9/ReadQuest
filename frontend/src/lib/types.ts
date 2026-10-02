@@ -10,6 +10,7 @@ export type Me = {
   daily_target_minutes: number;
   timezone: string;
   onboarding_completed: boolean;
+  level: Level | null;
   stats: {
     points_total: number;
     books_finished: number;
@@ -101,6 +102,49 @@ export type Today = {
   active_session: ReadingSession | null;
 };
 
-export type FinishResult = { session: ReadingSession; post: Post };
+export type Level = {
+  level: number;
+  title: string;
+  min_points: number;
+  next_min_points: number | null;
+  next_title: string | null;
+};
+
+export type PointsResult = {
+  awarded: { rule_code: string; name: string; points: number }[];
+  total_awarded: number;
+  points_total: number;
+  level: Level | null;
+  level_up: boolean;
+  streak: { current: number; longest: number; milestone: number | null };
+};
+
+export type PointsSummary = {
+  points_total: number;
+  points_today: number;
+  level: Level | null;
+  streak: {
+    current: number;
+    longest: number;
+    last_read_date: string | null;
+    read_today: boolean;
+    next_milestone: number | null;
+  };
+};
+
+export type LedgerEntry = {
+  id: string;
+  rule_code: string;
+  name: string;
+  points: number;
+  source_type: string;
+  local_date: string;
+  note: string | null;
+  created_at: string;
+};
+
+export type LedgerPage = { items: LedgerEntry[]; next_cursor: string | null };
+
+export type FinishResult = { session: ReadingSession; post: Post; points: PointsResult };
 
 export type UploadedPhoto = { key: string; url: string; width: number; height: number };

@@ -95,3 +95,24 @@ body {
     display: none;
   }
 }
+
+@keyframes flame {
+  0%,
+  100% {
+    transform: scale(1) rotate(-3deg);
+  }
+  50% {
+    transform: scale(1.15) rotate(3deg);
+  }
+}
+
+.streak-flame {
+  display: inline-block;
+  animation: flame 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streak-flame {
+    animation: none;
+  }
+}

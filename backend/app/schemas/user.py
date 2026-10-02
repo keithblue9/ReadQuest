@@ -3,6 +3,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from pydantic import BaseModel, Field, field_validator
 
 from app.schemas.common import PyObjectId
+from app.schemas.points import LevelOut
 
 
 def validate_timezone(cls, v: str) -> str:
@@ -38,6 +39,7 @@ class MeOut(BaseModel):
     timezone: str
     onboarding_completed: bool
     stats: UserStatsOut
+    level: LevelOut | None = None
 
 
 class MeUpdateIn(BaseModel):
