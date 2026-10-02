@@ -11,6 +11,7 @@ from app.api.v1.router import api_router
 from app.core import db
 from app.core.config import get_settings
 from app.core.errors import register_error_handlers
+from app.core.middleware import BodySizeLimitMiddleware, SecurityHeadersMiddleware
 from app.core.storage import get_storage
 from app.jobs.scheduler import scheduler
 from app.repositories.indexes import ensure_indexes
@@ -31,11 +32,14 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    production = settings.app_env == "production"
     app = FastAPI(
         title="ReadQuest API",
-        version="0.1.0",
+        version="1.0.0",
         lifespan=lifespan,
-        docs_url=None if settings.app_env == "production" else "/docs",
+        # Dokumentasi API tidak dipublikasikan di production.
+        docs_url=None if production else "/docs",
+        openapi_url=None if production else "/openapi.json",
         redoc_url=None,
     )
     # Frontend memakai proxy Next.js (same-origin); CORS hanya untuk akses langsung saat dev.
@@ -46,6 +50,8 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["Authorization", "Content-Type"],
     )
+    app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_request_bytes)
+    app.add_middleware(SecurityHeadersMiddleware)
     register_error_handlers(app)
 
     @app.exception_handler(RequestValidationError)

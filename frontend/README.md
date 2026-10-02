@@ -20,6 +20,11 @@ npm run dev                   # http://localhost:3000 (backend harus jalan di :8
 ```
 
 Browser hanya memanggil `/api/*` di origin Next.js; `next.config.ts` meneruskannya ke FastAPI.
+`API_PROXY_TARGET` dibaca saat `next build` (rewrites ikut tersimpan di hasil build).
+
+Produksi lokal: `npm run build && npm start`. Image Docker (`Dockerfile`, output `standalone`):
+`docker build -t readquest-frontend --build-arg API_PROXY_TARGET=http://backend:8000 frontend`.
+Lihat [`../docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md).
 
 ## Cek Kualitas
 
@@ -37,11 +42,13 @@ npm run lint && npm run typecheck && npm test && npm run build
 | `src/app/(app)/admin/` | panel Admin (sidebar sesuai permission): dashboard, pengguna, fungsi, role & akses, aturan poin, gamifikasi, katalog, notifikasi, pengaturan, undangan, moderasi, audit log |
 | `src/app/manifest.ts` | Web App Manifest (PWA) |
 | `src/components/` | komponen UI generik (`ui.tsx`, `AppShell`, `BookCover`, `PostCard`, `PhotoPicker`, tema) |
-| `src/features/` | modul per fitur: `auth/`, `onboarding/`, `books/`, `reading/` (timer, catatan, perayaan), `feed/` (reaksi, komentar, @mention, share sheet, diskusi), `room/` (WebSocket Reading Room), `quests/`, `authenticity/`, `home/`, `admin/` (`ResourceManager` CRUD generik, grafik dashboard, lookups) |
+| `src/features/` | modul per fitur: `auth/`, `onboarding/`, `books/`, `reading/` (timer, catatan, perayaan), `feed/` (reaksi, komentar, @mention, share sheet, diskusi), `room/` (WebSocket Reading Room), `quests/`, `authenticity/`, `home/`, `admin/` (`ResourceManager` CRUD generik, grafik dashboard, lookups), `pwa/` (registrasi & pembaruan service worker, prompt instal) |
 | `src/lib/` | klien API (`api.ts`), tipe, kompresi foto (`image.ts`), hitung kata (`words.ts`), helper error & platform |
-| `src/hooks/`, `src/styles/` | disiapkan untuk fase berikutnya |
+| `src/hooks/` | hook umum (`useOnline`) |
+| `src/app/offline/`, `not-found.tsx`, `error.tsx`, `global-error.tsx` | halaman offline (fallback service worker) & halaman error |
+| `src/app/fonts/` | Nunito variable font (subset latin, OFL) via `next/font/local` |
 | `public/icons/` | ikon PWA & apple-touch-icon |
-| `public/sw.js` | service worker (Web Push & klik notifikasi), ditulis manual |
+| `public/sw.js` | service worker ditulis manual: cache aset + fallback offline, Web Push, klik notifikasi. Naikkan `VERSION` setiap kali diubah |
 
 ## Konvensi
 

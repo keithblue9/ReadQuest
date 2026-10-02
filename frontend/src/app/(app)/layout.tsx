@@ -3,11 +3,14 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { OfflineBanner, OfflineScreen } from "@/components/OfflineScreen";
 import { FullScreenSpinner } from "@/components/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { useOnline } from "@/hooks/useOnline";
 
 export default function AppLayout({ children }: LayoutProps<"/">) {
-  const { status, user } = useAuth();
+  const { status, user, retry } = useAuth();
+  const online = useOnline();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -19,8 +22,14 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
     else if (needsOnboarding && !onOnboarding) router.replace("/onboarding");
   }, [status, needsOnboarding, onOnboarding, router]);
 
+  if (status === "offline") return <OfflineScreen onRetry={retry} />;
   if (status !== "authenticated" || (needsOnboarding && !onOnboarding)) {
     return <FullScreenSpinner />;
   }
-  return <>{children}</>;
+  return (
+    <>
+      {!online && <OfflineBanner />}
+      {children}
+    </>
+  );
 }

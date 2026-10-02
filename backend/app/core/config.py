@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     cookie_secure: bool = False
 
     rate_limit_enabled: bool = True
+    # Batas ukuran body request (byte); upload foto dibatasi lagi oleh `upload.max_bytes`.
+    max_request_bytes: int = 12 * 1024 * 1024
 
     # Object storage untuk foto. "s3" (RustFS/S3/R2) atau "local" (folder, untuk test/dev).
     storage_backend: Literal["s3", "local"] = "s3"
@@ -58,6 +60,10 @@ class Settings(BaseSettings):
                 raise ValueError("JWT_SECRET wajib diisi (min. 32 karakter) di production")
             if not self.cookie_secure:
                 raise ValueError("COOKIE_SECURE wajib true di production")
+            if not self.frontend_origin.startswith("https://"):
+                raise ValueError("FRONTEND_ORIGIN wajib https:// di production")
+            if self.storage_backend == "s3" and not (self.s3_access_key and self.s3_secret_key):
+                raise ValueError("S3_ACCESS_KEY dan S3_SECRET_KEY wajib diisi di production")
         return self
 
 

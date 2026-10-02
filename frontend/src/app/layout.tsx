@@ -1,13 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito } from "next/font/google";
+import localFont from "next/font/local";
 
-import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { PwaManager } from "@/features/pwa/PwaManager";
 
 import "./globals.css";
 
-const nunito = Nunito({ variable: "--font-nunito", subsets: ["latin"] });
+// Nunito (SIL OFL, lihat fonts/OFL.txt) dibundel lokal: build tidak bergantung pada Google Fonts.
+const nunito = localFont({
+  src: "./fonts/Nunito-latin.woff2",
+  variable: "--font-nunito",
+  weight: "200 1000",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: { default: "ReadQuest", template: "%s · ReadQuest" },
@@ -33,7 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full font-sans">
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
-          <ServiceWorkerRegister />
+          <PwaManager />
         </ThemeProvider>
       </body>
     </html>

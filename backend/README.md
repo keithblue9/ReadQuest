@@ -33,6 +33,10 @@ uv run python -m app.scripts.generate_vapid
 
 Scheduler notifikasi berjalan di dalam proses API (`SCHEDULER_ENABLED=true`, default).
 
+**Docker**: `docker build -t readquest-backend backend` (dari root repo) menghasilkan image
+production (user non-root, `APP_ENV=production`, health check `/health`). Stack lengkap ada di
+[`../deploy/`](../deploy) dan [`../docs/DEPLOYMENT.md`](../docs/DEPLOYMENT.md).
+
 ## Test & Lint
 
 ```bash
@@ -76,7 +80,7 @@ uv run ruff check . && uv run ruff format --check .
 | GET | `/api/v1/me/badges` · `/api/v1/quests` | Badge dengan progres, quest aktif (hadiah otomatis) |
 | GET / PUT | `/api/v1/book-of-the-month[/{book_id}]` | Book of the Month (PUT: `config.books.manage`) |
 | GET / POST / DELETE | `/api/v1/buddies` · `/buddies/{id}/accept` · `/buddies/{id}/cheer` | Reading Buddy |
-| WS | `/ws/rooms/{room}?token=` | Reading Room live (presence & cheer) |
+| WS | `/ws/rooms/{room}` | Reading Room live: pesan pertama `{type: auth, token}`, lalu presence & cheer |
 | GET | `/api/v1/notifications?cursor=` · `/notifications/unread-count` | Inbox lonceng |
 | POST | `/api/v1/notifications/read` | `{ids}` atau `{all: true}` |
 | GET / PUT | `/api/v1/me/notification-preferences` | Jenis (push/lonceng), jam tenang, jam pengingat, frekuensi |
@@ -106,7 +110,7 @@ Error selalu berbentuk `{"error": {"code", "message", "fields?"}}`.
 | Folder | Isi |
 |--------|-----|
 | `app/api/` | `deps.py` (auth & `require_permission`) + router per versi (`v1/`) |
-| `app/core/` | konfigurasi `.env`, koneksi MongoDB, keamanan (JWT, argon2), error, rate limit, `clock` (waktu, mudah di-mock), `storage` (S3/lokal), `media` (URL bertanda tangan), `images` (Pillow) |
+| `app/core/` | konfigurasi `.env`, koneksi MongoDB, keamanan (JWT, argon2), error, rate limit, `middleware` (header keamanan, batas ukuran body), `clock` (waktu, mudah di-mock), `storage` (S3/lokal), `media` (URL bertanda tangan), `images` (Pillow) |
 | `app/schemas/` | DTO request/response (Pydantic) |
 | `app/services/` | logika bisnis (auth, onboarding, buku, sesi baca, validasi catatan, posting, upload) |
 | `app/repositories/` | akses MongoDB + definisi index semua koleksi (`indexes.py`) |
@@ -114,7 +118,7 @@ Error selalu berbentuk `{"error": {"code", "message", "fields?"}}`.
 | `app/ws/` | WebSocket Reading Room |
 | `app/jobs/` | scheduler (tick per menit + lease) dan job notifikasi terjadwal |
 | `app/scripts/` | utilitas CLI (mis. `generate_vapid`) |
-| `app/models/` | disiapkan untuk fase berikutnya |
+| `app/assets/` | font Nunito (OFL) untuk kartu berbagi & export PDF |
 | `tests/` | pytest (integrasi API terhadap MongoDB sungguhan) |
 
 ## Konvensi
