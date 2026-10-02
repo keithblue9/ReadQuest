@@ -22,6 +22,7 @@ backend/             FastAPI (lihat backend/README.md)
 docs/                SPEC, ARCHITECTURE, DATABASE, DEPLOYMENT
 docker-compose.yml   MongoDB (replica set) + RustFS untuk lokal
 deploy/              stack production: docker-compose.yml + Caddyfile + .env.example
+render.yaml          Blueprint Render (backend) untuk deploy Vercel + Render + MongoDB Atlas
 .github/workflows/   CI: ruff + pytest (backend), lint + typecheck + test + build (frontend),
                      build image Docker + smoke test stack production
 ```

@@ -5,6 +5,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getAccessToken, refreshSession } from "@/lib/api";
 import type { RoomMember } from "@/lib/types";
 
+/**
+ * Alamat WebSocket backend. Default: origin sendiri (rewrite Next.js / Caddy). Bila frontend di
+ * host yang tidak meneruskan WebSocket (mis. Vercel), isi NEXT_PUBLIC_WS_URL dengan URL backend.
+ */
+function wsBase(): string {
+  const configured = process.env.NEXT_PUBLIC_WS_URL;
+  if (configured) return configured.replace(/\/$/, "");
+  const scheme = window.location.protocol === "https:" ? "wss" : "ws";
+  return `${scheme}://${window.location.host}`;
+}
+
 export type Cheer = { id: number; emoji: string; from: string; to: string | null };
 
 type Status = { reading: boolean; book_title?: string | null; elapsed_seconds?: number };
@@ -47,8 +58,7 @@ export function useReadingRoom(room: string, status?: Status) {
         return;
       }
       if (!token || closed) return;
-      const scheme = window.location.protocol === "https:" ? "wss" : "ws";
-      const ws = new WebSocket(`${scheme}://${window.location.host}/ws/rooms/${room}`);
+      const ws = new WebSocket(`${wsBase()}/ws/rooms/${room}`);
       wsRef.current = ws;
 
       ws.onopen = () => {

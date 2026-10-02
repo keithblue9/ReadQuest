@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from bson import ObjectId
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
+from app.core.config import get_settings
 from app.core.db import get_db
 from app.core.security import decode_access_token
 
@@ -86,6 +87,15 @@ class RoomManager:
 manager = RoomManager()
 
 
+def _origin_allowed(origin: str | None) -> bool:
+    """Di production WebSocket bisa diakses langsung (mis. frontend Vercel → backend Render),
+    jadi hanya halaman dari FRONTEND_ORIGIN yang boleh membuka koneksi."""
+    settings = get_settings()
+    if settings.app_env != "production":
+        return True
+    return origin is not None and origin.rstrip("/") == settings.frontend_origin.rstrip("/")
+
+
 def _valid_room(room: str) -> bool:
     return room == "global" or ObjectId.is_valid(room)
 
@@ -113,6 +123,9 @@ async def _authenticate(websocket: WebSocket) -> dict | None:
 @router.websocket("/ws/rooms/{room}")
 async def reading_room(websocket: WebSocket, room: str) -> None:
     await websocket.accept()
+    if not _origin_allowed(websocket.headers.get("origin")):
+        await websocket.close(code=4403)
+        return
     if not _valid_room(room):
         await websocket.close(code=4404)
         return

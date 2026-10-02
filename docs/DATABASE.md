@@ -570,6 +570,21 @@ Cache hasil agregasi leaderboard.
 
 **Index:** `{ entity_type: 1, entity_id: 1, created_at: -1 }` · `{ actor_id: 1, created_at: -1 }` · `{ created_at: -1 }`
 
+### 10.1a `media` (foto, bila `STORAGE_BACKEND=mongo`)
+
+Dipakai pada host tanpa disk permanen (mis. Render). Backend lain (S3/R2/RustFS, folder lokal)
+tidak memakai koleksi ini.
+
+| Field | Tipe | Keterangan |
+|-------|------|------------|
+| `key` | string | unik, sama dengan `image_keys` posting (mis. `photos/<user>/<yyyymm>/<uuid>.jpg`) |
+| `data` | Binary | isi file (sudah dikompres & tanpa EXIF, ≤ `upload.max_bytes`) |
+| `content_type` | string | mis. `image/jpeg` |
+| `size` | int | byte |
+| `created_at` | Date | |
+
+**Index:** `{ key: 1 }` unique
+
 ### 10.2 `app_settings`
 
 Pengaturan global berbentuk key–value.

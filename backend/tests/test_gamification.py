@@ -382,3 +382,27 @@ async def test_reading_room_ignores_token_in_query(client):
                 await ws.send_json({"type": "ping"})
                 await ws.receive_json()
     assert 4401 in _close_codes(exc.value)
+
+
+async def test_reading_room_checks_origin_in_production(client, monkeypatch):
+    from app.core.config import get_settings
+    from app.ws import rooms
+
+    headers = await onboarded_user(client)
+    prod = get_settings().model_copy(
+        update={"app_env": "production", "frontend_origin": "https://baca.example.com"}
+    )
+    monkeypatch.setattr(rooms, "get_settings", lambda: prod)
+    async with ws_client() as wc:
+        with pytest.raises(BaseException) as exc:  # noqa: B017 - dibungkus ExceptionGroup
+            async with aconnect_ws(
+                "/ws/rooms/global", wc, headers={"Origin": "https://jahat.example.com"}
+            ) as ws:
+                await ws.receive_json()
+        assert 4403 in _close_codes(exc.value)
+
+        async with aconnect_ws(
+            "/ws/rooms/global", wc, headers={"Origin": "https://baca.example.com"}
+        ) as ws:
+            await _join(ws, headers)
+            assert (await _next(ws, "presence"))["members"]

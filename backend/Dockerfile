@@ -22,7 +22,8 @@ FROM python:3.12-slim AS runtime
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    APP_ENV=production
+    APP_ENV=production \
+    PORT=8000
 RUN useradd --create-home --uid 10001 readquest
 WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
@@ -30,7 +31,7 @@ COPY app ./app
 USER readquest
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)"]
-# --proxy-headers: IP klien diambil dari X-Forwarded-For hanya bila peer ada di FORWARDED_ALLOW_IPS
-# (diset di docker-compose ke jaringan internal), sehingga rate limit per IP tetap akurat.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--no-server-header"]
+    CMD ["python", "-c", "import os, urllib.request; urllib.request.urlopen(f\"http://127.0.0.1:{os.environ['PORT']}/health\", timeout=4)"]
+# Soket dual-stack IPv4+IPv6 di $PORT (app/serve.py). IP klien diambil dari X-Forwarded-For hanya
+# bila peer ada di FORWARDED_ALLOW_IPS (jaringan internal), sehingga rate limit per IP akurat.
+CMD ["python", "-m", "app.serve"]

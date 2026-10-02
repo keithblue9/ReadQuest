@@ -154,6 +154,7 @@ INDEXES: dict[str, list[IndexModel]] = {
         IndexModel([("created_at", DESC)]),
     ],
     "app_settings": [IndexModel([("key", ASC)], unique=True)],
+    "media": [IndexModel([("key", ASC)], unique=True)],
     "notification_templates": [IndexModel([("type", ASC)], unique=True)],
     "scheduled_runs": [IndexModel([("ran_at", ASC)], expireAfterSeconds=120 * 24 * 3600)],
     "job_locks": [],

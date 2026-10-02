@@ -28,6 +28,7 @@ backend/             FastAPI
 docs/                spesifikasi, arsitektur, skema database, deployment
 docker-compose.yml   MongoDB + RustFS untuk pengembangan lokal
 deploy/              stack production (Docker Compose + Caddy HTTPS)
+render.yaml          Blueprint Render untuk backend (alternatif: Vercel + Render + Atlas)
 ```
 
 ## Menjalankan Secara Lokal
@@ -54,6 +55,9 @@ cd deploy && cp .env.example .env    # DOMAIN, JWT_SECRET, kredensial S3, ADMIN_
 docker compose up -d --build
 docker compose --profile tools run --rm seed
 ```
+
+Tanpa server: frontend di **Vercel**, backend di **Render** (`render.yaml`), database & foto di
+**MongoDB Atlas**. Lihat [`docs/DEPLOYMENT.md` §8](docs/DEPLOYMENT.md).
 
 Panduan lengkap (HTTPS, backup, update, checklist keamanan): [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
