@@ -7,6 +7,7 @@ import { BadgeGrid } from "@/components/BadgeGrid";
 import { LevelProgress } from "@/components/LevelProgress";
 import { Avatar } from "@/components/PostCard";
 import { Button } from "@/components/ui";
+import { allowedSections } from "@/features/admin/sections";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { STATUS_STYLE, StatusBadge } from "@/features/authenticity/StatusBadge";
 import { api } from "@/lib/api";
@@ -46,6 +47,7 @@ export default function ProfilePage() {
   }
 
   if (!user) return null;
+  const adminHome = allowedSections(user.permissions)[0]?.href;
 
   return (
     <div className="flex flex-col gap-5 pt-2">
@@ -198,6 +200,14 @@ export default function ProfilePage() {
         )}
       </section>
 
+      {adminHome && (
+        <Link
+          href={adminHome}
+          className="rounded-2xl bg-foreground p-3 text-center font-bold text-background"
+        >
+          🛠️ Panel Admin
+        </Link>
+      )}
       <Link
         href="/settings/notifications"
         className="rounded-2xl border border-border bg-surface p-3 text-center font-bold"

@@ -274,6 +274,7 @@ Satu dokumen per user.
 | `counts` | object | cache: `{ like, insightful, inspiring, comments, bookmarks }` |
 | `visibility` | string | `team` (default) |
 | `moderation` | object | `{ status: "visible" \| "hidden" \| "flagged", by, reason, at }` |
+| `reports` | object[] | laporan anggota `{ user_id, reason, at }`; satu laporan per user, dikosongkan saat Admin "abaikan" |
 | `deleted_at` | Date \| null | |
 | `created_at`, `updated_at` | Date | |
 
@@ -284,7 +285,7 @@ Satu dokumen per user.
 - `{ topics: 1, created_at: -1 }`: filter topik
 - `{ author_id: 1, created_at: -1 }`: profil & Authenticity Index
 - `{ author_id: 1, book_id: 1 }` unique, partial `{ is_book_finished: true }`: buku selesai sekali
-- `{ "moderation.status": 1, created_at: -1 }`: antrean moderasi
+- `{ "moderation.status": 1, updated_at: -1 }`: antrean moderasi (dilaporkan/disembunyikan)
 - `{ author_id: 1, content_hash: 1 }`: deteksi catatan duplikat
 
 ### 7.2 `reactions`
@@ -318,10 +319,11 @@ Satu dokumen per user.
 | `is_meaningful` | bool | memenuhi ambang kata/kualitas dari `app_settings` → memicu poin |
 | `mentions` | ObjectId[] → `users` | |
 | `moderation` | object | sama seperti `posts` |
+| `reports` | object[] | sama seperti `posts` |
 | `deleted_at` | Date \| null | |
 | `created_at`, `updated_at` | Date | |
 
-**Index:** `{ post_id: 1, created_at: 1 }` · `{ root_id: 1, created_at: 1 }` · `{ author_id: 1, created_at: -1 }` · `{ author_id: 1, content_hash: 1 }`
+**Index:** `{ post_id: 1, created_at: 1 }` · `{ root_id: 1, created_at: 1 }` · `{ author_id: 1, created_at: -1 }` · `{ author_id: 1, content_hash: 1 }` · `{ "moderation.status": 1, updated_at: -1 }`
 
 ### 7.4 `bookmarks`
 
@@ -566,10 +568,11 @@ Cache hasil agregasi leaderboard.
 | Field | Tipe | Keterangan |
 |-------|------|------------|
 | `actor_id` | ObjectId → `users` | |
-| `action` | string | mis. `point_rule.update`, `role.permissions.update`, `post.hide` |
-| `entity_type` | string | nama koleksi |
-| `entity_id` | ObjectId | |
-| `before`, `after` | object \| null | snapshot perubahan |
+| `actor_name` | string | denormalisasi untuk tampilan |
+| `action` | string | `<resource>.<create\|update\|delete>` (mis. `badges.update`, `point-rules.update`), `setting.update`, `user.update`, `book.update`, `book_of_month.set`, `moderation.<posts\|comments>.<hide\|restore\|dismiss>`, `export.<xlsx\|pdf>` |
+| `entity_type` | string | nama koleksi (atau `report` untuk export) |
+| `entity_id` | ObjectId \| string \| null | `_id` dokumen, atau `key` untuk `app_settings` |
+| `before`, `after` | object \| null | snapshot perubahan; field sensitif (`password_hash`, `token_hash`, `keys`) dibuang |
 | `ip`, `user_agent` | string | |
 | `created_at` | Date | |
 
@@ -604,6 +607,11 @@ Contoh kunci:
 | `team.timezone` | `"Asia/Jakarta"` (batas periode leaderboard) |
 | `leaderboard.cache_seconds` | `300` |
 | `notifications.schedule` | `{ streak_risk_time: "20:00", weekly_leaderboard: {weekday: 0, time: "09:00"}, new_quest: {weekday: 0, time: "08:00"}, authenticity_time: "07:00" }` |
+
+Admin mengubah nilai lewat `PUT /api/v1/admin/settings/{key}`. Setiap kunci divalidasi tipe &
+rentangnya (`settings_service.VALIDATORS`, mis. `session.min_minutes` 5–120, urutan threshold
+`active_reader > warming_up >= observer`); kunci tak dikenal ditolak, dan setiap perubahan
+tercatat di `audit_logs`.
 
 **Index:** `{ key: 1 }` unique
 

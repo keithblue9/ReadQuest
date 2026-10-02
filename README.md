@@ -53,8 +53,11 @@ streak & level (Fase 4), feed sosial dengan reaksi, komentar berantai, mention, 
 berbagi, dan diskusi per buku (Fase 5), leaderboard lima kategori dengan periode mingguan/
 bulanan/sepanjang masa (Fase 6), Authenticity Index, badge, weekly quest, Book of the Month,
 Reading Buddy, dan Reading Room live via WebSocket (Fase 7), notifikasi Web Push & lonceng in-app
-dengan preferensi, jam tenang, batching, dan pengingat terjadwal (Fase 8). Berikutnya: Fase 9 —
-Admin dashboard & Admin Config.
+dengan preferensi, jam tenang, batching, dan pengingat terjadwal (Fase 8), Admin dashboard
+(heatmap per fungsi, daftar Observer, export Excel/PDF) dan Admin Config data-driven — fungsi
+bertingkat, matriks role/permission, aturan poin, badge/quest/level, katalog, jadwal & template
+notifikasi, pengaturan, kode undangan, moderasi laporan, dan audit log (Fase 9). Berikutnya:
+Fase 10 — PWA polish, hardening, deployment.
 
 ## Dokumentasi
 

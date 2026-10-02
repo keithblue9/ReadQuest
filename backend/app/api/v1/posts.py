@@ -15,7 +15,7 @@ from app.schemas.posts import (
     ReactionIn,
     ReactionStateOut,
 )
-from app.services import post_service, share_card, social_service
+from app.services import moderation_service, post_service, share_card, social_service
 
 router = APIRouter(tags=["feed"])
 
@@ -101,6 +101,30 @@ async def delete_comment(
     post_id: PyObjectId, comment_id: PyObjectId, db: Db, user: CurrentUser
 ) -> Response:
     await social_service.delete_comment(db, user, post_id, comment_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/posts/{post_id}/report", status_code=status.HTTP_204_NO_CONTENT)
+async def report_post(
+    post_id: PyObjectId, data: moderation_service.ReportIn, db: Db, user: CurrentUser
+) -> Response:
+    rate_limiter.hit(f"report:{user['_id']}", limit=10, window_seconds=3600)
+    await moderation_service.report_post(db, user, post_id, data)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/posts/{post_id}/comments/{comment_id}/report", status_code=status.HTTP_204_NO_CONTENT
+)
+async def report_comment(
+    post_id: PyObjectId,
+    comment_id: PyObjectId,
+    data: moderation_service.ReportIn,
+    db: Db,
+    user: CurrentUser,
+) -> Response:
+    rate_limiter.hit(f"report:{user['_id']}", limit=10, window_seconds=3600)
+    await moderation_service.report_comment(db, user, post_id, comment_id, data)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

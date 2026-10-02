@@ -84,6 +84,19 @@ uv run ruff check . && uv run ruff format --check .
 | POST | `/api/v1/push/subscriptions` · `/push/unsubscribe` · `/push/test` | Langganan Web Push |
 | GET | `/api/v1/me/points` | Total & poin hari ini, level, streak (efektif) |
 | GET | `/api/v1/me/points/history?cursor=` | Riwayat ledger poin |
+| POST | `/api/v1/posts/{id}/report` · `/posts/{id}/comments/{cid}/report` | Laporkan konten ke moderasi (`{reason}`) |
+| GET | `/api/v1/admin/dashboard?days=` | Dashboard admin (`admin.dashboard.view`) |
+| GET | `/api/v1/admin/export.xlsx?days=` · `/admin/export.pdf?days=` | Export laporan (`admin.export`) |
+| GET | `/api/v1/admin/lookups` | Daftar ringkas role/fungsi/kategori/pengguna untuk form admin |
+| GET / POST | `/api/v1/admin/resources/{name}` | CRUD konfigurasi: `functions`, `roles`, `point-rules`, `badges`, `quests`, `levels`, `book-categories`, `notification-templates`, `invite-codes` |
+| PUT / DELETE | `/api/v1/admin/resources/{name}/{id}` | Ubah / hapus (data terpakai ditolak — nonaktifkan saja) |
+| GET | `/api/v1/admin/permissions` | Katalog permission untuk matriks RBAC |
+| GET / PUT | `/api/v1/admin/settings[/{key}]` | Pengaturan aplikasi tervalidasi (`{value}`) |
+| GET / PUT | `/api/v1/admin/users[/{id}]` | Daftar pengguna, ubah role/fungsi/status |
+| PUT | `/api/v1/admin/books/{id}` | Koreksi info buku (posting ikut diperbarui) |
+| GET | `/api/v1/admin/moderation?status=flagged\|hidden` | Antrean moderasi |
+| POST | `/api/v1/admin/moderation/{posts\|comments}/{id}` | `{action: hide\|restore\|dismiss, reason, reverse_points}` |
+| GET | `/api/v1/admin/audit?entity_type=&action=&cursor=` | Audit log |
 | GET | `/health` | Health check (termasuk ping MongoDB) |
 
 Error selalu berbentuk `{"error": {"code", "message", "fields?"}}`.

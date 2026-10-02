@@ -68,7 +68,7 @@ INDEXES: dict[str, list[IndexModel]] = {
             partialFilterExpression={"is_book_finished": TRUE_ONLY},
             name="book_finished_once_per_user",
         ),
-        IndexModel([("moderation.status", ASC), ("created_at", DESC)]),
+        IndexModel([("moderation.status", ASC), ("updated_at", DESC)]),
         IndexModel([("author_id", ASC), ("content_hash", ASC)]),
     ],
     "reactions": [
@@ -81,6 +81,7 @@ INDEXES: dict[str, list[IndexModel]] = {
         IndexModel([("root_id", ASC), ("created_at", ASC)]),
         IndexModel([("author_id", ASC), ("created_at", DESC)]),
         IndexModel([("author_id", ASC), ("content_hash", ASC)]),
+        IndexModel([("moderation.status", ASC), ("updated_at", DESC)]),
     ],
     "bookmarks": [
         IndexModel([("user_id", ASC), ("post_id", ASC)], unique=True),

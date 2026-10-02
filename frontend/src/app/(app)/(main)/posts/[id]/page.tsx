@@ -5,13 +5,16 @@ import { useEffect, useState } from "react";
 
 import { PostCard } from "@/components/PostCard";
 import { Alert, FullScreenSpinner } from "@/components/ui";
+import { useAuth } from "@/features/auth/AuthProvider";
 import { CommentThread } from "@/features/feed/CommentThread";
+import { ReportButton } from "@/features/feed/ReportButton";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
 import type { Post } from "@/lib/types";
 
 export default function PostPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [commentDelta, setCommentDelta] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +41,11 @@ export default function PostPage() {
         linkComments={false}
         commentCount={post.counts.comments + commentDelta}
       />
+      {user && post.author.id !== user.id && (
+        <div className="-mt-3 flex justify-end px-2 text-xs font-semibold text-muted">
+          <ReportButton path={`/posts/${post.id}/report`} what="posting" />
+        </div>
+      )}
       <CommentThread postId={post.id} onCountChange={(d) => setCommentDelta((c) => c + d)} />
     </div>
   );

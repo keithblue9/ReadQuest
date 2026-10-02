@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 import { Alert, Button, Field } from "@/components/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -9,6 +10,20 @@ import { errorMessage, fieldErrors } from "@/lib/errors";
 import { detectTimezone } from "@/lib/platform";
 
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={<RegisterForm initialCode="" />}>
+      <RegisterFromLink />
+    </Suspense>
+  );
+}
+
+/** Tautan undangan dari Admin: /register?code=XXXX mengisi kode secara otomatis. */
+function RegisterFromLink() {
+  const code = useSearchParams().get("code") ?? "";
+  return <RegisterForm key={code} initialCode={code.toUpperCase()} />;
+}
+
+function RegisterForm({ initialCode }: { initialCode: string }) {
   const { register } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -49,6 +64,7 @@ export default function RegisterPage() {
           autoComplete="off"
           autoCapitalize="characters"
           className="uppercase tracking-widest"
+          defaultValue={initialCode}
           error={errors.invite_code}
           required
         />

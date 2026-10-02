@@ -1,7 +1,7 @@
 import { forwardRef, useId } from "react";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "ghost";
+  variant?: "primary" | "ghost" | "danger";
   loading?: boolean;
 };
 
@@ -13,12 +13,14 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const base =
-    "inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-5 font-bold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60";
-  const styles =
-    variant === "primary"
-      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110"
-      : "border border-border bg-surface text-foreground hover:bg-surface-muted";
+  // Lebar penuh secara default, kecuali className menentukan lebar sendiri (mis. `w-auto`).
+  const width = /(^|\s)w-/.test(className) ? "" : "w-full";
+  const base = `inline-flex h-12 ${width} items-center justify-center gap-2 whitespace-nowrap rounded-2xl px-5 font-bold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60`;
+  const styles = {
+    primary: "bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:brightness-110",
+    ghost: "border border-border bg-surface text-foreground hover:bg-surface-muted",
+    danger: "bg-danger text-white hover:brightness-110",
+  }[variant];
   return (
     <button className={`${base} ${styles} ${className}`} disabled={disabled || loading} {...props}>
       {loading && (

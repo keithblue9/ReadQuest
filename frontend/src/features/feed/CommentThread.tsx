@@ -10,6 +10,7 @@ import { errorMessage } from "@/lib/errors";
 import type { Comment, CommentCreated, UserMini } from "@/lib/types";
 
 import { MentionTextarea } from "./MentionTextarea";
+import { ReportButton } from "./ReportButton";
 import { RichText } from "./RichText";
 
 type Props = { postId: string; onCountChange?: (delta: number) => void };
@@ -130,6 +131,9 @@ export function CommentThread({ postId, onCountChange }: Props) {
               <button type="button" onClick={() => remove(comment)} className="hover:text-danger">
                 Hapus
               </button>
+            )}
+            {!comment.deleted && comment.author.id !== user?.id && (
+              <ReportButton path={`/posts/${postId}/comments/${comment.id}/report`} what="komentar" />
             )}
           </div>
         </div>
