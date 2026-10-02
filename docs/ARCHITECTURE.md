@@ -170,12 +170,12 @@ sequenceDiagram
 
 | Teknologi | Alasan |
 |-----------|--------|
-| **Next.js (App Router) + TypeScript** | SSR/streaming untuk feed, routing berbasis file, ekosistem PWA matang, type safety. |
+| **Next.js 16 (App Router) + TypeScript** | SSR/streaming untuk feed, routing berbasis file, ekosistem PWA matang, type safety. `/api/*` di-proxy (rewrites) ke FastAPI sehingga browser hanya melihat satu origin. |
 | **Tailwind CSS + next-themes** | Mobile-first cepat, dark mode berbasis class. |
-| **Framer Motion** | Mikro-animasi & transisi; konfeti via `canvas-confetti`. |
-| **Serwist** (`@serwist/next`) | Service worker modern untuk Next.js: offline cache & handler push. |
+| **Animasi CSS** (+ Framer Motion bila perlu) | Mikro-animasi & transisi; konfeti via `canvas-confetti` (Fase 4+). |
+| **Serwist** (`@serwist/next`, Fase 8) | Service worker modern untuk Next.js: offline cache & handler push. |
 | **FastAPI** | Async, WebSocket native, validasi Pydantic, OpenAPI otomatis untuk kontrak frontend. |
-| **Motor + Pydantic v2** (tanpa ODM) | Driver async resmi MongoDB; query & index tetap eksplisit dan mudah dioptimasi. |
+| **PyMongo async (`AsyncMongoClient`) + Pydantic v2** (tanpa ODM) | Driver async resmi MongoDB (pengganti Motor yang sudah deprecated); query & index tetap eksplisit dan mudah dioptimasi. |
 | **MongoDB** | Skema fleksibel untuk konfigurasi data-driven (aturan poin, quest, template notifikasi); aggregation pipeline kuat untuk leaderboard dan heatmap. |
 | **JWT + refresh token rotasi** | Stateless untuk API & WebSocket; refresh token di cookie httpOnly mengurangi risiko XSS. |
 | **Object storage S3-compatible** | Foto tidak membebani database; presigned URL membuat upload langsung dari klien. MinIO untuk lokal, S3/R2 di produksi. |
@@ -194,7 +194,9 @@ sequenceDiagram
 - **Validasi upload**: tipe MIME gambar saja, ukuran maksimum, dan EXIF dibuang di klien.
 - **Visibilitas Authenticity Index** dicek di server (diri sendiri, Team Lead fungsinya, Admin).
 - **Audit log** untuk setiap perubahan konfigurasi admin.
-- CORS dibatasi ke origin frontend. Cookie memakai `Secure`, `HttpOnly`, `SameSite=Lax`.
+- Frontend memanggil API lewat proxy same-origin Next.js. CORS hanya mengizinkan origin frontend.
+- Refresh token di cookie `HttpOnly`, `SameSite=Strict`, `Path=/api/v1/auth`, dan `Secure` di production.
+  Access token hanya disimpan di memori frontend.
 
 ## 7. Konfigurasi Lingkungan
 
@@ -204,7 +206,7 @@ Semua konfigurasi lewat variabel lingkungan:
 |------|-----|
 | `.env` (root) | kredensial MongoDB & MinIO untuk `docker-compose.yml` |
 | `backend/.env` | URL MongoDB, secret JWT, kredensial object storage, kunci VAPID, SSO |
-| `frontend/.env` | URL API & WebSocket, kunci publik VAPID |
+| `frontend/.env.local` | `API_PROXY_TARGET` (alamat FastAPI untuk proxy), kunci publik VAPID |
 
 Lihat `.env.example` di masing-masing lokasi.
 

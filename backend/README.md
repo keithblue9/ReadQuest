@@ -1,39 +1,68 @@
 # ReadQuest — Backend
 
-API FastAPI (REST `/api/v1` + WebSocket `/ws`) dengan MongoDB.
+API FastAPI (REST `/api/v1`) dengan MongoDB.
 Arsitektur: [`../docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) ·
 Skema: [`../docs/DATABASE.md`](../docs/DATABASE.md).
 
-> **Status:** kerangka folder saja (Fase 1). Proyek Python (`pyproject.toml`, `main.py`)
-> di-scaffold di awal Fase 2.
+## Stack
 
-## Rencana Stack
+Python 3.11+ · FastAPI · Uvicorn · PyMongo async (`AsyncMongoClient`) · Pydantic v2 +
+pydantic-settings · PyJWT · argon2-cffi · pytest · ruff · [uv](https://docs.astral.sh/uv/)
 
-Python 3.12 · FastAPI · Uvicorn · Motor (MongoDB async) · Pydantic v2 + pydantic-settings ·
-PyJWT · argon2-cffi · boto3 (S3-compatible) · pywebpush · APScheduler · pytest
+## Menjalankan
+
+```bash
+# dari root repo: MongoDB (replica set) + MinIO
+docker compose up -d
+
+cd backend
+cp .env.example .env          # isi JWT_SECRET, ADMIN_EMAIL/ADMIN_PASSWORD, SEED_INVITE_CODE
+uv sync
+uv run python -m app.seed     # index + data awal (aman dijalankan berulang)
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+Dokumentasi API interaktif: http://localhost:8000/docs (non-production).
+
+## Test & Lint
+
+```bash
+uv run pytest -q              # butuh MongoDB lokal; memakai database test sementara
+uv run ruff check . && uv run ruff format --check .
+```
+
+## Endpoint (Fase 2)
+
+| Method | Path | Keterangan |
+|--------|------|------------|
+| POST | `/api/v1/auth/register` | Daftar dengan kode undangan |
+| POST | `/api/v1/auth/login` | Login email/password |
+| POST | `/api/v1/auth/refresh` | Tukar refresh cookie → access token baru (rotasi) |
+| POST | `/api/v1/auth/logout` | Cabut sesi & hapus cookie |
+| GET / PATCH | `/api/v1/me` | Profil user saat ini |
+| GET | `/api/v1/me/onboarding/options` | Pilihan fungsi, kategori, batas target harian |
+| PUT | `/api/v1/me/onboarding` | Simpan fungsi, minat, target harian, zona waktu |
+| GET | `/health` | Health check (termasuk ping MongoDB) |
+
+Error selalu berbentuk `{"error": {"code", "message", "fields?"}}`.
 
 ## Struktur Folder
 
 | Folder | Isi |
 |--------|-----|
-| `app/api/` | router FastAPI per domain (`auth`, `sessions`, `posts`, `books`, `leaderboard`, `admin`, …) + dependency auth/permission |
-| `app/core/` | konfigurasi dari `.env`, keamanan (JWT, hashing), koneksi MongoDB, logging |
-| `app/models/` | model dokumen MongoDB (Pydantic), sesuai `docs/DATABASE.md` |
-| `app/schemas/` | DTO request/response API |
-| `app/services/` | logika bisnis: validasi catatan, poin/ledger, streak, leaderboard, notifikasi, authenticity |
-| `app/repositories/` | akses data MongoDB (query + pembuatan index), tanpa logika bisnis |
-| `app/ws/` | handler WebSocket (Reading Room, notifikasi realtime) |
-| `app/jobs/` | job terjadwal APScheduler (pengingat, streak, snapshot leaderboard, authenticity) |
-| `tests/` | pytest (unit untuk services, integrasi untuk API) |
+| `app/api/` | `deps.py` (auth & `require_permission`) + router per versi (`v1/`) |
+| `app/core/` | konfigurasi `.env`, koneksi MongoDB, keamanan (JWT, argon2), error, rate limit |
+| `app/schemas/` | DTO request/response (Pydantic) |
+| `app/services/` | logika bisnis (auth, user/onboarding, cache permission) |
+| `app/repositories/` | akses MongoDB + definisi index semua koleksi (`indexes.py`) |
+| `app/seed/` | data awal & script seed (`python -m app.seed`) |
+| `app/models/`, `app/ws/`, `app/jobs/` | disiapkan untuk fase berikutnya |
+| `tests/` | pytest (integrasi API terhadap MongoDB sungguhan) |
 
 ## Konvensi
 
 - Alur dependensi: `api` / `ws` / `jobs` → `services` → `repositories`.
-- Nilai bisnis (poin, batas, threshold) dibaca dari database, bukan konstanta di kode.
+- Nilai bisnis (poin, batas, threshold) dibaca dari database (`app_settings`, `point_rules`),
+  bukan konstanta di kode. `app/seed/data.py` hanya berisi nilai awal.
 - Poin hanya ditulis lewat service ledger (append-only).
-- Setiap endpoint memakai dependency permission (RBAC).
-
-## Konfigurasi
-
-Salin `.env.example` → `.env`, lalu isi nilainya. Layanan pendukung (MongoDB, MinIO)
-dijalankan dari root repo dengan `docker compose up -d`.
+- Endpoint yang butuh izin khusus memakai `Depends(require_permission("<kode>"))`.

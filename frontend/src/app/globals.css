@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #fff8f0;
+  --surface: #ffffff;
+  --surface-muted: #f6efe6;
+  --foreground: #1f1b2e;
+  --muted: #6b6480;
+  --border: #ece3d6;
+  --primary: #6c4df6;
+  --primary-foreground: #ffffff;
+  --accent: #ff8a3d;
+  --success: #1f9d6b;
+  --danger: #d93a4a;
+}
+
+.dark {
+  --background: #14111f;
+  --surface: #1e1a2d;
+  --surface-muted: #282339;
+  --foreground: #f5f3ff;
+  --muted: #a39cb8;
+  --border: #332d47;
+  --primary: #8b73ff;
+  --primary-foreground: #14111f;
+  --accent: #ff9d5c;
+  --success: #3ccf91;
+  --danger: #ff6b78;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-pop-in {
+  animation: pop-in 220ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pop-in {
+    animation: none;
+  }
+}

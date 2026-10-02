@@ -1,0 +1,45 @@
+from fastapi import APIRouter
+
+from app.api.deps import CurrentUser, Db
+from app.repositories import catalog
+from app.schemas.catalog import CategoryOut, FunctionOut, OnboardingOptionsOut
+from app.schemas.user import MeOut, MeUpdateIn, OnboardingIn
+from app.services import user_service
+
+router = APIRouter(prefix="/me", tags=["me"])
+
+
+@router.get("", response_model=MeOut)
+async def get_me(db: Db, user: CurrentUser) -> MeOut:
+    return await user_service.build_me(db, user)
+
+
+@router.patch("", response_model=MeOut)
+async def update_me(data: MeUpdateIn, db: Db, user: CurrentUser) -> MeOut:
+    updated = await user_service.update_me(db, user, data)
+    return await user_service.build_me(db, updated)
+
+
+@router.get("/onboarding/options", response_model=OnboardingOptionsOut)
+async def onboarding_options(db: Db, user: CurrentUser) -> OnboardingOptionsOut:
+    functions = await catalog.list_active_functions(db)
+    categories = await catalog.list_active_categories(db)
+    min_minutes, default_minutes = await user_service.daily_target_bounds(db)
+    return OnboardingOptionsOut(
+        functions=[
+            FunctionOut(id=f["_id"], name=f["name"], code=f["code"], parent_id=f.get("parent_id"))
+            for f in functions
+        ],
+        categories=[
+            CategoryOut(id=c["_id"], name=c["name"], code=c["code"], icon=c.get("icon"))
+            for c in categories
+        ],
+        daily_target_min_minutes=min_minutes,
+        daily_target_default_minutes=max(default_minutes, min_minutes),
+    )
+
+
+@router.put("/onboarding", response_model=MeOut)
+async def complete_onboarding(data: OnboardingIn, db: Db, user: CurrentUser) -> MeOut:
+    updated = await user_service.complete_onboarding(db, user, data)
+    return await user_service.build_me(db, updated)

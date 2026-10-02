@@ -81,6 +81,7 @@ erDiagram
 | `onboarding_completed_at` | Date \| null | |
 | `stats` | object | cache: `{ points_total, level_id, books_finished, posts_count, current_streak }` (diturunkan dari ledger/aktivitas) |
 | `status` | string | `active` \| `suspended` |
+| `invite_code_id` | ObjectId \| null → `invite_codes` | kode undangan yang dipakai saat mendaftar |
 | `last_active_at` | Date | |
 | `created_at`, `updated_at` | Date | |
 
