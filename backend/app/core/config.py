@@ -44,11 +44,12 @@ class Settings(BaseSettings):
     # Scheduler internal (pengingat, nudge, ringkasan mingguan, pengiriman push).
     scheduler_enabled: bool = True
 
-    # Seed: admin pertama & kode undangan awal (opsional)
-    admin_email: str | None = None
-    admin_password: str | None = Field(default=None, min_length=8)
+    # Seed: admin pertama (login nomor HP + PIN 6 angka). ADMIN_EMAIL opsional: bila akun
+    # admin lama ber-email ada, nomor HP & PIN ditambahkan ke akun itu.
+    admin_phone: str | None = None
+    admin_pin: str | None = Field(default=None, pattern=r"^\d{6}$")
     admin_name: str = "Admin"
-    seed_invite_code: str | None = None
+    admin_email: str | None = None
 
     @model_validator(mode="after")
     def _check_secrets(self) -> "Settings":

@@ -20,7 +20,7 @@
 
 | Kelompok | Koleksi |
 |----------|---------|
-| Identitas & akses | `users`, `refresh_tokens`, `invite_codes`, `functions`, `roles`, `permissions` |
+| Identitas & akses | `users`, `refresh_tokens`, `functions`, `roles`, `permissions` |
 | Buku | `books`, `book_categories` |
 | Aktivitas baca | `reading_sessions`, `streaks` |
 | Sosial | `posts`, `reactions`, `comments`, `bookmarks` |
@@ -36,7 +36,6 @@ erDiagram
     users }o--|| roles : "memiliki"
     roles }o--o{ permissions : "permission_codes"
     functions |o--o{ functions : "parent"
-    invite_codes }o--o| functions : "default fungsi"
     users ||--o{ reading_sessions : "membaca"
     reading_sessions }o--|| books : "buku"
     reading_sessions |o--o| posts : "menghasilkan"
@@ -68,8 +67,12 @@ erDiagram
 
 | Field | Tipe | Keterangan |
 |-------|------|------------|
-| `email` | string | lowercase, unik |
-| `password_hash` | string \| null | argon2; `null` jika hanya SSO |
+| `phone` | string | nomor HP ternormalisasi E.164 (mis. `+6281234567890`), unik; dipakai untuk login |
+| `email` | string \| (tidak ada) | opsional (akun lama); lowercase, unik bila ada |
+| `password_hash` | string \| null | hash argon2 dari **PIN 6 angka**; `null` jika hanya SSO |
+| `login_failures` | int | PIN salah berturut-turut sejak login sukses terakhir |
+| `locked_until` | Date \| null | akun terkunci sampai waktu ini (`auth.max_pin_attempts` / `auth.lockout_minutes`) |
+| `sessions_revoked_at` | Date \| null | access token yang terbit sebelum waktu ini ditolak (mis. setelah Admin reset PIN) |
 | `sso` | object \| null | `{ provider, subject }` |
 | `name` | string | nama tampilan |
 | `avatar_url` | string \| null | |
@@ -81,12 +84,12 @@ erDiagram
 | `onboarding_completed_at` | Date \| null | |
 | `stats` | object | cache: `{ points_total, level_id, books_finished, posts_count, current_streak }` (diturunkan dari ledger/aktivitas) |
 | `status` | string | `active` \| `suspended` |
-| `invite_code_id` | ObjectId \| null → `invite_codes` | kode undangan yang dipakai saat mendaftar |
 | `last_active_at` | Date | |
 | `created_at`, `updated_at` | Date | |
 
 **Index:**
-- `{ email: 1 }` unique
+- `{ phone: 1 }` unique, partial (`phone` string) — `phone_unique`
+- `{ email: 1 }` unique, partial (`email` string) — `email_unique_optional`
 - `{ "sso.provider": 1, "sso.subject": 1 }` unique, partial (`sso` ada)
 - `{ function_id: 1, status: 1 }`: leaderboard & heatmap per fungsi
 - `{ role_id: 1 }`
@@ -105,21 +108,10 @@ erDiagram
 
 **Index:** `{ token_hash: 1 }` unique · `{ user_id: 1 }` · `{ expires_at: 1 }` TTL (`expireAfterSeconds: 0`)
 
-### 4.3 `invite_codes`
+### 4.3 `invite_codes` (tidak dipakai lagi)
 
-| Field | Tipe | Keterangan |
-|-------|------|------------|
-| `code` | string | unik, case-insensitive (disimpan uppercase) |
-| `default_role_id` | ObjectId → `roles` | role awal user yang memakai kode |
-| `default_function_id` | ObjectId \| null → `functions` | |
-| `max_uses` | int \| null | `null` = tak terbatas |
-| `used_count` | int | |
-| `expires_at` | Date \| null | |
-| `is_active` | bool | |
-| `created_by` | ObjectId → `users` | |
-| `created_at`, `updated_at` | Date | |
-
-**Index:** `{ code: 1 }` unique
+Register tidak lagi memakai kode undangan. Koleksi lama dibiarkan apa adanya (tanpa index yang
+dikelola aplikasi) dan tidak dibaca/ditulis oleh kode.
 
 ### 4.4 `functions` (Fungsi/Bagian, hierarkis)
 

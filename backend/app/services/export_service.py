@@ -67,11 +67,11 @@ def to_xlsx(dashboard: dict, users: list[dict]) -> bytes:
     _sheet(
         wb,
         "Pengguna",
-        ["Nama", "Email", "Fungsi", "Sesi", "Menit", "Catatan", "Poin", "Status Authenticity"],
+        ["Nama", "No. HP", "Fungsi", "Sesi", "Menit", "Catatan", "Poin", "Status Authenticity"],
         [
             [
                 u["name"],
-                u["email"],
+                u["phone"],
                 u["function"],
                 u["sessions"],
                 u["minutes"],

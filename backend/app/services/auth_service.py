@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 from pymongo.asynchronous.database import AsyncDatabase
 from pymongo.errors import DuplicateKeyError
 
-from app.core import db as db_module
+from app.core import clock
 from app.core.config import get_settings
 from app.core.errors import AppError, unauthorized
 from app.core.security import (
@@ -15,8 +15,8 @@ from app.core.security import (
     new_refresh_token,
     verify_password,
 )
-from app.repositories import invite_codes, refresh_tokens, users
-from app.schemas.auth import LoginIn, RegisterIn
+from app.repositories import catalog, refresh_tokens, users
+from app.schemas.auth import ChangePinIn, LoginIn, RegisterIn
 from app.services import permissions
 from app.services.user_service import daily_target_bounds
 
@@ -55,61 +55,121 @@ async def _issue(
 
 
 async def register(db: AsyncDatabase, data: RegisterIn, client: ClientInfo) -> IssuedTokens:
-    email = data.email.lower()
-    if await users.find_by_email(db, email) is not None:
-        raise AppError(409, "email_taken", "Email sudah terdaftar")
+    if await users.find_by_phone(db, data.phone) is not None:
+        raise AppError(409, "phone_taken", "Nomor HP sudah terdaftar")
+    if await catalog.get_active_function(db, data.function_id) is None:
+        raise AppError(422, "invalid_function", "Fungsi/bagian tidak ditemukan")
+    member = await catalog.get_role_by_code(db, "member")
+    if member is None:
+        raise AppError(500, "role_missing", "Role Member belum tersedia, jalankan seed")
 
     _, default_target = await daily_target_bounds(db)
     now = datetime.now(UTC)
-    # Kode undangan dipakai & user dibuat dalam satu transaksi: bila insert gagal,
-    # used_count tidak ikut bertambah.
-    async with db_module.get_client().start_session() as session:
-        async with await session.start_transaction():
-            invite = await invite_codes.consume(db, data.invite_code, session=session)
-            if invite is None:
-                raise AppError(
-                    400, "invalid_invite_code", "Kode undangan tidak valid atau sudah habis"
-                )
-            doc = {
-                "email": email,
-                "password_hash": hash_password(data.password),
-                "sso": None,
-                "name": data.name,
-                "avatar_url": None,
-                "role_id": invite["default_role_id"],
-                "function_id": invite.get("default_function_id"),
-                "interests": [],
-                "daily_target_minutes": default_target,
-                "timezone": data.timezone,
-                "onboarding_completed_at": None,
-                "stats": {
-                    "points_total": 0,
-                    "level_id": None,
-                    "books_finished": 0,
-                    "posts_count": 0,
-                    "current_streak": 0,
-                },
-                "status": "active",
-                "invite_code_id": invite["_id"],
-                "last_active_at": now,
-                "created_at": now,
-                "updated_at": now,
-            }
-            try:
-                doc["_id"] = await users.insert(db, doc, session=session)
-            except DuplicateKeyError as exc:
-                raise AppError(409, "email_taken", "Email sudah terdaftar") from exc
+    doc = {
+        "phone": data.phone,
+        # PIN 6 angka di-hash argon2 (nama field tetap `password_hash`).
+        "password_hash": hash_password(data.pin),
+        "sso": None,
+        "name": data.name,
+        "avatar_url": None,
+        "role_id": member["_id"],
+        "function_id": data.function_id,
+        "interests": [],
+        "daily_target_minutes": default_target,
+        "timezone": data.timezone,
+        "onboarding_completed_at": None,
+        "stats": {
+            "points_total": 0,
+            "level_id": None,
+            "books_finished": 0,
+            "posts_count": 0,
+            "current_streak": 0,
+        },
+        "status": "active",
+        "login_failures": 0,
+        "locked_until": None,
+        "last_active_at": now,
+        "created_at": now,
+        "updated_at": now,
+    }
+    try:
+        doc["_id"] = await users.insert(db, doc)
+    except DuplicateKeyError as exc:
+        raise AppError(409, "phone_taken", "Nomor HP sudah terdaftar") from exc
     return await _issue(db, doc, client)
 
 
+async def _lockout_policy(db: AsyncDatabase) -> tuple[int, int]:
+    attempts = await catalog.get_setting(db, "auth.max_pin_attempts", 5)
+    minutes = await catalog.get_setting(db, "auth.lockout_minutes", 15)
+    return int(attempts), int(minutes)
+
+
+def _locked_error(until: datetime) -> AppError:
+    minutes = max(1, int((until - clock.now()).total_seconds() // 60) + 1)
+    return AppError(
+        429,
+        "account_locked",
+        f"Terlalu banyak PIN salah. Coba lagi dalam {minutes} menit atau minta Admin reset PIN.",
+    )
+
+
 async def login(db: AsyncDatabase, data: LoginIn, client: ClientInfo) -> IssuedTokens:
-    user = await users.find_by_email(db, data.email)
-    if not verify_password(data.password, user.get("password_hash") if user else None):
-        raise unauthorized("Email atau password salah", code="invalid_credentials")
+    user = await users.find_by_phone(db, data.phone)
+    locked_until = user.get("locked_until") if user else None
+    if locked_until is not None and locked_until.tzinfo is None:
+        locked_until = locked_until.replace(tzinfo=UTC)
+    if locked_until is not None and locked_until > clock.now():
+        raise _locked_error(locked_until)
+    if not verify_password(data.pin, user.get("password_hash") if user else None):
+        if user is not None:
+            await _register_failure(db, user)
+        raise unauthorized("Nomor HP atau PIN salah", code="invalid_credentials")
     if user["status"] != "active":
         raise AppError(403, "account_suspended", "Akun dinonaktifkan")
-    await users.touch_last_active(db, user["_id"])
+    await db["users"].update_one(
+        {"_id": user["_id"]},
+        {"$set": {"login_failures": 0, "locked_until": None, "last_active_at": clock.now()}},
+    )
     return await _issue(db, user, client)
+
+
+async def _register_failure(db: AsyncDatabase, user: dict) -> None:
+    max_attempts, lock_minutes = await _lockout_policy(db)
+    updated = await db["users"].find_one_and_update(
+        {"_id": user["_id"]},
+        {"$inc": {"login_failures": 1}},
+        return_document=True,
+    )
+    if updated and updated.get("login_failures", 0) >= max_attempts:
+        until = clock.now() + timedelta(minutes=lock_minutes)
+        await db["users"].update_one(
+            {"_id": user["_id"]}, {"$set": {"login_failures": 0, "locked_until": until}}
+        )
+        raise _locked_error(until)
+
+
+async def change_pin(db: AsyncDatabase, user: dict, data: ChangePinIn) -> None:
+    if not verify_password(data.current_pin, user.get("password_hash")):
+        raise AppError(422, "invalid_pin", "PIN saat ini salah")
+    await users.update(db, user["_id"], {"password_hash": hash_password(data.new_pin)})
+
+
+async def set_pin(db: AsyncDatabase, user_id, pin: str) -> None:
+    """Dipakai Admin (reset PIN): buka kunci & cabut semua sesi login."""
+    await users.update(
+        db,
+        user_id,
+        {
+            "password_hash": hash_password(pin),
+            "login_failures": 0,
+            "locked_until": None,
+            "sessions_revoked_at": clock.now(),
+        },
+    )
+    await db["refresh_tokens"].update_many(
+        {"user_id": user_id, "revoked_at": None}, {"$set": {"revoked_at": clock.now()}}
+    )
 
 
 async def refresh(db: AsyncDatabase, token: str | None, client: ClientInfo) -> IssuedTokens:

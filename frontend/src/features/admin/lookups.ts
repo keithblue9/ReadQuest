@@ -8,7 +8,7 @@ export type Lookups = {
   roles: { id: string; code: string; name: string }[];
   functions: { id: string; code: string; name: string; parent_id: string | null; ancestors: string[]; is_active: boolean }[];
   categories: { id: string; code: string; name: string; icon: string | null }[];
-  users: { id: string; name: string; email: string }[];
+  users: { id: string; name: string; phone: string | null }[];
 };
 
 /** Pilihan role/fungsi/kategori/pengguna untuk form Admin. `reload` dipanggil setelah data berubah. */

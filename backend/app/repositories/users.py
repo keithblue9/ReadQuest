@@ -11,8 +11,8 @@ def _col(db: AsyncDatabase):
     return db["users"]
 
 
-async def find_by_email(db: AsyncDatabase, email: str) -> dict | None:
-    return await _col(db).find_one({"email": email.lower()})
+async def find_by_phone(db: AsyncDatabase, phone: str) -> dict | None:
+    return await _col(db).find_one({"phone": phone})
 
 
 async def find_by_id(db: AsyncDatabase, user_id: ObjectId) -> dict | None:

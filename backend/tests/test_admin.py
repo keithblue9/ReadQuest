@@ -5,13 +5,13 @@ from bson import ObjectId
 from openpyxl import load_workbook
 
 from tests.conftest import (
+    USER_PIN,
     admin_headers,
     auth_header,
     create_book,
     me,
     onboarded_user,
     quick_post,
-    register,
 )
 
 
@@ -246,7 +246,7 @@ async def test_suspend_user_revokes_sessions(client):
     member = await onboarded_user(client)
     member_me = await me(client, member)
     found = (
-        await client.get("/api/v1/admin/users", params={"q": member_me["email"]}, headers=admin)
+        await client.get("/api/v1/admin/users", params={"q": member_me["phone"]}, headers=admin)
     ).json()
     assert found["total"] == 1 and found["items"][0]["id"] == member_me["id"]
 
@@ -255,7 +255,7 @@ async def test_suspend_user_revokes_sessions(client):
     )
     assert (await client.get("/api/v1/me", headers=member)).status_code == 401
     login = await client.post(
-        "/api/v1/auth/login", json={"email": member_me["email"], "password": "rahasia-123"}
+        "/api/v1/auth/login", json={"phone": member_me["phone"], "pin": USER_PIN}
     )
     assert login.status_code == 403
 
@@ -359,31 +359,32 @@ async def test_admin_edits_book_and_denormalized_posts(client, fake_clock):
     assert clash.status_code == 409
 
 
-async def test_invite_codes(client, database):
+async def test_admin_resets_pin_and_unlocks(client, database):
     admin = await admin_headers(client)
-    member_role = await database["roles"].find_one({"code": "member"})
-    created = (
-        await client.post(
-            "/api/v1/admin/resources/invite-codes",
-            json={"default_role_id": str(member_role["_id"]), "max_uses": 2},
-            headers=admin,
-        )
-    ).json()
-    assert len(created["code"]) == 8 and created["used_count"] == 0
-    assert (await register(client, invite_code=created["code"])).status_code == 201
+    member = await onboarded_user(client)
+    member_me = await me(client, member)
+    for _ in range(5):
+        await client.post("/api/v1/auth/login", json={"phone": member_me["phone"], "pin": "000001"})
+    locked = (
+        await client.get("/api/v1/admin/users", params={"q": member_me["phone"]}, headers=admin)
+    ).json()["items"][0]
+    assert locked["locked"] is True
 
-    await client.put(
-        f"/api/v1/admin/resources/invite-codes/{created['id']}",
-        json={
-            "code": created["code"],
-            "default_role_id": str(member_role["_id"]),
-            "is_active": False,
-        },
-        headers=admin,
+    weak = await client.put(
+        f"/api/v1/admin/users/{member_me['id']}/pin", json={"pin": "111111"}, headers=admin
     )
-    assert (await register(client, invite_code=created["code"])).status_code == 400
-    after = await database["invite_codes"].find_one({"_id": ObjectId(created["id"])})
-    assert after["used_count"] == 1  # tidak ter-reset saat diubah
+    assert weak.status_code == 422
+    reset = await client.put(
+        f"/api/v1/admin/users/{member_me['id']}/pin", json={"pin": "482913"}, headers=admin
+    )
+    assert reset.status_code == 204
+    assert (await client.get("/api/v1/me", headers=member)).status_code == 401  # sesi dicabut
+    login = await client.post(
+        "/api/v1/auth/login", json={"phone": member_me["phone"], "pin": "482913"}
+    )
+    assert login.status_code == 200
+    log = await database["audit_logs"].find_one({"action": "user.reset_pin"})
+    assert log and "password_hash" not in (log.get("after") or {})
 
 
 async def test_notification_template_is_data_driven(client, fake_clock, database):
@@ -420,7 +421,6 @@ async def test_generic_resources_listing(client):
         "levels",
         "book-categories",
         "notification-templates",
-        "invite-codes",
     ]:
         response = await client.get(f"/api/v1/admin/resources/{name}", headers=admin)
         assert response.status_code == 200, name
@@ -435,3 +435,6 @@ async def test_lookups_for_admin_forms(client):
     assert {"roles", "functions", "categories", "users"} <= set(data)
     assert {r["code"] for r in data["roles"]} >= {"member", "team_lead", "admin"}
     assert all("password_hash" not in u and "id" in u for u in data["users"])
+    assert (
+        await client.get("/api/v1/admin/resources/invite-codes", headers=admin)
+    ).status_code == 404

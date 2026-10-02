@@ -8,7 +8,6 @@ export const ADMIN_SECTIONS = [
   { href: "/admin/catalog", label: "Katalog", icon: "📚", permission: "config.books.manage" },
   { href: "/admin/notifications", label: "Notifikasi", icon: "🔔", permission: "config.notifications.manage" },
   { href: "/admin/settings", label: "Pengaturan", icon: "⚙️", permission: "config.settings.manage" },
-  { href: "/admin/invites", label: "Undangan", icon: "✉️", permission: "invites.manage" },
   { href: "/admin/moderation", label: "Moderasi", icon: "🛡️", permission: "post.moderate" },
   { href: "/admin/audit", label: "Audit Log", icon: "🧾", permission: "audit.view" },
 ] as const;

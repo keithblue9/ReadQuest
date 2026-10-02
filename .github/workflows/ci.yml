@@ -99,9 +99,8 @@ jobs:
           JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')
           S3_ACCESS_KEY=readquest
           S3_SECRET_KEY=$(openssl rand -hex 16)
-          ADMIN_EMAIL=admin@example.com
-          ADMIN_PASSWORD=ci-admin-123
-          SEED_INVITE_CODE=CITEST
+          ADMIN_PHONE=081100000001
+          ADMIN_PIN=482913
           ENV
           docker compose up -d --no-build --wait --wait-timeout 180
           docker compose --profile tools run --rm seed
@@ -114,7 +113,7 @@ jobs:
           test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost/)" = "308"
           curl -fsSk -X POST https://localhost/api/v1/auth/login \
             -H "Content-Type: application/json" \
-            -d '{"email":"admin@example.com","password":"ci-admin-123"}' | grep -q access_token
+            -d '{"phone":"081100000001","pin":"482913"}' | grep -q access_token
 
       - name: Log container (bila gagal)
         if: failure()

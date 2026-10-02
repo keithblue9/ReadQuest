@@ -1,13 +1,15 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Response, status
 
 from app.api.deps import CurrentUser, Db
+from app.core.rate_limit import rate_limiter
 from app.repositories import catalog
+from app.schemas.auth import ChangePinIn
 from app.schemas.catalog import CategoryOut, FunctionOut, OnboardingOptionsOut
 from app.schemas.points import LedgerPageOut, PointsSummaryOut
 from app.schemas.user import MeOut, MeUpdateIn, OnboardingIn
-from app.services import points_service, user_service
+from app.services import auth_service, points_service, user_service
 
 router = APIRouter(prefix="/me", tags=["me"])
 
@@ -21,6 +23,13 @@ async def get_me(db: Db, user: CurrentUser) -> MeOut:
 async def update_me(data: MeUpdateIn, db: Db, user: CurrentUser) -> MeOut:
     updated = await user_service.update_me(db, user, data)
     return await user_service.build_me(db, updated)
+
+
+@router.put("/pin", status_code=status.HTTP_204_NO_CONTENT)
+async def change_pin(data: ChangePinIn, db: Db, user: CurrentUser) -> Response:
+    rate_limiter.hit(f"pin:{user['_id']}", limit=5, window_seconds=300)
+    await auth_service.change_pin(db, user, data)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/points", response_model=PointsSummaryOut)

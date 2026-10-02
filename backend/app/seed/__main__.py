@@ -1,13 +1,13 @@
 """Seed data awal (idempotent): `uv run python -m app.seed`."""
 
 import asyncio
-import secrets
 from datetime import UTC, datetime
 
 from pymongo.asynchronous.database import AsyncDatabase
 
 from app.core import db as db_module
 from app.core.config import get_settings
+from app.core.phone_pin import normalize_phone
 from app.core.security import hash_password
 from app.repositories.indexes import ensure_indexes
 from app.seed import data
@@ -39,6 +39,10 @@ async def seed(db: AsyncDatabase) -> dict[str, int]:
                 db, "permissions", {"code": code}, {"group": group, "description": description}
             ),
         )
+    # Permission yang sudah dihapus dari katalog (mis. `invites.manage`) dibersihkan dari role.
+    known = [c for c, _, _ in data.PERMISSIONS]
+    await db["permissions"].delete_many({"code": {"$nin": known}})
+    await db["roles"].update_many({}, {"$pull": {"permission_codes": {"$nin": known}}})
     for role in data.ROLES:
         doc = {k: v for k, v in role.items() if k != "code"}
         await count(
@@ -138,73 +142,69 @@ async def seed(db: AsyncDatabase) -> dict[str, int]:
             ),
         )
 
-    await _seed_admin_and_invite(db, created)
+    await _seed_admin(db, created)
     return created
 
 
-async def _seed_admin_and_invite(db: AsyncDatabase, created: dict[str, int]) -> None:
+async def _seed_admin(db: AsyncDatabase, created: dict[str, int]) -> None:
+    """Admin pertama login dengan ADMIN_PHONE + ADMIN_PIN."""
     settings = get_settings()
+    if not (settings.admin_phone and settings.admin_pin):
+        return
+    phone = normalize_phone(settings.admin_phone)
+    if await db["users"].find_one({"phone": phone}, {"_id": 1}):
+        return
     now = datetime.now(UTC)
     admin_role = await db["roles"].find_one({"code": "admin"})
-    member_role = await db["roles"].find_one({"code": "member"})
-
-    admin_id = None
-    if settings.admin_email and settings.admin_password:
-        email = settings.admin_email.lower()
-        existing = await db["users"].find_one({"email": email})
-        if existing is None:
-            result = await db["users"].insert_one(
-                {
-                    "email": email,
-                    "password_hash": hash_password(settings.admin_password),
-                    "sso": None,
-                    "name": settings.admin_name,
-                    "avatar_url": None,
-                    "role_id": admin_role["_id"],
-                    "function_id": None,
-                    "interests": [],
-                    "daily_target_minutes": 15,
-                    "timezone": "Asia/Jakarta",
-                    "onboarding_completed_at": None,
-                    "stats": {
-                        "points_total": 0,
-                        "level_id": None,
-                        "books_finished": 0,
-                        "posts_count": 0,
-                        "current_streak": 0,
-                    },
-                    "status": "active",
-                    "last_active_at": now,
-                    "created_at": now,
+    # Akun admin lama (login email) dimigrasikan: tambahkan nomor HP & PIN.
+    legacy = (
+        await db["users"].find_one({"email": settings.admin_email.lower(), "phone": None})
+        if settings.admin_email
+        else None
+    )
+    if legacy is not None:
+        await db["users"].update_one(
+            {"_id": legacy["_id"]},
+            {
+                "$set": {
+                    "phone": phone,
+                    "password_hash": hash_password(settings.admin_pin),
                     "updated_at": now,
                 }
-            )
-            admin_id = result.inserted_id
-            created["users"] = 1
-            print(f"Admin dibuat: {email}")
-        else:
-            admin_id = existing["_id"]
-
-    has_active_invite = await db["invite_codes"].count_documents({"is_active": True}) > 0
-    if settings.seed_invite_code or not has_active_invite:
-        code = (settings.seed_invite_code or secrets.token_hex(4)).strip().upper()
-        inserted = await _upsert(
-            db,
-            "invite_codes",
-            {"code": code},
-            {
-                "default_role_id": member_role["_id"],
-                "default_function_id": None,
-                "max_uses": None,
-                "used_count": 0,
-                "expires_at": None,
-                "is_active": True,
-                "created_by": admin_id,
             },
         )
-        created["invite_codes"] = int(inserted)
-        if inserted:
-            print(f"Kode undangan (Member): {code}")
+        print(f"Admin {settings.admin_email} kini login dengan nomor {phone}")
+        return
+    await db["users"].insert_one(
+        {
+            "phone": phone,
+            "password_hash": hash_password(settings.admin_pin),
+            "sso": None,
+            "name": settings.admin_name,
+            "avatar_url": None,
+            "role_id": admin_role["_id"],
+            "function_id": None,
+            "interests": [],
+            "daily_target_minutes": 15,
+            "timezone": "Asia/Jakarta",
+            "onboarding_completed_at": None,
+            "stats": {
+                "points_total": 0,
+                "level_id": None,
+                "books_finished": 0,
+                "posts_count": 0,
+                "current_streak": 0,
+            },
+            "status": "active",
+            "login_failures": 0,
+            "locked_until": None,
+            "last_active_at": now,
+            "created_at": now,
+            "updated_at": now,
+        }
+    )
+    created["users"] = 1
+    print(f"Admin dibuat: {settings.admin_name} ({phone})")
 
 
 async def main() -> None:

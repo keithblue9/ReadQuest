@@ -34,11 +34,16 @@ Role dan permission dikelola secara **data-driven** (RBAC) melalui Admin Config
 
 ### 3.1 Autentikasi & Onboarding
 
-- Login **email/password**, plus **SSO opsional**.
-- Bergabung ke tim menggunakan **kode undangan tim**.
+- Login dengan **nomor HP + PIN 6 angka** (mudah diketik di HP), plus **SSO opsional**.
+- **Register** cukup mengisi **nama, fungsi/bagian, nomor HP, dan PIN** (tanpa kode undangan);
+  akun baru otomatis ber-role Member.
+- Keamanan PIN: PIN mudah ditebak (mis. 123456, 111111) ditolak; akun **terkunci sementara**
+  setelah beberapa kali PIN salah (default 5 kali / 15 menit, dapat diatur Admin); Admin dapat
+  **reset PIN** dan pengguna dapat mengganti PIN sendiri.
+- Email bersifat opsional (hanya dipertahankan untuk akun lama).
 - Role: Member, Team Lead, Admin.
 - **Onboarding** pengguna baru:
-  - Pilih **fungsi/bagian** (unit kerja).
+  - Pilih **fungsi/bagian** (unit kerja) — sudah diisi saat register.
   - Pilih **minat baca** (kategori/topik).
   - Tentukan **target harian** (menit baca).
   - Panduan **"Add to Home Screen"** untuk iOS (agar PWA & Web Push berfungsi).

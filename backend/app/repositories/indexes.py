@@ -9,7 +9,20 @@ TRUE_ONLY = {"$eq": True}
 
 INDEXES: dict[str, list[IndexModel]] = {
     "users": [
-        IndexModel([("email", ASC)], unique=True),
+        # Login memakai nomor HP; email opsional (akun lama). Keduanya unik bila ada.
+        IndexModel(
+            [("phone", ASC)],
+            name="phone_unique",
+            unique=True,
+            partialFilterExpression={"phone": {"$type": "string"}},
+        ),
+        IndexModel(
+            [("email", ASC)],
+            # Nama baru agar index lama `email_1` (wajib unik untuk semua) terhapus otomatis.
+            name="email_unique_optional",
+            unique=True,
+            partialFilterExpression={"email": {"$type": "string"}},
+        ),
         IndexModel(
             [("sso.provider", ASC), ("sso.subject", ASC)],
             unique=True,
@@ -24,7 +37,6 @@ INDEXES: dict[str, list[IndexModel]] = {
         IndexModel([("family_id", ASC)]),
         IndexModel([("expires_at", ASC)], expireAfterSeconds=0),
     ],
-    "invite_codes": [IndexModel([("code", ASC)], unique=True)],
     "functions": [
         IndexModel([("code", ASC)], unique=True),
         IndexModel([("parent_id", ASC), ("sort_order", ASC)]),

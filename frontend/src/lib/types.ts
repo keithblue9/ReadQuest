@@ -1,6 +1,7 @@
 export type Me = {
   id: string;
-  email: string;
+  phone: string | null;
+  email: string | null;
   name: string;
   avatar_url: string | null;
   role: { code: string; name: string };

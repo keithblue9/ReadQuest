@@ -28,7 +28,8 @@ class UserStatsOut(BaseModel):
 
 class MeOut(BaseModel):
     id: PyObjectId
-    email: str
+    phone: str | None = None
+    email: str | None = None
     name: str
     avatar_url: str | None
     role: RoleOut

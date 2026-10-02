@@ -10,6 +10,7 @@ import { Button } from "@/components/ui";
 import { allowedSections } from "@/features/admin/sections";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { STATUS_STYLE, StatusBadge } from "@/features/authenticity/StatusBadge";
+import { ChangePinCard } from "@/features/auth/ChangePinCard";
 import { InstallCard } from "@/features/pwa/InstallCard";
 import { api } from "@/lib/api";
 import type { Authenticity, Badge, LedgerEntry, LedgerPage, PointsSummary } from "@/lib/types";
@@ -59,7 +60,7 @@ export default function ProfilePage() {
         <div className="min-w-0 pl-2">
           <h1 className="truncate text-2xl font-extrabold">{user.name}</h1>
           <p className="text-sm text-muted">
-            {user.role.name} · {user.email}
+            {user.role.name} · {user.phone ?? user.email}
           </p>
         </div>
       </section>
@@ -216,6 +217,7 @@ export default function ProfilePage() {
       >
         ⚙️ Pengaturan notifikasi
       </Link>
+      <ChangePinCard />
       <Button variant="ghost" onClick={() => logout()}>
         Keluar
       </Button>
