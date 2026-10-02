@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BookCover } from "@/components/BookCover";
 import { PostCard } from "@/components/PostCard";
 import { Alert, Button, FullScreenSpinner } from "@/components/ui";
+import { DiscussionComposer } from "@/features/feed/DiscussionComposer";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
 import type { Book, Post, PostPage } from "@/lib/types";
@@ -65,7 +66,7 @@ export default function BookPage() {
 
   const stats = [
     ["Pembaca", book.stats.readers_count],
-    ["Catatan", book.stats.posts_count],
+    ["Posting", book.stats.posts_count],
     ["Selesai", book.stats.finished_count],
     ["Rating", book.stats.avg_rating ? `★ ${book.stats.avg_rating.toFixed(1)}` : "—"],
   ];
@@ -106,6 +107,10 @@ export default function BookPage() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-extrabold">Diskusi & catatan</h2>
+        <DiscussionComposer
+          bookId={book.id}
+          onCreated={(post) => setPosts((current) => [post, ...current])}
+        />
         {posts.length === 0 ? (
           <p className="rounded-2xl bg-surface-muted p-4 text-sm text-muted">
             Belum ada catatan. Jadilah yang pertama berbagi insight! ✨

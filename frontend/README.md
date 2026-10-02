@@ -33,10 +33,10 @@ npm run lint && npm run typecheck && npm test && npm run build
 |--------|-----|
 | `src/app/(auth)/` | `/login`, `/register` (hanya untuk tamu) |
 | `src/app/(app)/` | halaman yang butuh login (guard di `layout.tsx`): `/onboarding`, `/read` (sesi baca layar penuh) |
-| `src/app/(app)/(main)/` | halaman dengan navigasi bawah (`AppShell`): `/` (beranda), `/books`, `/books/[id]`, `/profile` (level, streak, riwayat poin) |
+| `src/app/(app)/(main)/` | halaman dengan navigasi bawah (`AppShell`): `/` (beranda), `/feed`, `/posts/[id]`, `/books`, `/books/[id]`, `/profile` |
 | `src/app/manifest.ts` | Web App Manifest (PWA) |
 | `src/components/` | komponen UI generik (`ui.tsx`, `AppShell`, `BookCover`, `PostCard`, `PhotoPicker`, tema) |
-| `src/features/` | modul per fitur: `auth/`, `onboarding/`, `books/` (cari & tambah buku), `reading/` (timer, catatan, perayaan) |
+| `src/features/` | modul per fitur: `auth/`, `onboarding/`, `books/` (cari & tambah buku), `reading/` (timer, catatan, perayaan), `feed/` (reaksi, komentar, @mention, share sheet, diskusi) |
 | `src/lib/` | klien API (`api.ts`), tipe, kompresi foto (`image.ts`), hitung kata (`words.ts`), helper error & platform |
 | `src/hooks/`, `src/styles/` | disiapkan untuk fase berikutnya |
 | `public/icons/` | ikon PWA & apple-touch-icon |

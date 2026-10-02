@@ -178,3 +178,39 @@ async def read_for(
         assert response.status_code == 200, response.text
         body = response.json()
     return body
+
+
+async def quick_post(
+    client: httpx.AsyncClient, headers: dict[str, str], book_id: str, content: str, **finish
+) -> dict:
+    """Selesaikan sesi baca tanpa simulasi heartbeat (waktu baca di-set langsung di DB)."""
+    from bson import ObjectId
+
+    started = await client.post("/api/v1/sessions", json={"book_id": book_id}, headers=headers)
+    assert started.status_code == 201, started.text
+    session_id = started.json()["id"]
+    await db_module.get_db()["reading_sessions"].update_one(
+        {"_id": ObjectId(session_id)}, {"$set": {"active_seconds": 900, "status": "paused"}}
+    )
+    payload = {
+        "note_type": "quick_note",
+        "content": content,
+        "image_keys": [(await upload_photo(client, headers))["key"]],
+        **finish,
+    }
+    response = await client.post(
+        f"/api/v1/sessions/{session_id}/finish", json=payload, headers=headers
+    )
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+async def me(client: httpx.AsyncClient, headers: dict[str, str]) -> dict:
+    return (await client.get("/api/v1/me", headers=headers)).json()
+
+
+async def admin_headers(client: httpx.AsyncClient) -> dict[str, str]:
+    response = await client.post(
+        "/api/v1/auth/login", json={"email": "admin@example.com", "password": "admin-pass-123"}
+    )
+    return auth_header(response)

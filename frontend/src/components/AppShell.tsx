@@ -8,6 +8,7 @@ import { Logo } from "./ui";
 
 const NAV = [
   { href: "/", label: "Beranda", icon: "🏠" },
+  { href: "/feed", label: "Feed", icon: "💬" },
   { href: "/read", label: "Baca", icon: "⏱️" },
   { href: "/books", label: "Buku", icon: "📚" },
   { href: "/profile", label: "Profil", icon: "🙂" },
@@ -32,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         aria-label="Navigasi utama"
         className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
       >
-        <ul className="mx-auto grid max-w-md grid-cols-4">
+        <ul className="mx-auto grid max-w-md grid-cols-5">
           {NAV.map((item) => {
             const active = isActive(pathname, item.href);
             return (

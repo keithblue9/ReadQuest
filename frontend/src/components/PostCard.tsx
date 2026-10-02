@@ -1,11 +1,14 @@
 import Link from "next/link";
 
+import { PostActions } from "@/features/feed/PostActions";
+import { RichText } from "@/features/feed/RichText";
 import type { Post } from "@/lib/types";
 import { NOTE_TYPES } from "@/lib/words";
 
-const TYPE_LABEL: Record<string, string> = Object.fromEntries(
-  NOTE_TYPES.map((t) => [t.value, `${t.emoji} ${t.label}`]),
-);
+const TYPE_LABEL: Record<string, string> = {
+  ...Object.fromEntries(NOTE_TYPES.map((t) => [t.value, `${t.emoji} ${t.label}`])),
+  discussion: "💬 Diskusi",
+};
 
 export function timeAgo(iso: string): string {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -27,7 +30,22 @@ export function Avatar({ name, url }: { name: string; url: string | null }) {
   );
 }
 
-export function PostCard({ post, showBook = true }: { post: Post; showBook?: boolean }) {
+type PostCardProps = {
+  post: Post;
+  showBook?: boolean;
+  /** false di halaman detail (komentar sudah tampil di bawahnya). */
+  linkComments?: boolean;
+  actions?: boolean;
+  commentCount?: number;
+};
+
+export function PostCard({
+  post,
+  showBook = true,
+  linkComments = true,
+  actions = true,
+  commentCount,
+}: PostCardProps) {
   return (
     <article className="animate-pop-in rounded-3xl border border-border bg-surface p-4">
       <header className="flex items-center gap-3">
@@ -55,7 +73,9 @@ export function PostCard({ post, showBook = true }: { post: Post; showBook?: boo
         </Link>
       )}
 
-      <p className="mt-3 whitespace-pre-line leading-relaxed">{post.content}</p>
+      <p className="mt-3 leading-relaxed whitespace-pre-line">
+        <RichText text={post.content} mentions={post.mentions} />
+      </p>
 
       {post.image_urls.length > 0 && (
         <div className={`mt-3 grid gap-2 ${post.image_urls.length > 1 ? "grid-cols-2" : ""}`}>
@@ -82,11 +102,18 @@ export function PostCard({ post, showBook = true }: { post: Post; showBook?: boo
           </span>
         )}
         {post.topics.map((topic) => (
-          <span key={topic} className="rounded-full bg-primary/10 px-2.5 py-1 text-primary">
+          <Link
+            key={topic}
+            href={`/feed?topic=${encodeURIComponent(topic)}`}
+            className="rounded-full bg-primary/10 px-2.5 py-1 text-primary"
+          >
             #{topic}
-          </span>
+          </Link>
         ))}
       </footer>
+      {actions && (
+        <PostActions post={post} linkComments={linkComments} commentCount={commentCount} />
+      )}
     </article>
   );
 }

@@ -27,6 +27,7 @@ class FinishIn(BaseModel):
     total_pages: int | None = Field(default=None, ge=1, le=10000)
     is_book_finished: bool = False
     pasted_chars: int = Field(default=0, ge=0)
+    mention_ids: list[PyObjectId] = Field(default_factory=list, max_length=10)
 
     @model_validator(mode="after")
     def _pages(self) -> "FinishIn":

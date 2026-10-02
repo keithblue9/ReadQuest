@@ -49,7 +49,8 @@ oleh seed). Detail: [`backend/README.md`](backend/README.md), [`frontend/README.
 
 Selesai: autentikasi & onboarding (Fase 2), sesi baca dengan timer + catatan wajib yang
 divalidasi, katalog buku bersama, dan unggah foto (Fase 3), sistem poin berbasis ledger dengan
-streak & level (Fase 4). Berikutnya: Fase 5 — feed sosial.
+streak & level (Fase 4), feed sosial dengan reaksi, komentar berantai, mention, bookmark, kartu
+berbagi, dan diskusi per buku (Fase 5). Berikutnya: Fase 6 — leaderboard.
 
 ## Dokumentasi
 

@@ -65,7 +65,7 @@ Pastikan semua cek di atas lolos sebelum push. Frontend memakai Next.js 16: baca
 | 2 | ✅ MVP: Auth & onboarding (termasuk scaffold proyek Next.js & FastAPI + seed data) |
 | 3 | ✅ MVP: Reading session + info buku/katalog |
 | 4 | ✅ MVP: Sistem poin (ledger) |
-| 5 | MVP: Feed sosial |
+| 5 | ✅ MVP: Feed sosial |
 | 6 | MVP: Leaderboard |
 | 7 | Authenticity Index & gamifikasi lanjutan (level, badge, quest, Reading Room) |
 | 8 | Notifikasi (Web Push & in-app) |
