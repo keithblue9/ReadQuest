@@ -1,0 +1,51 @@
+# Layanan pendukung untuk pengembangan lokal (MongoDB + MinIO).
+# Aplikasi frontend/backend dijalankan terpisah (lihat README masing-masing).
+# Kredensial MinIO dibaca dari .env di root (salin dari .env.example).
+
+services:
+  mongo:
+    image: mongo:7
+    # Replica set satu node agar transaksi multi-dokumen bisa dipakai.
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: >
+        mongosh --quiet --eval
+        "try { rs.status().ok } catch (e) { rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'localhost:27017'}]}).ok }"
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 10s
+
+  minio:
+    image: minio/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set di .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set di .env}
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio-data:/data
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD}; do sleep 2; done;
+      mc mb --ignore-existing local/$${MINIO_BUCKET};
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set di .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set di .env}
+      MINIO_BUCKET: ${MINIO_BUCKET:-readquest-photos}
+
+volumes:
+  mongo-data:
+  minio-data:

@@ -9,6 +9,19 @@ berinteraksi di feed, dan mendapatkan poin, badge, serta peringkat.
 Spesifikasi lengkap: [`docs/SPEC.md`](docs/SPEC.md) — **sumber kebenaran**. Baca sebelum
 mengerjakan fitur apa pun.
 
+Dokumen pendukung:
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — komponen, alur data, alasan teknologi.
+- [`docs/DATABASE.md`](docs/DATABASE.md) — skema koleksi MongoDB, relasi, index.
+
+## Struktur Repo
+
+```
+frontend/            Next.js PWA (lihat frontend/README.md)
+backend/             FastAPI (lihat backend/README.md)
+docs/                SPEC, ARCHITECTURE, DATABASE
+docker-compose.yml   MongoDB (replica set) + MinIO untuk lokal
+```
+
 ## Tech Stack
 
 - **Frontend:** Next.js (PWA, mobile-first, dark mode)
@@ -32,9 +45,9 @@ mengerjakan fitur apa pun.
 
 | Fase | Cakupan |
 |------|---------|
-| 0 | Fondasi dokumentasi (SPEC, CLAUDE.md, .gitignore, README) |
-| 1 | Arsitektur, skema database, struktur folder |
-| 2 | MVP: Auth & onboarding |
+| 0 | ✅ Fondasi dokumentasi (SPEC, CLAUDE.md, .gitignore, README) |
+| 1 | ✅ Arsitektur, skema database, struktur folder |
+| 2 | MVP: Auth & onboarding (termasuk scaffold proyek Next.js & FastAPI + seed data) |
 | 3 | MVP: Reading session + info buku/katalog |
 | 4 | MVP: Sistem poin (ledger) |
 | 5 | MVP: Feed sosial |
