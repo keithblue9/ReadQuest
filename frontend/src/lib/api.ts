@@ -70,10 +70,14 @@ export function refreshSession(): Promise<TokenResponse | null> {
   return refreshInFlight;
 }
 
-type RequestOptions = Omit<RequestInit, "body"> & { json?: unknown; auth?: boolean };
+type RequestOptions = Omit<RequestInit, "body"> & {
+  json?: unknown;
+  body?: BodyInit;
+  auth?: boolean;
+};
 
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { json, auth = true, headers, ...init } = options;
+  const { json, body, auth = true, headers, ...init } = options;
 
   const send = () => {
     const finalHeaders = new Headers(headers);
@@ -83,7 +87,7 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
       ...init,
       credentials: "same-origin",
       headers: finalHeaders,
-      body: json !== undefined ? JSON.stringify(json) : undefined,
+      body: json !== undefined ? JSON.stringify(json) : body,
     });
   };
 

@@ -35,3 +35,11 @@ async def count_active_categories(db: AsyncDatabase, ids: list[ObjectId]) -> int
 async def get_setting(db: AsyncDatabase, key: str, default: Any = None) -> Any:
     doc = await db["app_settings"].find_one({"key": key})
     return doc["value"] if doc else default
+
+
+async def categories_by_id(db: AsyncDatabase) -> dict[ObjectId, dict]:
+    return {c["_id"]: c async for c in db["book_categories"].find()}
+
+
+async def get_category(db: AsyncDatabase, category_id: ObjectId) -> dict | None:
+    return await db["book_categories"].find_one({"_id": category_id})

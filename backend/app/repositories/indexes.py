@@ -69,6 +69,7 @@ INDEXES: dict[str, list[IndexModel]] = {
             name="book_finished_once_per_user",
         ),
         IndexModel([("moderation.status", ASC), ("created_at", DESC)]),
+        IndexModel([("author_id", ASC), ("content_hash", ASC)]),
     ],
     "reactions": [
         IndexModel([("post_id", ASC), ("user_id", ASC)], unique=True),

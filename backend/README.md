@@ -7,12 +7,13 @@ Skema: [`../docs/DATABASE.md`](../docs/DATABASE.md).
 ## Stack
 
 Python 3.11+ · FastAPI · Uvicorn · PyMongo async (`AsyncMongoClient`) · Pydantic v2 +
-pydantic-settings · PyJWT · argon2-cffi · pytest · ruff · [uv](https://docs.astral.sh/uv/)
+pydantic-settings · PyJWT · argon2-cffi · boto3 (S3) · Pillow · pytest · ruff ·
+[uv](https://docs.astral.sh/uv/)
 
 ## Menjalankan
 
 ```bash
-# dari root repo: MongoDB (replica set) + MinIO
+# dari root repo: MongoDB (replica set) + RustFS
 docker compose up -d
 
 cd backend
@@ -31,7 +32,7 @@ uv run pytest -q              # butuh MongoDB lokal; memakai database test semen
 uv run ruff check . && uv run ruff format --check .
 ```
 
-## Endpoint (Fase 2)
+## Endpoint
 
 | Method | Path | Keterangan |
 |--------|------|------------|
@@ -42,6 +43,16 @@ uv run ruff check . && uv run ruff format --check .
 | GET / PATCH | `/api/v1/me` | Profil user saat ini |
 | GET | `/api/v1/me/onboarding/options` | Pilihan fungsi, kategori, batas target harian |
 | PUT | `/api/v1/me/onboarding` | Simpan fungsi, minat, target harian, zona waktu |
+| GET | `/api/v1/books?q=&category_id=` | Cari katalog buku (judul/pengarang) |
+| POST | `/api/v1/books` | Tambah buku (200 + buku lama bila judul & pengarang sama) |
+| GET | `/api/v1/books/{id}` · `/api/v1/books/{id}/posts?cursor=` | Detail buku & diskusinya |
+| POST | `/api/v1/uploads/photos` | Unggah foto (multipart, ≤ `upload.max_bytes`, EXIF dibuang) |
+| GET | `/api/v1/media/{key}?exp=&sig=` | Foto privat lewat URL bertanda tangan |
+| GET | `/api/v1/sessions/config` · `/api/v1/sessions/today` · `/api/v1/sessions` | Aturan sesi, status hari ini, riwayat |
+| POST | `/api/v1/sessions` | Mulai sesi baca (maks. 1 sesi terbuka) |
+| POST | `/api/v1/sessions/{id}/heartbeat` | `{state: active\|paused}` tiap 15 detik |
+| POST | `/api/v1/sessions/{id}/finish` | Selesai + catatan wajib (divalidasi) → posting |
+| POST | `/api/v1/sessions/{id}/abandon` | Batalkan sesi |
 | GET | `/health` | Health check (termasuk ping MongoDB) |
 
 Error selalu berbentuk `{"error": {"code", "message", "fields?"}}`.
@@ -51,9 +62,9 @@ Error selalu berbentuk `{"error": {"code", "message", "fields?"}}`.
 | Folder | Isi |
 |--------|-----|
 | `app/api/` | `deps.py` (auth & `require_permission`) + router per versi (`v1/`) |
-| `app/core/` | konfigurasi `.env`, koneksi MongoDB, keamanan (JWT, argon2), error, rate limit |
+| `app/core/` | konfigurasi `.env`, koneksi MongoDB, keamanan (JWT, argon2), error, rate limit, `clock` (waktu, mudah di-mock), `storage` (S3/lokal), `media` (URL bertanda tangan), `images` (Pillow) |
 | `app/schemas/` | DTO request/response (Pydantic) |
-| `app/services/` | logika bisnis (auth, user/onboarding, cache permission) |
+| `app/services/` | logika bisnis (auth, onboarding, buku, sesi baca, validasi catatan, posting, upload) |
 | `app/repositories/` | akses MongoDB + definisi index semua koleksi (`indexes.py`) |
 | `app/seed/` | data awal & script seed (`python -m app.seed`) |
 | `app/models/`, `app/ws/`, `app/jobs/` | disiapkan untuk fase berikutnya |

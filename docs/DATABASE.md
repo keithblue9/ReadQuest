@@ -212,7 +212,8 @@ Katalog permission (di-seed dari kode, dapat diberi label oleh admin).
 |-------|------|------------|
 | `user_id` | ObjectId → `users` | |
 | `book_id` | ObjectId → `books` | |
-| `local_date` | string | tanggal sesi menurut zona waktu user |
+| `book` | object | denormalisasi `{ title, authors, cover_image_key }` untuk tampilan |
+| `local_date` | string | tanggal sesi menurut zona waktu user (diperbarui ke tanggal selesai) |
 | `started_at` | Date | |
 | `ended_at` | Date \| null | |
 | `active_seconds` | int | dihitung server dari heartbeat (tanpa waktu idle/pause) |
@@ -263,7 +264,8 @@ Satu dokumen per user.
 | `type` | string | `quick_note` \| `chapter_story` \| `book_review` \| `progress_photo` \| `discussion` |
 | `content` | string | teks catatan |
 | `word_count` | int | |
-| `image_keys` | string[] | foto buku/progres (object storage) |
+| `content_hash` | string | SHA-256 dari kata-kata yang dinormalisasi; menolak catatan duplikat |
+| `image_keys` | string[] | foto buku/progres (object storage, prefix `photos/{author_id}/`) |
 | `rating` | int \| null | 1–5, opsional |
 | `page_progress` | object \| null | `{ current_page, total_pages }` |
 | `is_book_finished` | bool | memicu +150 poin (sekali per user per buku) |
@@ -283,6 +285,7 @@ Satu dokumen per user.
 - `{ author_id: 1, created_at: -1 }`: profil & Authenticity Index
 - `{ author_id: 1, book_id: 1 }` unique, partial `{ is_book_finished: true }`: buku selesai sekali
 - `{ "moderation.status": 1, created_at: -1 }`: antrean moderasi
+- `{ author_id: 1, content_hash: 1 }`: deteksi catatan duplikat
 
 ### 7.2 `reactions`
 
@@ -556,7 +559,8 @@ Contoh kunci:
 | `key` | Contoh `value` |
 |-------|----------------|
 | `session.min_minutes` | `15` |
-| `session.idle_timeout_seconds` | `120` |
+| `session.idle_timeout_seconds` | `300` (dialog "Masih membaca?") |
+| `session.heartbeat_max_gap_seconds` | `45` |
 | `note.min_words` | `{ quick_note: 30, chapter_story: 80, book_review: 200 }` |
 | `note.min_unique_word_ratio` | `0.4` |
 | `note.max_paste_ratio` | `0.5` |

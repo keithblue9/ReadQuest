@@ -25,14 +25,14 @@ Next.js (PWA) · FastAPI · MongoDB · JWT · WebSocket
 frontend/            Next.js PWA
 backend/             FastAPI
 docs/                spesifikasi, arsitektur, skema database
-docker-compose.yml   MongoDB + MinIO untuk pengembangan lokal
+docker-compose.yml   MongoDB + RustFS untuk pengembangan lokal
 ```
 
 ## Menjalankan Secara Lokal
 
 ```bash
-cp .env.example .env                 # kredensial MinIO
-docker compose up -d                 # MongoDB (replica set) + MinIO
+cp .env.example .env                 # kredensial object storage
+docker compose up -d                 # MongoDB (replica set) + RustFS
 
 cd backend && cp .env.example .env   # isi ADMIN_EMAIL, ADMIN_PASSWORD, SEED_INVITE_CODE
 uv sync && uv run python -m app.seed
@@ -47,9 +47,8 @@ oleh seed). Detail: [`backend/README.md`](backend/README.md), [`frontend/README.
 
 ## Status
 
-Fase 2 selesai: autentikasi (daftar dengan kode undangan, login, refresh token), onboarding
-(fungsi, minat, target harian, panduan Add to Home Screen iOS), seed data, dan CI.
-Berikutnya: Fase 3 — sesi baca & katalog buku.
+Selesai: autentikasi & onboarding (Fase 2), sesi baca dengan timer + catatan wajib yang
+divalidasi, katalog buku bersama, dan unggah foto (Fase 3). Berikutnya: Fase 4 — sistem poin.
 
 ## Dokumentasi
 

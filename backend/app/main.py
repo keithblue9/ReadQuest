@@ -11,6 +11,7 @@ from app.api.v1.router import api_router
 from app.core import db
 from app.core.config import get_settings
 from app.core.errors import register_error_handlers
+from app.core.storage import get_storage
 from app.repositories.indexes import ensure_indexes
 
 
@@ -18,6 +19,7 @@ from app.repositories.indexes import ensure_indexes
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     await db.connect()
     await ensure_indexes(db.get_db())
+    await get_storage().ensure_ready()
     yield
     await db.disconnect()
 

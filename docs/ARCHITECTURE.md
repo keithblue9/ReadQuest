@@ -30,20 +30,19 @@ flowchart LR
     end
 
     DB[("MongoDB")]
-    OBJ[("Object Storage<br/>S3 / R2 / MinIO")]
+    OBJ[("Object Storage<br/>S3 / R2 / RustFS")]
     PUSH["Web Push Service<br/>(FCM / APNs / Mozilla)"]
     IDP["SSO Provider<br/>(OIDC, opsional)"]
 
     PWA -- "HTTPS + JWT" --> API
     PWA <-- "WSS + JWT" --> WS
-    PWA -- "PUT foto (presigned URL)" --> OBJ
     PWA -. "redirect login" .-> IDP
     API -- "verifikasi token" --> IDP
 
     API --> DB
     WS --> DB
     JOBS --> DB
-    API -- "buat presigned URL" --> OBJ
+    API -- "simpan & baca foto" --> OBJ
     API -- "kirim push (VAPID)" --> PUSH
     JOBS -- "pengingat / nudge" --> PUSH
     PUSH --> SW
@@ -97,10 +96,11 @@ sequenceDiagram
     participant D as MongoDB
     U->>A: POST /sessions (mulai)
     A->>D: insert reading_sessions (status=active)
-    loop setiap ~30 detik saat aktif
-        U->>A: PATCH /sessions/{id}/heartbeat (detik aktif)
+    loop setiap 15 detik saat aktif
+        U->>A: POST /sessions/{id}/heartbeat {state: active}
+        A->>D: active_seconds += min(selisih sejak heartbeat terakhir, 45 dtk)
     end
-    Note over U: idle terdeteksi → timer auto-pause di klien
+    Note over U: tab ditutup/layar mati atau tidak menjawab "Masih membaca?" → heartbeat {state: paused}
     U->>A: POST /sessions/{id}/finish + catatan + info buku
     A->>A: validasi durasi ≥ 15 menit (dihitung server dari heartbeat)
     A->>A: validasi catatan (min kata, rasio kata unik, deteksi paste)
@@ -111,9 +111,21 @@ sequenceDiagram
     A-->>U: hasil + poin + pemicu animasi (konfeti/streak)
 ```
 
-Durasi dihitung **di server** dari heartbeat agar timer di klien tidak bisa dimanipulasi.
-Deteksi paste dikirim klien sebagai sinyal (jumlah karakter yang di-paste) dan dicek ulang
-di server.
+Durasi dihitung **di server** dari heartbeat agar timer di klien tidak bisa dimanipulasi:
+setiap heartbeat hanya menambah waktu sejak heartbeat sebelumnya (maks.
+`session.heartbeat_max_gap_seconds`) dan hanya bila sesi berstatus aktif. Celah panjang (layar
+mati, jaringan putus) tidak dihitung.
+
+- **Membaca buku fisik**: layar dijaga tetap menyala dengan Screen Wake Lock API. Karena tidak
+  ada interaksi dengan layar, idle tidak langsung menjeda; setelah
+  `session.idle_timeout_seconds` tanpa interaksi muncul dialog **"Masih membaca?"**, dan bila
+  tidak dijawab dalam 60 detik sesi dijeda otomatis.
+- **Aplikasi disembunyikan** (pindah aplikasi, layar dikunci) → sesi langsung dijeda.
+- **Validasi catatan** (`services/note_validation.py`): minimal kata per jenis, rasio kata unik,
+  kalimat berulang, porsi teks hasil paste (sinyal dari klien, dibatasi panjang teks), dan
+  catatan identik dengan catatan sebelumnya (`content_hash`).
+- **Maks. 1 sesi poin penuh per hari** dijamin unique partial index; sesi berikutnya tetap
+  tercatat tanpa poin penuh.
 
 ### 4.3 Upload Foto Buku
 
@@ -122,13 +134,19 @@ sequenceDiagram
     participant U as PWA
     participant A as FastAPI
     participant S as Object Storage
-    U->>U: kompres (≤ ~1MB) + strip EXIF (canvas re-encode)
-    U->>A: POST /uploads/presign (tipe, ukuran)
-    A-->>U: presigned PUT URL + object key
-    U->>S: PUT foto
-    U->>A: kirim object key bersama posting
-    A->>S: HEAD object (cek ukuran & tipe)
+    U->>U: perkecil ≤1600px, kompres ≤ ~900KB, strip EXIF (canvas re-encode)
+    U->>A: POST /uploads/photos (multipart)
+    A->>A: cek ukuran (upload.max_bytes), decode Pillow, re-encode JPEG tanpa metadata
+    A->>S: simpan photos/{user_id}/{yyyymm}/{uuid}.jpg
+    A-->>U: object key + URL media bertanda tangan
+    U->>A: kirim object key bersama catatan (hanya key milik user sendiri yang diterima)
 ```
+
+Foto diunggah **lewat backend** (bukan presigned URL langsung ke storage) agar server bisa
+memverifikasi bahwa file benar-benar gambar dan membuang metadata sekali lagi; ukurannya kecil
+(≤ 1MB) sehingga biayanya rendah. Foto bersifat privat untuk tim dan disajikan lewat
+`GET /api/v1/media/{key}?exp=&sig=`: URL bertanda tangan HMAC yang berlaku sampai akhir hari
+berikutnya (stabil seharian sehingga bisa di-cache browser) dan bisa dipakai langsung di `<img>`.
 
 ### 4.4 Reaksi / Komentar → Poin & Notifikasi
 
@@ -178,10 +196,10 @@ sequenceDiagram
 | **PyMongo async (`AsyncMongoClient`) + Pydantic v2** (tanpa ODM) | Driver async resmi MongoDB (pengganti Motor yang sudah deprecated); query & index tetap eksplisit dan mudah dioptimasi. |
 | **MongoDB** | Skema fleksibel untuk konfigurasi data-driven (aturan poin, quest, template notifikasi); aggregation pipeline kuat untuk leaderboard dan heatmap. |
 | **JWT + refresh token rotasi** | Stateless untuk API & WebSocket; refresh token di cookie httpOnly mengurangi risiko XSS. |
-| **Object storage S3-compatible** | Foto tidak membebani database; presigned URL membuat upload langsung dari klien. MinIO untuk lokal, S3/R2 di produksi. |
+| **Object storage S3-compatible** | Foto tidak membebani database. Lokal memakai **RustFS** (Apache-2.0; image komunitas MinIO tidak lagi dipublikasikan), produksi S3/R2. Test memakai backend folder lokal. |
 | **Web Push (VAPID) + pywebpush** | Standar terbuka, bekerja di Android & iOS 16.4+ (setelah Add to Home Screen). |
 | **APScheduler** | Cukup untuk satu instance tanpa infrastruktur antrean tambahan; dapat diganti worker terpisah bila skala bertambah. |
-| **Docker Compose** | Menjalankan MongoDB + MinIO secara lokal dengan satu perintah. |
+| **Docker Compose** | Menjalankan MongoDB + RustFS secara lokal dengan satu perintah. |
 
 ## 6. Keamanan
 
@@ -204,7 +222,7 @@ Semua konfigurasi lewat variabel lingkungan:
 
 | File | Isi |
 |------|-----|
-| `.env` (root) | kredensial MongoDB & MinIO untuk `docker-compose.yml` |
+| `.env` (root) | kredensial object storage (RustFS) untuk `docker-compose.yml` |
 | `backend/.env` | URL MongoDB, secret JWT, kredensial object storage, kunci VAPID, SSO |
 | `frontend/.env.local` | `API_PROXY_TARGET` (alamat FastAPI untuk proxy), kunci publik VAPID |
 
