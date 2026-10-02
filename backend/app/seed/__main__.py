@@ -44,6 +44,11 @@ async def seed(db: AsyncDatabase) -> dict[str, int]:
         await count(
             "roles", await _upsert(db, "roles", {"code": role["code"]}, {**doc, "is_system": True})
         )
+    # Permission baru selalu ditambahkan ke Admin; role lain tidak diubah (pilihan Admin dijaga).
+    await db["roles"].update_one(
+        {"code": "admin"},
+        {"$addToSet": {"permission_codes": {"$each": [c for c, _, _ in data.PERMISSIONS]}}},
+    )
     for rule in data.POINT_RULES:
         doc = {k: v for k, v in rule.items() if k != "code"}
         doc.setdefault("daily_cap_points", None)

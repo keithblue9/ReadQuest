@@ -269,6 +269,36 @@ Leaderboard tidak butuh job: dihitung saat diminta dengan cache (lihat §4.5).
   diklik; lonceng di header mem-poll jumlah belum dibaca tiap 60 detik & saat aplikasi aktif
   kembali. Di iOS, push hanya tersedia setelah PWA dipasang ke Layar Utama (iOS 16.4+).
 
+### 4.9 Admin Dashboard & Admin Config
+
+- **Area admin** (`/admin/*` di frontend, `/api/v1/admin/*` di backend). Menu yang tampil
+  diturunkan dari permission role pengguna (`features/admin/sections.ts`); setiap endpoint
+  tetap dicek di server dengan `require_permission`, jadi menyembunyikan menu bukan satu-satunya
+  pengaman.
+- **Dashboard** (`admin_dashboard_service.build`): pembaca aktif & tingkat partisipasi, rata-rata
+  menit baca, menit per hari, heatmap rata-rata menit/anggota per fungsi × hari dalam seminggu,
+  distribusi status Authenticity Index, daftar Observer, dan buku terpopuler untuk periode 7/30/90
+  hari. Export memakai data yang sama: **Excel** (`openpyxl`, 5 sheet) dan **PDF** (`fpdf2`
+  dengan font Nunito yang dibundel), keduanya tercatat di audit log.
+- **CRUD konfigurasi generik** (`admin_resources.RESOURCES`): satu registry berisi koleksi,
+  permission, skema Pydantic, hook validasi (mis. hierarki fungsi tanpa siklus + `ancestors`
+  dihitung ulang untuk sub-fungsi; role Admin tidak boleh kehilangan `config.roles.manage`;
+  metrik badge/quest harus ada di `user_stats.METRICS`), dan penjaga hapus (data yang sudah
+  dipakai cukup dinonaktifkan). Resource: fungsi, role, aturan poin, badge, quest, level,
+  kategori buku, template notifikasi, kode undangan. Satu komponen frontend
+  (`ResourceManager`) melayani semuanya; matriks permission punya halaman khusus.
+- **Pengaturan** (`app_settings`) divalidasi per kunci; perubahan zona waktu/cache langsung
+  membatalkan snapshot leaderboard yang masih terbuka.
+- **Pengguna**: ubah role/fungsi/status. Admin tidak bisa mengubah role/status dirinya sendiri;
+  menonaktifkan akun langsung mencabut semua refresh token.
+- **Moderasi**: anggota melaporkan posting/komentar (`POST /posts/{id}/report`,
+  `POST /posts/{id}/comments/{cid}/report`, satu laporan per orang) → status `flagged`. Admin
+  menyembunyikan (opsional **membatalkan poin** lewat entri ledger `reversal` yang menunjuk
+  entri asal, bukan menghapus ledger), memulihkan, atau mengabaikan laporan.
+- **Audit log** (`audit_service.log`): setiap perubahan konfigurasi, pengguna, moderasi,
+  Book of the Month, dan export menyimpan aktor, aksi, snapshot `before`/`after`, IP, dan
+  user agent. Halaman Audit Log menampilkan diff per field dengan paginasi cursor.
+
 ## 5. Alasan Pemilihan Teknologi
 
 | Teknologi | Alasan |
@@ -296,7 +326,7 @@ Leaderboard tidak butuh job: dihitung saat diminta dengan cache (lihat §4.5).
   batas harian poin dari `point_rules`.
 - **Validasi upload**: tipe MIME gambar saja, ukuran maksimum, dan EXIF dibuang di klien.
 - **Visibilitas Authenticity Index** dicek di server (diri sendiri, Team Lead fungsinya, Admin).
-- **Audit log** untuk setiap perubahan konfigurasi admin.
+- **Audit log** (append-only) untuk setiap perubahan konfigurasi, pengguna, moderasi, dan export.
 - Frontend memanggil API lewat proxy same-origin Next.js. CORS hanya mengizinkan origin frontend.
 - Refresh token di cookie `HttpOnly`, `SameSite=Strict`, `Path=/api/v1/auth`, dan `Secure` di production.
   Access token hanya disimpan di memori frontend.

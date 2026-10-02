@@ -233,7 +233,7 @@ async def test_weekly_quest_reward_once_per_week(client, fake_clock, database):
 # ---------- Book of the Month ----------
 
 
-async def test_book_of_the_month_auto_and_admin(client, fake_clock):
+async def test_book_of_the_month_auto_and_admin(client, fake_clock, database):
     at(fake_clock, "2027-06-10T12:00:00+07:00")
     headers = await onboarded_user(client)
     busy = await create_book(client, headers)
@@ -250,6 +250,7 @@ async def test_book_of_the_month_auto_and_admin(client, fake_clock):
     admin = await admin_headers(client)
     chosen = (await client.put(f"/api/v1/book-of-the-month/{quiet['id']}", headers=admin)).json()
     assert chosen["auto"] is False and chosen["book"]["id"] == quiet["id"]
+    assert await database["audit_logs"].find_one({"action": "book_of_month.set"})
 
 
 # ---------- Reading Buddy ----------

@@ -15,6 +15,7 @@ def _to_object_id(value: object) -> ObjectId:
 PyObjectId = Annotated[
     ObjectId,
     PlainValidator(_to_object_id),
-    PlainSerializer(str, return_type=str),
+    # Hanya saat serialisasi JSON; model_dump() biasa tetap ObjectId (untuk query MongoDB).
+    PlainSerializer(str, return_type=str, when_used="json"),
     WithJsonSchema({"type": "string", "pattern": "^[0-9a-f]{24}$"}),
 ]

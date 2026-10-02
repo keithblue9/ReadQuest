@@ -1,12 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, Query, Request, Response, status
 
 from app.api.deps import CurrentUser, Db, require_permission
 from app.schemas.authenticity import AuthenticityOut, AuthenticityTeamOut
 from app.schemas.common import PyObjectId
 from app.schemas.gamification import BadgeOut, BookOfMonthOut, BuddiesOut, QuestOut
 from app.services import (
+    audit_service,
     authenticity_service,
     badge_service,
     book_of_month_service,
@@ -64,9 +65,21 @@ async def book_of_the_month(db: Db, _: CurrentUser) -> BookOfMonthOut:
 async def set_book_of_the_month(
     book_id: PyObjectId,
     db: Db,
-    _: Annotated[dict, Depends(require_permission("config.books.manage"))],
+    request: Request,
+    actor: Annotated[dict, Depends(require_permission("config.books.manage"))],
 ) -> BookOfMonthOut:
-    return await book_of_month_service.set_current(db, book_id)
+    result = await book_of_month_service.set_current(db, book_id)
+    await audit_service.log(
+        db,
+        actor=actor,
+        action="book_of_month.set",
+        entity_type="book_of_month",
+        entity_id=book_id,
+        after={"month": result.month, "book_id": book_id},
+        ip=request.client.host if request.client else "",
+        user_agent=request.headers.get("user-agent", ""),
+    )
+    return result
 
 
 # ---------- Reading Buddy ----------

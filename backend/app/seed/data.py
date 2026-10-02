@@ -24,6 +24,7 @@ PERMISSIONS: list[tuple[str, str, str]] = [
     ("config.settings.manage", "config", "Kelola pengaturan aplikasi & threshold"),
     ("invites.manage", "config", "Kelola kode undangan"),
     ("audit.view", "admin", "Melihat audit log"),
+    ("users.manage", "admin", "Kelola pengguna (role, fungsi, status)"),
 ]
 
 _MEMBER = [

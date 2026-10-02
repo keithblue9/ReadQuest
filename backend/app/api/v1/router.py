@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    admin,
     auth,
     books,
     gamification,
@@ -24,3 +25,4 @@ api_router.include_router(users.router)
 api_router.include_router(leaderboard.router)
 api_router.include_router(gamification.router)
 api_router.include_router(notifications.router)
+api_router.include_router(admin.router)
