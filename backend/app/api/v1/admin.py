@@ -166,6 +166,7 @@ ADMIN_AREA_PERMISSIONS = {
     "config.notifications.manage",
     "config.settings.manage",
     "config.appearance.manage",
+    "reports.view",
 }
 
 

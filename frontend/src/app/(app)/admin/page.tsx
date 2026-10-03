@@ -55,7 +55,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   return (
     <div className="rounded-2xl border border-border bg-surface p-4">
       <p className="text-xs font-bold text-muted">{label}</p>
-      <p className="mt-1 text-3xl font-extrabold tabular-nums">{value}</p>
+      <p className="mt-1 text-3xl font-bold tabular-nums">{value}</p>
       {sub && <p className="mt-0.5 text-xs text-muted">{sub}</p>}
     </div>
   );
@@ -64,7 +64,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 function Card({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
   return (
     <section className="rounded-2xl border border-border bg-surface p-4">
-      <h2 className="font-extrabold">{title}</h2>
+      <h2 className="font-bold">{title}</h2>
       {sub && <p className="text-xs text-muted">{sub}</p>}
       <div className="mt-3">{children}</div>
     </section>
@@ -107,7 +107,7 @@ export default function AdminDashboardPage() {
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold">Dashboard</h1>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-sm text-muted">
             {data ? `${data.start} s/d ${data.end}` : "Ringkasan aktivitas membaca tim"}
           </p>
@@ -204,7 +204,7 @@ export default function AdminDashboardPage() {
                         <span aria-hidden>{STATUS_STYLE[s].emoji}</span>
                         {STATUS_LABEL[s]}
                       </p>
-                      <p className="mt-1 text-2xl font-extrabold tabular-nums">
+                      <p className="mt-1 text-2xl font-bold tabular-nums">
                         {count}
                         <span className="ml-1 text-xs font-semibold text-muted">
                           {totalStatus ? `${Math.round((count / totalStatus) * 100)}%` : "0%"}
@@ -221,7 +221,7 @@ export default function AdminDashboardPage() {
                 <ol className="flex flex-col gap-2">
                   {data.top_books.map((b, i) => (
                     <li key={b.book_id} className="flex items-center gap-3 text-sm">
-                      <span className="w-5 text-right font-extrabold text-muted tabular-nums">{i + 1}</span>
+                      <span className="w-5 text-right font-bold text-muted tabular-nums">{i + 1}</span>
                       <Link href={`/books/${b.book_id}`} className="min-w-0 flex-1 truncate font-bold hover:text-primary">
                         {b.title}
                       </Link>

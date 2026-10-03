@@ -8,9 +8,10 @@ from pymongo.asynchronous.database import AsyncDatabase
 from app.core import clock
 from app.repositories import catalog
 from app.services import authenticity_service
+from app.services.note_validation import NOTE_TYPES as ALL_NOTE_TYPES
 
 WEEKDAYS = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"]
-NOTE_TYPES = ["quick_note", "chapter_story", "book_review"]
+NOTE_TYPES = list(ALL_NOTE_TYPES)
 
 
 async def build(db: AsyncDatabase, days: int) -> dict:

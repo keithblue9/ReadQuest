@@ -52,7 +52,7 @@ export default function RegisterPage() {
 
   return (
     <div className="animate-pop-in">
-      <h1 className="text-3xl font-extrabold">{t("auth.register.title")}</h1>
+      <h1 className="text-3xl font-bold">{t("auth.register.title")}</h1>
       <p className="mt-2 text-muted">{t("auth.register.subtitle")}</p>
 
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4" noValidate>

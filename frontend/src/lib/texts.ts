@@ -33,9 +33,11 @@ export const DEFAULT_TEXTS = {
 
   // Menu navigasi
   "nav.dashboard": "Beranda",
-  "nav.read": "Baca",
+  "nav.read": "Sesi Baca",
   "nav.feed": "Feed",
-  "nav.books": "Katalog",
+  "nav.stats": "Statistik Tim",
+  "nav.books": "Katalog Buku",
+  "nav.shelf": "Rak Buku",
   "nav.leaderboard": "Peringkat",
   "nav.quests": "Quest",
   "nav.buddy": "Reading Buddy",
@@ -44,6 +46,18 @@ export const DEFAULT_TEXTS = {
   "nav.profile": "Profil",
   "nav.admin": "Admin",
   "nav.main_label": "Navigasi utama",
+  "nav.more": "Lainnya",
+  "nav.start_reading": "Mulai membaca",
+  "nav.micro_reading": "Baca 5 menit",
+  "nav.reports": "Laporan Divisi",
+  "nav.search_placeholder": "Cari buku…",
+
+  // Beranda (feed)
+  "home.composer_prompt": "Apa yang kamu baca hari ini, {name}?",
+  "home.composer_read": "Sesi baca",
+  "home.composer_micro": "Baca 5 menit",
+  "home.composer_quote": "Bagikan kutipan",
+  "home.feed_empty": "Belum ada posting. Mulai sesi baca dan bagikan catatanmu!",
 
   // Umum
   "common.feature_off_title": "Fitur ini sedang dimatikan",
@@ -57,6 +71,7 @@ export type TextVars = Record<string, string | number>;
 export const TEXT_GROUP_LABELS: Record<string, string> = {
   auth: "Login & Daftar",
   nav: "Menu navigasi",
+  home: "Beranda",
   common: "Umum",
 };
 

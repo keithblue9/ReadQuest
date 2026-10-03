@@ -9,7 +9,7 @@ import { errorMessage } from "@/lib/errors";
 import { Card, SaveBar, saveSection, Toggle } from "./shared";
 
 const FEATURE_INFO: Record<Feature, { label: string; icon: string; description: string }> = {
-  feed: { label: "Feed sosial", icon: "💬", description: "Catatan, reaksi, dan komentar tim." },
+  feed: { label: "Feed sosial", icon: "💬", description: "Catatan, reaksi, dan komentar tim di Beranda." },
   books: { label: "Katalog buku", icon: "📚", description: "Daftar buku & menambah buku baru." },
   leaderboard: { label: "Peringkat", icon: "🏆", description: "Leaderboard poin, menit, dan streak." },
   quests: { label: "Quest", icon: "🎯", description: "Tantangan mingguan." },
@@ -20,7 +20,6 @@ const FEATURE_INFO: Record<Feature, { label: string; icon: string; description: 
 };
 
 const MENU_FEATURE: Partial<Record<Menu, Feature>> = {
-  feed: "feed",
   books: "books",
   leaderboard: "leaderboard",
   quests: "quests",

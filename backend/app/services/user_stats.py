@@ -5,7 +5,9 @@ from datetime import datetime
 from bson import ObjectId
 from pymongo.asynchronous.database import AsyncDatabase
 
-NOTE_TYPES = ["quick_note", "chapter_story", "book_review"]
+from app.services.note_validation import NOTE_TYPES as ALL_NOTE_TYPES
+
+NOTE_TYPES = list(ALL_NOTE_TYPES)
 
 
 async def _count(db: AsyncDatabase, collection: str, query: dict) -> int:
@@ -54,6 +56,8 @@ async def metric(
         return await _count(db, "posts", {**posts, "type": "chapter_story"})
     if name == "book_review_count":
         return await _count(db, "posts", {**posts, "type": "book_review"})
+    if name == "quotes_count":
+        return await _count(db, "posts", {**posts, "type": "quote"})
     if name == "discussion_count":
         return await _count(db, "posts", {**posts, "type": "discussion"})
     if name == "books_finished":
@@ -91,6 +95,7 @@ METRICS = [
     "chapter_story_count",
     "book_review_count",
     "discussion_count",
+    "quotes_count",
     "books_finished",
     "meaningful_comments_given",
     "reactions_given",

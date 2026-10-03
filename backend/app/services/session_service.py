@@ -31,10 +31,12 @@ from app.services import (
     points_service,
     post_service,
     quest_service,
+    shelf_service,
     social_service,
     streak_service,
+    target_service,
 )
-from app.services.note_validation import NoteRules, check_note, message_for
+from app.services.note_validation import DEFAULT_MIN_WORDS, NoteRules, check_note, message_for
 from app.services.upload_service import owns_key
 
 HEARTBEAT_INTERVAL_SECONDS = 15
@@ -46,6 +48,7 @@ MAX_TOPICS = 5
 @dataclass
 class SessionConfig:
     min_seconds: int
+    micro_min_seconds: int
     idle_timeout_seconds: int
     max_gap_seconds: int
     min_words: dict[str, int]
@@ -57,13 +60,10 @@ async def load_config(db: AsyncDatabase) -> SessionConfig:
     get = catalog.get_setting
     return SessionConfig(
         min_seconds=int(await get(db, "session.min_minutes", 15)) * 60,
+        micro_min_seconds=int(await get(db, "session.micro_min_minutes", 5)) * 60,
         idle_timeout_seconds=int(await get(db, "session.idle_timeout_seconds", 300)),
         max_gap_seconds=int(await get(db, "session.heartbeat_max_gap_seconds", 45)),
-        min_words=dict(
-            await get(
-                db, "note.min_words", {"quick_note": 30, "chapter_story": 80, "book_review": 200}
-            )
-        ),
+        min_words={**DEFAULT_MIN_WORDS, **dict(await get(db, "note.min_words", {}) or {})},
         min_unique_ratio=float(await get(db, "note.min_unique_word_ratio", 0.4)),
         max_paste_ratio=float(await get(db, "note.max_paste_ratio", 0.5)),
     )
@@ -72,6 +72,7 @@ async def load_config(db: AsyncDatabase) -> SessionConfig:
 def config_out(cfg: SessionConfig) -> SessionConfigOut:
     return SessionConfigOut(
         min_seconds=cfg.min_seconds,
+        micro_min_seconds=cfg.micro_min_seconds,
         idle_timeout_seconds=cfg.idle_timeout_seconds,
         heartbeat_interval_seconds=HEARTBEAT_INTERVAL_SECONDS,
         note_min_words=cfg.min_words,
@@ -80,7 +81,12 @@ def config_out(cfg: SessionConfig) -> SessionConfigOut:
     )
 
 
-def to_out(session: dict, min_seconds: int) -> SessionOut:
+def required_seconds(session: dict, cfg: SessionConfig) -> int:
+    """Durasi minimal agar sesi bisa diselesaikan: sesi kilat lebih pendek."""
+    return cfg.micro_min_seconds if session.get("mode") == "micro" else cfg.min_seconds
+
+
+def to_out(session: dict, cfg: SessionConfig) -> SessionOut:
     book = session["book"]
     cover = book.get("cover_image_key")
     return SessionOut(
@@ -92,8 +98,9 @@ def to_out(session: dict, min_seconds: int) -> SessionOut:
             cover_url=media.signed_url(cover) if cover else None,
         ),
         status=session["status"],
+        mode=session.get("mode", "standard"),
         active_seconds=session["active_seconds"],
-        min_seconds=min_seconds,
+        min_seconds=required_seconds(session, cfg),
         started_at=session["started_at"],
         ended_at=session.get("ended_at"),
         local_date=session["local_date"],
@@ -135,11 +142,13 @@ async def today(db: AsyncDatabase, user: dict) -> TodayOut:
     return TodayOut(
         local_date=local,
         full_points_done=await sessions.has_full_points_on(db, user["_id"], local),
-        active_session=to_out(open_session, cfg.min_seconds) if open_session else None,
+        active_session=to_out(open_session, cfg) if open_session else None,
+        minutes_today=await sessions.completed_seconds_on(db, user["_id"], local) // 60,
+        min_minutes=cfg.min_seconds // 60,
     )
 
 
-async def start(db: AsyncDatabase, user: dict, book_id: ObjectId) -> dict:
+async def start(db: AsyncDatabase, user: dict, book_id: ObjectId, mode: str = "standard") -> dict:
     book = await books.get(db, book_id)
     if book is None:
         raise AppError(404, "book_not_found", "Buku tidak ditemukan")
@@ -162,6 +171,7 @@ async def start(db: AsyncDatabase, user: dict, book_id: ObjectId) -> dict:
         "active_seconds": 0,
         "last_heartbeat_at": now,
         "status": "active",
+        "mode": mode,
         "note_type": None,
         "post_id": None,
         "validation": None,
@@ -171,6 +181,7 @@ async def start(db: AsyncDatabase, user: dict, book_id: ObjectId) -> dict:
         "updated_at": now,
     }
     doc["_id"] = await sessions.insert(db, doc)
+    await shelf_service.set_status(db, user["_id"], book_id, "reading", automatic=True)
     return doc
 
 
@@ -221,25 +232,26 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
     session = await _get_open_owned(db, user, session_id)
     now = clock.now()
     active_seconds = session["active_seconds"] + _credit(session, cfg.max_gap_seconds)
+    required = required_seconds(session, cfg)
 
-    if active_seconds < cfg.min_seconds:
+    if active_seconds < required:
         # Simpan waktu yang sudah terkumpul agar tidak hilang.
         await sessions.set_fields(
             db,
             session_id,
             {"active_seconds": active_seconds, "last_heartbeat_at": now, "updated_at": now},
         )
-        remaining = (cfg.min_seconds - active_seconds + 59) // 60
+        remaining = (required - active_seconds + 59) // 60
         raise AppError(
             422,
             "session_too_short",
             f"Baca {remaining} menit lagi untuk menyelesaikan sesi "
-            f"(minimal {cfg.min_seconds // 60} menit).",
-            {"active_seconds": active_seconds, "min_seconds": cfg.min_seconds},
+            f"(minimal {required // 60} menit).",
+            {"active_seconds": active_seconds, "min_seconds": required},
         )
 
     rules = NoteRules(
-        min_words=int(cfg.min_words.get(data.note_type, 30)),
+        min_words=int(cfg.min_words.get(data.note_type, DEFAULT_MIN_WORDS[data.note_type])),
         min_unique_ratio=cfg.min_unique_ratio,
         max_paste_ratio=cfg.max_paste_ratio,
     )
@@ -293,6 +305,7 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
             "category_id": book["category_id"],
         },
         "type": data.note_type,
+        "takeaway_kind": data.takeaway_kind,
         "content": data.content.strip(),
         "word_count": check.word_count,
         "content_hash": check.content_hash,
@@ -302,7 +315,14 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
         "is_book_finished": data.is_book_finished,
         "topics": _topics(data.content, category["code"] if category else None),
         "mentions": mentions,
-        "counts": {"like": 0, "insightful": 0, "inspiring": 0, "comments": 0, "bookmarks": 0},
+        "counts": {
+            "like": 0,
+            "insightful": 0,
+            "inspiring": 0,
+            "want_to_read": 0,
+            "comments": 0,
+            "bookmarks": 0,
+        },
         "visibility": "team",
         "moderation": {"status": "visible", "by": None, "reason": None, "at": None},
         "deleted_at": None,
@@ -311,7 +331,13 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
     }
 
     points_before = int((user.get("stats") or {}).get("points_total", 0))
-    full_points = not await sessions.has_full_points_on(db, user["_id"], local)
+    # Poin penuh harian bila total menit hari ini (termasuk sesi kilat sebelumnya) mencapai
+    # durasi minimal: lima sesi 3–5 menit di sela kerja tetap dihitung sebagai sesi valid.
+    read_today = await sessions.completed_seconds_on(db, user["_id"], local)
+    full_points = (
+        not await sessions.has_full_points_on(db, user["_id"], local)
+        and read_today + active_seconds >= cfg.min_seconds
+    )
     while True:
         post.pop("_id", None)
         try:
@@ -340,6 +366,9 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
                 ) from exc
             raise
 
+    weekly = await target_service.award_weekly_target(db, user, local)
+    if weekly:
+        awards.append(weekly)
     await leaderboard_cache.invalidate_open(db)
     await social_service.notify_mentions(
         db, user, mentions, post["content"], f"/posts/{post['_id']}"
@@ -358,7 +387,7 @@ async def finish(db: AsyncDatabase, user: dict, session_id: ObjectId, data: Fini
         if q.reward_points
     ]
     return FinishOut(
-        session=to_out(updated_session, cfg.min_seconds),
+        session=to_out(updated_session, cfg),
         post=(await post_service.enrich(db, [post], user["_id"]))[0],
         points=await points_result(db, user["_id"], points_before, awards + quest_awards, streak),
         badges=badges,
@@ -449,6 +478,14 @@ async def _commit_finish(
             if post["is_book_finished"]:
                 user_inc["stats.books_finished"] = 1
             await db["users"].update_one({"_id": post["author_id"]}, {"$inc": user_inc}, session=tx)
+            await shelf_service.set_status(
+                db,
+                user["_id"],
+                book["_id"],
+                "finished" if post["is_book_finished"] else "reading",
+                automatic=not post["is_book_finished"],
+                session=tx,
+            )
             return await _award_finish_points(
                 db,
                 user=user,
@@ -494,6 +531,9 @@ async def _award_finish_points(
         if streak.milestone:
             await give(f"streak_{streak.milestone}", "streak", session["_id"])
     else:
+        if session.get("mode") == "micro":
+            # Sesi kilat yang belum mencapai syarat harian tetap mendapat poin kecil.
+            await give("micro_session", "reading_session", session["_id"])
         existing = await db["streaks"].find_one({"user_id": user["_id"]}, session=tx) or {}
         streak = streak_service.StreakUpdate(
             current=existing.get("current", 0), longest=existing.get("longest", 0), milestone=None

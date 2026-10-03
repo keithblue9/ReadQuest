@@ -118,7 +118,7 @@ export default function AdminCatalogPage() {
     <div className="flex flex-col gap-10">
       <section className="flex flex-col gap-3">
         <div>
-          <h2 className="text-xl font-extrabold">Book of the Month</h2>
+          <h2 className="text-xl font-bold">Book of the Month</h2>
           <p className="text-sm text-muted">
             Default dipilih otomatis (buku dengan pembaca terbanyak bulan ini). Pilih manual dari daftar buku di bawah.
           </p>
@@ -142,7 +142,7 @@ export default function AdminCatalogPage() {
 
       <section className="flex flex-col gap-3">
         <div>
-          <h2 className="text-xl font-extrabold">Katalog Buku</h2>
+          <h2 className="text-xl font-bold">Katalog Buku</h2>
           <p className="text-sm text-muted">Perbaiki judul/pengarang/kategori. Info buku di posting ikut diperbarui.</p>
         </div>
         <input

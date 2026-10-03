@@ -52,7 +52,7 @@ function Podium({ entries, unit }: { entries: LeaderboardEntry[]; unit: string }
             <div
               className={`mt-2 w-full rounded-t-2xl ${heights[i]} ${
                 i === 1 ? "bg-primary" : "bg-primary/40"
-              } grid place-items-center text-2xl font-extrabold text-primary-foreground`}
+              } grid place-items-center text-2xl font-bold text-primary-foreground`}
             >
               {entry.rank}
             </div>
@@ -102,11 +102,11 @@ function LeaderboardView() {
   return (
     <div className="flex flex-col gap-4 pt-2">
       <div>
-        <h1 className="text-2xl font-extrabold">Papan Peringkat 🏆</h1>
+        <h1 className="text-2xl font-bold">Papan Peringkat 🏆</h1>
         <p className="mt-1 text-muted">{info.description}</p>
       </div>
 
-      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="tablist" aria-label="Kategori">
+      <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0" role="tablist" aria-label="Kategori">
         {CATEGORIES.map((c) => (
           <button
             key={c.value}
@@ -189,7 +189,7 @@ function LeaderboardView() {
                   isMine(entry) ? "border-primary bg-primary/10" : "border-border bg-surface"
                 }`}
               >
-                <span className="w-7 text-center font-extrabold text-muted">{entry.rank}</span>
+                <span className="w-7 text-center font-bold text-muted">{entry.rank}</span>
                 {entry.user ? (
                   <Avatar name={entry.user.name} url={entry.user.avatar_url} />
                 ) : (
@@ -198,7 +198,7 @@ function LeaderboardView() {
                   </span>
                 )}
                 <span className="min-w-0 flex-1 truncate font-semibold">{entryName(entry)}</span>
-                <span className="font-extrabold tabular-nums">
+                <span className="font-bold tabular-nums">
                   {formatScore(entry.score)}
                   <span className="ml-1 text-xs font-semibold text-muted">{info.unit}</span>
                 </span>

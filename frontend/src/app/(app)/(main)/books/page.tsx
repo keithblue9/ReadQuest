@@ -1,14 +1,23 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 import { AddBookForm } from "@/features/books/AddBookForm";
 import { BookSearch } from "@/features/books/BookSearch";
 import { useCategories } from "@/features/books/useCategories";
 
 export default function BooksPage() {
+  return (
+    <Suspense fallback={null}>
+      <Catalog />
+    </Suspense>
+  );
+}
+
+function Catalog() {
   const router = useRouter();
+  const initialQuery = useSearchParams().get("q") ?? "";
   const categories = useCategories();
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [adding, setAdding] = useState<string | null>(null);
@@ -28,10 +37,10 @@ export default function BooksPage() {
   return (
     <div className="flex flex-col gap-4 pt-2">
       <div>
-        <h1 className="text-2xl font-extrabold">Katalog Buku 📚</h1>
+        <h1 className="text-2xl font-bold">Katalog Buku</h1>
         <p className="mt-1 text-muted">Satu buku, satu ruang diskusi bersama tim.</p>
       </div>
-      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Kategori">
+      <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Kategori">
         <button
           type="button"
           aria-pressed={categoryId === null}
@@ -62,6 +71,9 @@ export default function BooksPage() {
         categoryId={categoryId}
         onSelect={(book) => router.push(`/books/${book.id}`)}
         onCreateNew={(title) => setAdding(title)}
+        catalog
+        initialQuery={initialQuery}
+        key={initialQuery}
       />
     </div>
   );

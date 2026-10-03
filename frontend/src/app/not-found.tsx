@@ -6,7 +6,7 @@ export default function NotFound() {
       <span className="text-6xl" aria-hidden>
         📕
       </span>
-      <h1 className="text-2xl font-extrabold">Halaman tidak ditemukan</h1>
+      <h1 className="text-2xl font-bold">Halaman tidak ditemukan</h1>
       <p className="text-muted">Sepertinya halaman ini sudah dipindah atau belum pernah ditulis.</p>
       <Link
         href="/"

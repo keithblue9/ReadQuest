@@ -180,7 +180,7 @@ export default function AdminAuditPage() {
   return (
     <section className="flex flex-col gap-4">
       <header>
-        <h1 className="text-2xl font-extrabold">Audit Log</h1>
+        <h1 className="text-2xl font-bold">Audit Log</h1>
         <p className="text-sm text-muted">Jejak setiap perubahan konfigurasi, pengguna, moderasi, dan export. Tidak bisa diubah.</p>
       </header>
       <div className="flex flex-wrap gap-2">

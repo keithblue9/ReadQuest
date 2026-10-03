@@ -19,11 +19,13 @@ export function BookCover({
   }
   return (
     <div
-      className={`${base} grid place-items-center bg-gradient-to-br from-primary/80 to-accent/80`}
+      className={`${base} grid place-items-center bg-gradient-to-br from-primary to-[color-mix(in_oklab,var(--primary)_55%,black)] p-1 text-center`}
       aria-label={`Sampul ${title}`}
       role="img"
     >
-      <span aria-hidden>📘</span>
+      <span aria-hidden className="line-clamp-3 text-[0.55em] leading-tight font-bold text-white">
+        {title}
+      </span>
     </div>
   );
 }

@@ -33,7 +33,7 @@ export function FeatureGate({ children }: { children: React.ReactNode }) {
         <p className="text-4xl" aria-hidden>
           🚧
         </p>
-        <h1 className="mt-2 text-lg font-extrabold">{t("common.feature_off_title")}</h1>
+        <h1 className="mt-2 text-lg font-bold">{t("common.feature_off_title")}</h1>
         <p className="mt-1 text-sm text-muted">{t("common.feature_off_body")}</p>
         <Link href="/" className="mt-4 inline-block font-bold text-primary">
           {t("common.back_home")}

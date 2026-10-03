@@ -66,7 +66,7 @@ export function AddBookForm({ initialTitle = "", onCreated, onCancel }: Props) {
 
   return (
     <form onSubmit={onSubmit} className="animate-pop-in flex flex-col gap-4" noValidate>
-      <h2 className="text-xl font-extrabold">Tambah buku ke katalog</h2>
+      <h2 className="text-xl font-bold">Tambah buku ke katalog</h2>
       {error && <Alert>{error}</Alert>}
       <Field label="Judul" name="title" defaultValue={initialTitle} error={errors.title} required />
       <Field

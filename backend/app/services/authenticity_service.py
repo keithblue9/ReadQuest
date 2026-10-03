@@ -21,9 +21,10 @@ from app.core.errors import AppError, forbidden
 from app.repositories import catalog
 from app.schemas.authenticity import AuthenticityOut, AuthenticityTeamOut
 from app.services import notification_service, permissions
+from app.services.note_validation import NOTE_TYPES as ALL_NOTE_TYPES
 
 WINDOW_DAYS = 30
-NOTE_TYPES = ["quick_note", "chapter_story", "book_review"]
+NOTE_TYPES = list(ALL_NOTE_TYPES)
 LABELS = {
     "active_reader": "Active Reader",
     "warming_up": "Warming Up",

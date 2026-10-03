@@ -144,7 +144,7 @@ export default function AdminNotificationsPage() {
       {canSchedule && (
         <section className="flex flex-col gap-3">
           <div>
-            <h2 className="text-xl font-extrabold">Jadwal Notifikasi</h2>
+            <h2 className="text-xl font-bold">Jadwal Notifikasi</h2>
             <p className="text-sm text-muted">Kapan notifikasi terjadwal dikirim ke seluruh anggota.</p>
           </div>
           <ScheduleForm />

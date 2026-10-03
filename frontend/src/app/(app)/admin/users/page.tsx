@@ -90,7 +90,7 @@ export default function AdminUsersPage() {
   return (
     <section className="flex flex-col gap-4">
       <header>
-        <h1 className="text-2xl font-extrabold">Pengguna</h1>
+        <h1 className="text-2xl font-bold">Pengguna</h1>
         <p className="text-sm text-muted">
           Ubah role, fungsi, reset PIN, atau nonaktifkan akun. Semua perubahan tercatat di audit log.
         </p>

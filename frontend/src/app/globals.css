@@ -2,32 +2,36 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Palet profesional (terinspirasi Facebook): latar abu-abu muda, kartu putih, satu warna merek.
+   Warna merek bisa diganti Admin (Tampilan → Branding) lewat variabel --brand/--brand-dark. */
 :root {
-  --background: #fff8f0;
+  --background: #f0f2f5;
   --surface: #ffffff;
-  --surface-muted: #f6efe6;
-  --foreground: #1f1b2e;
-  --muted: #6b6480;
-  --border: #ece3d6;
-  --primary: #6c4df6;
+  --surface-muted: #f0f2f5;
+  --foreground: #1c1e21;
+  --muted: #65676b;
+  --border: #dddfe2;
+  --primary: var(--brand, #2563eb);
   --primary-foreground: #ffffff;
-  --accent: #ff8a3d;
-  --success: #1f9d6b;
-  --danger: #d93a4a;
+  --accent: #0f766e;
+  --success: #15803d;
+  --danger: #dc2626;
+  --warning: #b45309;
 }
 
 .dark {
-  --background: #14111f;
-  --surface: #1e1a2d;
-  --surface-muted: #282339;
-  --foreground: #f5f3ff;
-  --muted: #a39cb8;
-  --border: #332d47;
-  --primary: #8b73ff;
-  --primary-foreground: #14111f;
-  --accent: #ff9d5c;
-  --success: #3ccf91;
-  --danger: #ff6b78;
+  --background: #18191a;
+  --surface: #242526;
+  --surface-muted: #3a3b3c;
+  --foreground: #e4e6eb;
+  --muted: #b0b3b8;
+  --border: #3e4042;
+  --primary: var(--brand-dark, #4b8df8);
+  --primary-foreground: #ffffff;
+  --accent: #2dd4bf;
+  --success: #4ade80;
+  --danger: #f87171;
+  --warning: #fbbf24;
 }
 
 @theme inline {
@@ -42,12 +46,30 @@
   --color-accent: var(--accent);
   --color-success: var(--success);
   --color-danger: var(--danger);
-  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --color-warning: var(--warning);
+  /* Font sistem: tajam, cepat (tanpa unduhan), dan familiar seperti aplikasi kerja. */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Sudut lebih tegas & profesional (kelas lama rounded-2xl/3xl ikut menyesuaikan). */
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 0.875rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Kartu standar: putih, garis tipis, bayangan halus. */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+}
+.dark .card {
+  box-shadow: none;
 }
 
 /* Background login bawaan (sebelum Admin mengunggah gambar). */

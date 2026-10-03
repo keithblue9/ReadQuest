@@ -14,6 +14,7 @@ from app.schemas.posts import (
     PostCountsOut,
     PostOut,
     PostPageOut,
+    QuoteOut,
     UserMiniOut,
     ViewerStateOut,
 )
@@ -48,10 +49,13 @@ async def enrich(
         async for b in db["bookmarks"].find({"post_id": {"$in": ids}, "user_id": viewer_id}):
             bookmarked.add(b["post_id"])
     mention_ids = {m for p in posts_ for m in p.get("mentions", [])}
-    users = await users_by_id(db, mention_ids)
+    # Penulis ikut diambil agar foto profil terbaru tampil (snapshot di posting bisa usang).
+    users = await users_by_id(db, mention_ids | {p["author_id"] for p in posts_})
     out = []
     for p in posts_:
         item = to_out(p)
+        if p["author_id"] in users:
+            item.author.avatar_url = users[p["author_id"]].get("avatar_url")
         item.viewer = ViewerStateOut(
             reaction=reactions.get(p["_id"]), bookmarked=p["_id"] in bookmarked
         )
@@ -73,6 +77,8 @@ def to_out(post: dict) -> PostOut:
         rating=post.get("rating"),
         page_progress=PageProgressOut(**progress) if progress else None,
         is_book_finished=post.get("is_book_finished", False),
+        takeaway_kind=post.get("takeaway_kind"),
+        quote=QuoteOut(**post["quote"]) if post.get("quote") else None,
         topics=post.get("topics", []),
         author=PostAuthorOut(
             id=post["author_id"],

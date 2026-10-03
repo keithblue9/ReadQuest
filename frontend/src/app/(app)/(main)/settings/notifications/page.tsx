@@ -104,7 +104,7 @@ export default function NotificationSettingsPage() {
         <Link href="/notifications" className="text-sm font-bold text-primary">
           ← Notifikasi
         </Link>
-        <h1 className="mt-1 text-2xl font-extrabold">Pengaturan Notifikasi ⚙️</h1>
+        <h1 className="mt-1 text-2xl font-bold">Pengaturan Notifikasi ⚙️</h1>
       </div>
       {error && <Alert>{error}</Alert>}
 
@@ -116,7 +116,7 @@ export default function NotificationSettingsPage() {
       <section className="rounded-3xl border border-border bg-surface p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="font-extrabold">Notifikasi push</p>
+            <p className="font-bold">Notifikasi push</p>
             <p className="text-sm text-muted">{pushState ? PUSH_TEXT[pushState] : "Memeriksa…"}</p>
           </div>
           {(pushState === "on" || pushState === "off") && (
@@ -158,7 +158,7 @@ export default function NotificationSettingsPage() {
 
           <section className="flex flex-col gap-3 rounded-3xl border border-border bg-surface p-4">
             <div className="flex items-center justify-between">
-              <p className="font-extrabold">🌙 Jam tenang</p>
+              <p className="font-bold">🌙 Jam tenang</p>
               <Toggle
                 checked={prefs.quiet_hours.enabled}
                 onChange={(v) => setPrefs({ ...prefs, quiet_hours: { ...prefs.quiet_hours, enabled: v } })}
@@ -182,8 +182,23 @@ export default function NotificationSettingsPage() {
           </section>
 
           <section className="flex flex-col gap-3 rounded-3xl border border-border bg-surface p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold">Pengingat cerdas</p>
+                <p className="text-sm text-muted">
+                  {prefs.smart_reminder_time
+                    ? `Diingatkan sekitar pukul ${prefs.smart_reminder_time}, 30 menit sebelum jam baca kebiasaanmu.`
+                    : "Setelah 3 sesi baca, pengingat menyesuaikan jam baca kebiasaanmu."}
+                </p>
+              </div>
+              <Toggle
+                checked={prefs.smart_reminder}
+                onChange={(v) => setPrefs({ ...prefs, smart_reminder: v })}
+                label="Pengingat cerdas"
+              />
+            </div>
             <label className="flex flex-col gap-1 text-sm font-semibold">
-              ⏰ Jam pengingat baca
+              {prefs.smart_reminder ? "Jam pengingat cadangan" : "Jam pengingat baca"}
               <input
                 type="time"
                 value={prefs.reminder_time}

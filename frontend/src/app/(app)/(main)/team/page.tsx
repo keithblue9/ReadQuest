@@ -29,7 +29,7 @@ export default function TeamPage() {
   return (
     <div className="flex flex-col gap-4 pt-2">
       <div>
-        <h1 className="text-2xl font-extrabold">Authenticity Index Tim 🧭</h1>
+        <h1 className="text-2xl font-bold">Authenticity Index Tim 🧭</h1>
         <p className="mt-1 text-sm text-muted">
           Rasio kontribusi 30 hari: catatan sendiri ÷ (catatan + komentar + like). Bersifat privat —
           hanya untukmu sebagai Team Lead/Admin, bukan untuk dibagikan.
@@ -42,7 +42,7 @@ export default function TeamPage() {
             {ORDER.map((s) => (
               <div key={s} className="rounded-2xl border border-border bg-surface p-2">
                 <dt className="text-[11px] font-semibold text-muted">{LABEL[s]}</dt>
-                <dd className="text-xl font-extrabold">{data.counts[s]}</dd>
+                <dd className="text-xl font-bold">{data.counts[s]}</dd>
               </div>
             ))}
           </dl>

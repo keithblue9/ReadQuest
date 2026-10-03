@@ -35,7 +35,7 @@ export default function AdminPointsPage() {
         ].filter(Boolean);
         return (
           <div className="flex items-center gap-3">
-            <span className="w-14 shrink-0 rounded-xl bg-primary/10 py-1 text-center font-extrabold text-primary tabular-nums">
+            <span className="w-14 shrink-0 rounded-xl bg-primary/10 py-1 text-center font-bold text-primary tabular-nums">
               +{String(item.points)}
             </span>
             <div className="min-w-0">

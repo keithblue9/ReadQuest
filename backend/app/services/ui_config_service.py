@@ -18,12 +18,14 @@ from app.services import audit_service
 
 # Fitur yang bisa dimatikan Admin (menu disembunyikan; push tidak dikirim).
 FEATURES = ("feed", "books", "leaderboard", "quests", "buddy", "room", "book_of_month", "push")
-# Menu navigasi utama yang urutannya bisa diatur.
+# Menu navigasi utama yang urutannya bisa diatur. Beranda = feed tim (gaya media sosial);
+# "stats" = infografis tim, "shelf" = rak buku pribadi.
 MENUS = (
     "dashboard",
-    "feed",
     "read",
+    "stats",
     "books",
+    "shelf",
     "leaderboard",
     "quests",
     "buddy",
@@ -38,6 +40,7 @@ DEFAULTS: dict[str, dict] = {
         "tagline": "Baca 15 menit sehari, tumbuh bersama",
         "logo_emoji": "📚",
         "logo_key": None,
+        "primary_color": "#2563eb",
     },
     "login": {"background_keys": [], "interval_seconds": 6},
     "features": {"enabled": dict.fromkeys(FEATURES, True), "menu_order": list(MENUS)},
@@ -54,6 +57,14 @@ IMAGE_KINDS = {
     "logo": {"prefix": "ui/logo/", "max_dimension": 512, "keep_alpha": True},
 }
 _TEXT_KEY = re.compile(r"^[a-z0-9_]+(\.[a-z0-9_]+)+$")
+_HEX_COLOR = re.compile(r"^#[0-9a-f]{6}$")
+
+
+def _color(v: Any) -> str:
+    color = str(v or "").strip().lower()
+    if not _HEX_COLOR.match(color):
+        raise ValueError("warna harus format hex, mis. #2563eb")
+    return color
 
 
 def _setting_key(section: str) -> str:
@@ -82,6 +93,7 @@ def _branding(v: Any) -> dict:
         "tagline": _text(v.get("tagline", ""), "Slogan", 0, 120),
         "logo_emoji": _text(v.get("logo_emoji"), "Ikon", 1, 16),
         "logo_key": None if logo_key in (None, "") else _image_key(logo_key, "logo"),
+        "primary_color": _color(v.get("primary_color") or DEFAULTS["branding"]["primary_color"]),
     }
 
 
@@ -137,8 +149,15 @@ async def _load(db: AsyncDatabase) -> tuple[dict[str, Any], Any]:
     config: dict[str, Any] = {}
     for section, default in DEFAULTS.items():
         row = stored.get(section)
+        value = row["value"] if row else None
+        if section == "features" and isinstance(value, dict):
+            # Menu yang sudah tidak ada (mis. "feed" lama) diabaikan, urutan lain dipertahankan.
+            value = {
+                **value,
+                "menu_order": [m for m in value.get("menu_order", []) if m in MENUS],
+            }
         try:
-            config[section] = VALIDATORS[section](row["value"]) if row else default
+            config[section] = VALIDATORS[section](value) if row else default
         except ValueError:
             config[section] = default  # data rusak tidak boleh membuat aplikasi gagal tampil
     stamps = [r.get("updated_at") for r in rows if r.get("updated_at")]

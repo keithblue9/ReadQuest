@@ -49,6 +49,9 @@ class PreferencesOut(BaseModel):
     reminder_time: str
     digest_time: str
     frequency: Frequency
+    # Pengingat cerdas: dikirim ±30 menit sebelum jam baca kebiasaanmu (bila sudah terbaca).
+    smart_reminder: bool = True
+    smart_reminder_time: str | None = None
 
 
 class PreferencesIn(BaseModel):
@@ -57,6 +60,7 @@ class PreferencesIn(BaseModel):
     reminder_time: str = "19:00"
     digest_time: str = "08:00"
     frequency: Frequency = "realtime"
+    smart_reminder: bool = True
 
     _v = field_validator("reminder_time", "digest_time")(lambda cls, v: _hhmm(v))
 

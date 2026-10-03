@@ -14,6 +14,7 @@ from app.services import (
     notification_service,
     quest_service,
     streak_service,
+    target_service,
 )
 from app.services.leaderboard_service import period_window
 
@@ -66,7 +67,9 @@ async def _already_notified(db: AsyncDatabase, user_id, group_key: str) -> bool:
 
 
 async def reading_reminders(db: AsyncDatabase) -> int:
-    """Pengingat baca pada `reminder_time` user bila belum ada sesi poin penuh hari itu."""
+    """Pengingat baca bila belum ada sesi poin penuh hari itu. Jamnya mengikuti kebiasaan baca
+    (pengingat cerdas) bila aktif dan datanya cukup; selain itu `reminder_time`. Pengguna
+    target mingguan yang sudah mencapai targetnya tidak diingatkan lagi minggu itu."""
     now = clock.now()
     sent = 0
     async for user in db["users"].find(
@@ -74,13 +77,21 @@ async def reading_reminders(db: AsyncDatabase) -> int:
     ):
         prefs = await notification_service.get_preferences(db, user["_id"])
         local = now.astimezone(ZoneInfo(user.get("timezone", "Asia/Jakarta")))
-        if not _in_window(local, prefs.reminder_time):
+        when = prefs.reminder_time
+        if prefs.smart_reminder:
+            when = await notification_service.habit_reminder_time(db, user) or when
+        if not _in_window(local, when):
             continue
         today = local.date().isoformat()
         key = f"reading_reminder:{today}"
         if await _already_notified(db, user["_id"], key):
             continue
         if await sessions.has_full_points_on(db, user["_id"], today):
+            continue
+        if (
+            user.get("target_mode") == "weekly"
+            and (await target_service.progress(db, user)).weekly_met
+        ):
             continue
         await notification_service.notify(
             db,
@@ -96,6 +107,7 @@ async def reading_reminders(db: AsyncDatabase) -> int:
 
 async def streak_at_risk(db: AsyncDatabase) -> int:
     schedule = await _schedule(db)
+    per_month = await streak_service.allowance(db)
     now = clock.now()
     sent = 0
     async for streak in db["streaks"].find({"current": {"$gte": 1}}):
@@ -106,7 +118,7 @@ async def streak_at_risk(db: AsyncDatabase) -> int:
         if not _in_window(local, schedule["streak_risk_time"]):
             continue
         today = local.date().isoformat()
-        current = streak_service.effective_current(streak, today)
+        current = streak_service.effective_current(streak, today, per_month)
         if current < 1 or streak.get("last_read_date") == today:
             continue
         key = f"streak_at_risk:{today}"

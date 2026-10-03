@@ -1,15 +1,24 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Response, status
+from fastapi import APIRouter, File, Query, Response, UploadFile, status
 
 from app.api.deps import CurrentUser, Db
 from app.core.rate_limit import rate_limiter
 from app.repositories import catalog
 from app.schemas.auth import ChangePinIn
 from app.schemas.catalog import CategoryOut, FunctionOut, OnboardingOptionsOut
+from app.schemas.common import PyObjectId
 from app.schemas.points import LedgerPageOut, PointsSummaryOut
-from app.schemas.user import MeOut, MeUpdateIn, OnboardingIn
-from app.services import auth_service, points_service, user_service
+from app.schemas.shelf import ShelfIn, ShelfOut, ShelfStatus
+from app.schemas.user import MeOut, MeUpdateIn, OnboardingIn, ProgressOut
+from app.services import (
+    auth_service,
+    avatar_service,
+    points_service,
+    shelf_service,
+    target_service,
+    user_service,
+)
 
 router = APIRouter(prefix="/me", tags=["me"])
 
@@ -45,6 +54,43 @@ async def my_points_history(
     limit: Annotated[int, Query(ge=1, le=50)] = 20,
 ) -> LedgerPageOut:
     return await points_service.history(db, user["_id"], cursor, limit)
+
+
+@router.get("/progress", response_model=ProgressOut)
+async def my_progress(db: Db, user: CurrentUser) -> ProgressOut:
+    """Progres target harian/mingguan minggu ini."""
+    return await target_service.progress(db, user)
+
+
+@router.get("/shelf", response_model=ShelfOut)
+async def my_shelf(db: Db, user: CurrentUser, status: ShelfStatus | None = None) -> ShelfOut:
+    return await shelf_service.shelf(db, user["_id"], status)
+
+
+@router.put("/shelf/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def put_shelf(book_id: PyObjectId, data: ShelfIn, db: Db, user: CurrentUser) -> Response:
+    await shelf_service.set_manual(db, user, book_id, data.status)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.delete("/shelf/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_shelf(book_id: PyObjectId, db: Db, user: CurrentUser) -> Response:
+    await shelf_service.remove(db, user, book_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/avatar", response_model=MeOut)
+async def upload_avatar(db: Db, user: CurrentUser, file: Annotated[UploadFile, File()]) -> MeOut:
+    rate_limiter.hit(f"avatar:{user['_id']}", limit=10, window_seconds=3600)
+    raw = await file.read(avatar_service.MAX_BYTES + 1)
+    updated = await avatar_service.set_avatar(db, user, raw)
+    return await user_service.build_me(db, updated)
+
+
+@router.delete("/avatar", response_model=MeOut)
+async def delete_avatar(db: Db, user: CurrentUser) -> MeOut:
+    updated = await avatar_service.remove_avatar(db, user)
+    return await user_service.build_me(db, updated)
 
 
 @router.get("/onboarding/options", response_model=OnboardingOptionsOut)

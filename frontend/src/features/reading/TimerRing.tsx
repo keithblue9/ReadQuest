@@ -33,7 +33,7 @@ export function TimerRing({
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span
-          className="font-mono text-5xl font-extrabold tabular-nums"
+          className="font-mono text-5xl font-bold tabular-nums"
           role="timer"
           aria-live="off"
           aria-label={`Waktu baca ${formatDuration(elapsed)}`}

@@ -171,7 +171,7 @@ export default function AdminModerationPage() {
   return (
     <section className="flex flex-col gap-4">
       <header>
-        <h1 className="text-2xl font-extrabold">Moderasi</h1>
+        <h1 className="text-2xl font-bold">Moderasi</h1>
         <p className="text-sm text-muted">Konten yang dilaporkan anggota atau sudah disembunyikan.</p>
       </header>
 

@@ -10,6 +10,8 @@ import { errorMessage } from "@/lib/errors";
 import { Card, inputClass, SaveBar, saveSection, uploadUiImage } from "./shared";
 
 const EMOJI_CHOICES = ["📚", "📖", "📘", "🔖", "🦉", "🚀", "⭐", "✨", "🌱", "🏆"];
+// Pilihan warna merek yang kontrasnya aman untuk teks putih di tombol.
+const COLOR_CHOICES = ["#2563eb", "#1877f2", "#0f766e", "#4f46e5", "#be123c", "#b45309", "#334155"];
 
 type Draft = UiConfig["branding"];
 
@@ -31,8 +33,8 @@ export function BrandingCard({ config, onSaved }: { config: UiConfig; onSaved: (
     setSaving(true);
     setError(null);
     try {
-      const { app_name, tagline, logo_emoji, logo_key } = draft;
-      const next = await saveSection("branding", { app_name, tagline, logo_emoji, logo_key });
+      const { app_name, tagline, logo_emoji, logo_key, primary_color } = draft;
+      const next = await saveSection("branding", { app_name, tagline, logo_emoji, logo_key, primary_color });
       setDraft(next.branding);
       onSaved(next);
       setMessage("Tersimpan ✓");
@@ -111,6 +113,35 @@ export function BrandingCard({ config, onSaved }: { config: UiConfig; onSaved: (
             </div>
           </div>
           <div className="flex flex-col gap-1.5 text-sm font-semibold">
+            <span>Warna merek</span>
+            <div className="flex flex-wrap items-center gap-2">
+              {COLOR_CHOICES.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  aria-label={`Pakai warna ${color}`}
+                  aria-pressed={draft.primary_color === color}
+                  onClick={() => set({ primary_color: color })}
+                  className={`size-9 rounded-full border-2 transition ${
+                    draft.primary_color === color ? "border-foreground" : "border-transparent"
+                  }`}
+                  style={{ background: color }}
+                />
+              ))}
+              <input
+                type="color"
+                aria-label="Warna merek kustom"
+                value={draft.primary_color}
+                onChange={(e) => set({ primary_color: e.target.value })}
+                className="size-9 cursor-pointer rounded-full border border-border bg-surface"
+              />
+              <code className="text-xs text-muted">{draft.primary_color}</code>
+            </div>
+            <span className="text-xs font-normal text-muted">
+              Dipakai untuk tombol, menu aktif, dan tautan. Pilih warna gelap agar teks putih tetap terbaca.
+            </span>
+          </div>
+          <div className="flex flex-col gap-1.5 text-sm font-semibold">
             <span>Logo gambar (opsional, menggantikan emoji)</span>
             <div className="flex flex-wrap items-center gap-3">
               <input
@@ -143,7 +174,7 @@ export function BrandingCard({ config, onSaved }: { config: UiConfig; onSaved: (
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-extrabold tracking-wide text-muted uppercase">Pratinjau</p>
+          <p className="text-xs font-bold tracking-wide text-muted uppercase">Pratinjau</p>
           <div className="rounded-2xl border border-border bg-background p-4">
             <Logo tagline preview={draft} />
           </div>

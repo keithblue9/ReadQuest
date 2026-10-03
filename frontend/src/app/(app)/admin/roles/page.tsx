@@ -134,7 +134,7 @@ export default function AdminRolesPage() {
     <section className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold">Role & Akses</h1>
+          <h1 className="text-2xl font-bold">Role & Akses</h1>
           <p className="text-sm text-muted">Matriks permission (RBAC). Centang untuk memberi akses, lalu simpan.</p>
         </div>
         {!form && (
@@ -196,7 +196,7 @@ export default function AdminRolesPage() {
               </th>
               {roles.map((role) => (
                 <th key={role.id} scope="col" className="px-3 py-3 text-center align-bottom">
-                  <span className="block font-extrabold">{role.name}</span>
+                  <span className="block font-bold">{role.name}</span>
                   <span className="mt-1 flex justify-center gap-2 text-xs font-bold">
                     <button
                       type="button"
@@ -271,7 +271,7 @@ function GroupRows({
         <th
           scope="colgroup"
           colSpan={roles.length + 1}
-          className="sticky left-0 px-4 py-1.5 text-left text-xs font-extrabold tracking-wide text-muted uppercase"
+          className="sticky left-0 px-4 py-1.5 text-left text-xs font-bold tracking-wide text-muted uppercase"
         >
           {GROUP_LABEL[group] ?? group}
         </th>

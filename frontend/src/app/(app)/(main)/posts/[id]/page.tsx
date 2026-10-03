@@ -35,7 +35,7 @@ export default function PostPage() {
   if (!post) return <FullScreenSpinner />;
 
   return (
-    <div className="flex flex-col gap-5 pt-2">
+    <div className="flex flex-col gap-3">
       <PostCard
         post={post}
         linkComments={false}
@@ -46,7 +46,9 @@ export default function PostPage() {
           <ReportButton path={`/posts/${post.id}/report`} what="posting" />
         </div>
       )}
-      <CommentThread postId={post.id} onCountChange={(d) => setCommentDelta((c) => c + d)} />
+      <div id="komentar" className="card scroll-mt-20 p-4">
+        <CommentThread postId={post.id} onCountChange={(d) => setCommentDelta((c) => c + d)} />
+      </div>
     </div>
   );
 }

@@ -12,16 +12,19 @@ from app.services import ui_config_service
 
 FONT_PATH = Path(__file__).resolve().parent.parent / "assets" / "fonts" / "Nunito.ttf"
 WIDTH, HEIGHT = 1080, 1350
-PRIMARY = (108, 77, 246)
-PRIMARY_DARK = (72, 46, 196)
-ACCENT = (255, 138, 61)
-CREAM = (255, 248, 240)
-INK = (31, 27, 46)
-MUTED = (107, 100, 128)
+# Palet profesional (biru + teal), selaras dengan tema aplikasi.
+PRIMARY = (37, 99, 235)
+PRIMARY_DARK = (23, 37, 84)
+ACCENT = (45, 212, 191)
+CREAM = (248, 250, 252)
+INK = (15, 23, 42)
+MUTED = (100, 116, 139)
 NOTE_LABELS = {
     "quick_note": "Quick Note",
     "chapter_story": "Chapter Story",
     "book_review": "Book Review",
+    "takeaway": "Takeaway",
+    "quote": "Kutipan",
     "discussion": "Diskusi",
 }
 
@@ -133,17 +136,18 @@ def _render_sync(post: dict, photo: Image.Image | None, branding: dict) -> bytes
     y = max(y + 270, ty + 70) if photo is not None else ty + 80
 
     # Kutipan catatan
-    draw.text((inner_x - 8, y - 30), "“", font=_font(140, "Black"), fill=ACCENT)
+    draw.text((inner_x - 8, y - 30), "“", font=_font(140, "Black"), fill=PRIMARY)
     body_font = _font(40, "Medium")
     available_lines = max(3, int((card[3] - 150 - (y + 70)) / 58))
-    for line in _wrap(draw, " ".join(post["content"].split()), body_font, inner_w, available_lines):
+    body = (post.get("quote") or {}).get("text") or post["content"]
+    for line in _wrap(draw, " ".join(body.split()), body_font, inner_w, available_lines):
         draw.text((inner_x, y + 70), line, font=body_font, fill=INK)
         y += 58
 
     # Penulis
     footer_y = card[3] - 110
     draw.line(
-        (inner_x, footer_y - 24, inner_x + inner_w, footer_y - 24), fill=(236, 227, 214), width=3
+        (inner_x, footer_y - 24, inner_x + inner_w, footer_y - 24), fill=(226, 232, 240), width=3
     )
     name = textwrap.shorten(post["author"]["name"], width=32, placeholder="…")
     draw.ellipse((inner_x, footer_y, inner_x + 64, footer_y + 64), fill=ACCENT)
@@ -162,6 +166,77 @@ def _render_sync(post: dict, photo: Image.Image | None, branding: dict) -> bytes
     tw = draw.textlength(tagline, font=tag_font)
     draw.text(((WIDTH - tw) / 2, HEIGHT - 120), tagline, font=tag_font, fill=CREAM)
 
+    out = io.BytesIO()
+    img.save(out, format="PNG", optimize=True)
+    return out.getvalue()
+
+
+MONTHS_ID = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+]
+
+
+def render_badge(*, holder: str, badge: dict, awarded_at, branding: dict) -> bytes:
+    """Sertifikat pencapaian 1200×628 (rasio pratinjau LinkedIn) untuk dibagikan."""
+    width, height = 1200, 628
+    img = Image.new("RGB", (width, height), CREAM)
+    draw = ImageDraw.Draw(img)
+    # Pita kiri bergradasi + medali.
+    band = Image.linear_gradient("L").rotate(90).resize((380, height))
+    img.paste(
+        Image.composite(
+            Image.new("RGB", (380, height), PRIMARY_DARK),
+            Image.new("RGB", (380, height), PRIMARY),
+            band,
+        ),
+        (0, 0),
+    )
+    cx, cy, r = 190, 290, 120
+    draw.ellipse((cx - r - 14, cy - r - 14, cx + r + 14, cy + r + 14), fill=ACCENT)
+    draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=CREAM)
+    initials = "".join(w[0] for w in badge["name"].split()[:2]).upper() or "★"
+    medal_font = _font(96, "Black")
+    iw = draw.textlength(initials, font=medal_font)
+    draw.text((cx - iw / 2, cy - 62), initials, font=medal_font, fill=PRIMARY)
+    draw.polygon([(cx - 70, cy + r), (cx - 20, cy + r + 150), (cx, cy + r + 110)], fill=ACCENT)
+    draw.polygon([(cx + 70, cy + r), (cx + 20, cy + r + 150), (cx, cy + r + 110)], fill=ACCENT)
+
+    x = 450
+    first, second = ui_config_service.split_brand(branding["app_name"])
+    brand_font = _font(40, "ExtraBold")
+    draw.text((x, 60), first, font=brand_font, fill=INK)
+    draw.text(
+        (x + draw.textlength(first, font=brand_font), 60), second, font=brand_font, fill=PRIMARY
+    )
+    draw.text((x, 150), "SERTIFIKAT PENCAPAIAN", font=_font(28, "Bold"), fill=MUTED)
+    y = 200
+    for line in _wrap(draw, badge["name"], _font(72, "Black"), width - x - 60, 2):
+        draw.text((x, y), line, font=_font(72, "Black"), fill=INK)
+        y += 84
+    for line in _wrap(draw, badge.get("description", ""), _font(32, "Medium"), width - x - 60, 2):
+        draw.text((x, y + 10), line, font=_font(32, "Medium"), fill=MUTED)
+        y += 42
+    draw.line((x, height - 170, width - 60, height - 170), fill=(226, 232, 240), width=3)
+    draw.text((x, height - 145), "Diberikan kepada", font=_font(26, "SemiBold"), fill=MUTED)
+    holder_line = textwrap.shorten(holder, width=34, placeholder="…")
+    draw.text((x, height - 110), holder_line, font=_font(42, "ExtraBold"), fill=INK)
+    if awarded_at:
+        when = f"{awarded_at.day} {MONTHS_ID[awarded_at.month - 1]} {awarded_at.year}"
+        wf = _font(28, "SemiBold")
+        draw.text(
+            (width - 60 - draw.textlength(when, font=wf), height - 100), when, font=wf, fill=MUTED
+        )
     out = io.BytesIO()
     img.save(out, format="PNG", optimize=True)
     return out.getvalue()

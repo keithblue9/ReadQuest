@@ -40,6 +40,8 @@ class StreakSummaryOut(BaseModel):
     last_read_date: str | None
     read_today: bool
     next_milestone: int | None
+    freezes_per_month: int = 0
+    freezes_left: int = 0
 
 
 class PointsSummaryOut(BaseModel):

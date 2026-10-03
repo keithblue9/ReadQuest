@@ -14,7 +14,7 @@ export function IOSInstallGuide({ compact = false }: { compact?: boolean }) {
     <div>
       {!compact && (
         <>
-          <h2 className="text-2xl font-extrabold">Pasang di iPhone 📲</h2>
+          <h2 className="text-2xl font-bold">Pasang di iPhone 📲</h2>
           <p className="mt-2 text-muted">
             Agar pengingat baca dan notifikasi bisa muncul, pasang {appName} ke Layar Utama.
           </p>

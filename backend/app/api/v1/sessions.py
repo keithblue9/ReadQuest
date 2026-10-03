@@ -37,21 +37,21 @@ async def recent_sessions(
 ) -> list[SessionOut]:
     cfg = await session_service.load_config(db)
     rows = await sessions_repo.list_recent(db, user["_id"], limit)
-    return [session_service.to_out(s, cfg.min_seconds) for s in rows]
+    return [session_service.to_out(s, cfg) for s in rows]
 
 
 @router.post("", response_model=SessionOut, status_code=status.HTTP_201_CREATED)
 async def start_session(data: SessionStartIn, db: Db, user: Reader) -> SessionOut:
     cfg = await session_service.load_config(db)
-    session = await session_service.start(db, user, data.book_id)
-    return session_service.to_out(session, cfg.min_seconds)
+    session = await session_service.start(db, user, data.book_id, data.mode)
+    return session_service.to_out(session, cfg)
 
 
 @router.post("/{session_id}/heartbeat", response_model=SessionOut)
 async def heartbeat(session_id: PyObjectId, data: HeartbeatIn, db: Db, user: Reader) -> SessionOut:
     cfg = await session_service.load_config(db)
     session = await session_service.heartbeat(db, user, session_id, data.state)
-    return session_service.to_out(session, cfg.min_seconds)
+    return session_service.to_out(session, cfg)
 
 
 @router.post("/{session_id}/finish", response_model=FinishOut)

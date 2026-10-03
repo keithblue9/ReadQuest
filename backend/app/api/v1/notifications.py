@@ -41,12 +41,16 @@ async def mark_read(data: MarkReadIn, db: Db, user: CurrentUser) -> dict[str, in
 
 @router.get("/me/notification-preferences", response_model=PreferencesOut)
 async def get_preferences(db: Db, user: CurrentUser) -> PreferencesOut:
-    return await notification_service.get_preferences(db, user["_id"])
+    prefs = await notification_service.get_preferences(db, user["_id"])
+    prefs.smart_reminder_time = await notification_service.habit_reminder_time(db, user)
+    return prefs
 
 
 @router.put("/me/notification-preferences", response_model=PreferencesOut)
 async def save_preferences(data: PreferencesIn, db: Db, user: CurrentUser) -> PreferencesOut:
-    return await notification_service.save_preferences(db, user["_id"], data)
+    prefs = await notification_service.save_preferences(db, user["_id"], data)
+    prefs.smart_reminder_time = await notification_service.habit_reminder_time(db, user)
+    return prefs
 
 
 @router.get("/push/config")

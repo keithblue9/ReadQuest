@@ -12,7 +12,7 @@ export function OfflineScreen({ onRetry }: { onRetry: () => void }) {
       <span className="animate-pop-in text-6xl" aria-hidden>
         📡
       </span>
-      <h1 className="text-2xl font-extrabold">Kamu sedang offline</h1>
+      <h1 className="text-2xl font-bold">Kamu sedang offline</h1>
       <p className="text-muted">
         {appName} butuh koneksi untuk memuat feed dan mencatat sesi baca. Kami akan mencoba lagi
         otomatis begitu koneksi kembali.

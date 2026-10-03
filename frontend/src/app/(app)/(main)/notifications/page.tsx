@@ -79,7 +79,7 @@ export default function NotificationsPage() {
     <div className="flex flex-col gap-4 pt-2">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold">Notifikasi 🔔</h1>
+          <h1 className="text-2xl font-bold">Notifikasi 🔔</h1>
           <p className="mt-1 text-sm text-muted">{unread} belum dibaca</p>
         </div>
         <div className="flex items-center gap-3 text-sm font-bold">

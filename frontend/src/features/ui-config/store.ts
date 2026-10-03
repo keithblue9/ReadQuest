@@ -9,9 +9,10 @@ export type Feature = (typeof FEATURES)[number];
 
 export const MENUS = [
   "dashboard",
-  "feed",
   "read",
+  "stats",
   "books",
+  "shelf",
   "leaderboard",
   "quests",
   "buddy",
@@ -28,6 +29,7 @@ export type UiConfig = {
     logo_emoji: string;
     logo_key: string | null;
     logo_url: string | null;
+    primary_color: string;
   };
   login: { interval_seconds: number; backgrounds: { key: string; url: string }[] };
   features: { enabled: Record<Feature, boolean>; menu_order: Menu[] };
@@ -42,6 +44,7 @@ export const DEFAULT_UI_CONFIG: UiConfig = {
     logo_emoji: "📚",
     logo_key: null,
     logo_url: null,
+    primary_color: "#2563eb",
   },
   login: { interval_seconds: 6, backgrounds: [] },
   features: {

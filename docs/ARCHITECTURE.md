@@ -311,6 +311,8 @@ Leaderboard tidak butuh job: dihitung saat diminta dengan cache (lihat §4.5).
     (revalidate 5 menit).
   - Fitur yang dimatikan disembunyikan di menu dan dikunci per rute (`FeatureGate`); fitur
     `push` juga dicek di server sehingga notifikasi baru tidak dikirim sebagai push.
+- **Laporan Divisi** (`reports_service`, `GET /reports/participation[.csv|.xlsx]`, permission
+  `reports.view`): agregat per fungsi per minggu; fungsi kecil digabung demi privasi.
 - **Pengguna**: ubah role/fungsi/status. Admin tidak bisa mengubah role/status dirinya sendiri;
   menonaktifkan akun langsung mencabut semua refresh token.
 - **Moderasi**: anggota melaporkan posting/komentar (`POST /posts/{id}/report`,
@@ -320,6 +322,31 @@ Leaderboard tidak butuh job: dihitung saat diminta dengan cache (lihat §4.5).
 - **Audit log** (`audit_service.log`): setiap perubahan konfigurasi, pengguna, moderasi,
   Book of the Month, dan export menyimpan aktor, aksi, snapshot `before`/`after`, IP, dan
   user agent. Halaman Audit Log menampilkan diff per field dengan paginasi cursor.
+
+### 4.9a Pengalaman pekerja sibuk & sosial
+
+- **Sesi kilat** (`reading_sessions.mode = "micro"`): durasi minimal dari
+  `session.micro_min_minutes`. Saat selesai, `session_service.finish` menjumlahkan menit sesi
+  selesai hari itu (`sessions.completed_seconds_on`); bila total ≥ `session.min_minutes`, sesi itu
+  menjadi sesi poin penuh (index unik "satu sesi poin penuh per hari" tetap berlaku). Bila belum,
+  sesi kilat mendapat `micro_session`.
+- **Target mingguan** (`target_service`): progres Senin–Minggu dari sesi selesai; bonus
+  `weekly_target` memakai `source_id` deterministik per (user, minggu) agar idempoten di ledger.
+- **Streak freeze** (`streak_service`): hari terlewat ditutup saat membaca lagi bila jatah per
+  bulan cukup (`freezes_used`); `effective_current` menganggap streak hidup selama celahnya masih
+  bisa dibekukan.
+- **Pengingat cerdas**: `notification_service.habit_reminder_time` (median jam mulai − 30 menit,
+  cache harian di `users.reading_habit`) dipakai job `reading_reminders`.
+- **Rak buku** (`shelf_service`), **profil publik** (`profile_service`, `GET /users/{id}`),
+  **foto profil** (`avatar_service`, URL stabil `/api/v1/avatars/<uuid>.jpg` tanpa tanda tangan,
+  nama berkas acak), **kutipan** (`POST /books/{id}/quotes`, posting `type="quote"`), dan
+  **sertifikat badge** (`GET /me/badges/{id}/card.png`, Pillow 1200×628).
+- **Kalender**: berkas .ics & tautan Google Calendar dibuat di perangkat (`src/lib/calendar.ts`),
+  tanpa endpoint server.
+- **Shell frontend** (`components/AppShell.tsx`): top bar + navigasi kiri (menu dari Admin) +
+  konten + panel kanan (`features/shell/widgets.tsx`, data dari store `useShellData`: `/me/progress`,
+  `/me/points`, `/dashboard`). Ikon garis dari `lucide-react`; warna merek lewat variabel CSS
+  `--brand` yang diisi dari `ui.branding.primary_color`.
 
 ### 4.10 PWA & Offline
 

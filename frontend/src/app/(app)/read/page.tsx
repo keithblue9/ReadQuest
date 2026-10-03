@@ -13,7 +13,8 @@ import { FinishForm } from "@/features/reading/FinishForm";
 import { ReadingTimer } from "@/features/reading/ReadingTimer";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
-import type { Book, FinishResult, ReadingSession, SessionConfig, Today } from "@/lib/types";
+import type { Book, FinishResult, ReadingSession, SessionConfig, SessionMode, Today } from "@/lib/types";
+import { refreshShellData } from "@/features/shell/useShellData";
 
 type View =
   | { kind: "pick" }
@@ -26,6 +27,7 @@ type View =
 function ReadFlow() {
   const params = useSearchParams();
   const bookParam = params.get("book");
+  const [mode, setMode] = useState<SessionMode>(params.get("mode") === "micro" ? "micro" : "standard");
 
   const [config, setConfig] = useState<SessionConfig | null>(null);
   const [today, setToday] = useState<Today | null>(null);
@@ -56,7 +58,7 @@ function ReadFlow() {
     try {
       const session = await api<ReadingSession>("/sessions", {
         method: "POST",
-        json: { book_id: book.id },
+        json: { book_id: book.id, mode },
       });
       setView({ kind: "timer", session });
     } catch (err) {
@@ -77,7 +79,9 @@ function ReadFlow() {
     setView({
       kind: "timer",
       session: current,
-      notice: tooShort ? "Waktu baca belum mencapai 15 menit. Lanjutkan sebentar lagi!" : undefined,
+      notice: tooShort
+        ? `Waktu baca belum mencapai ${Math.round(current.min_seconds / 60)} menit. Lanjutkan sebentar lagi!`
+        : undefined,
     });
   }
 
@@ -101,11 +105,11 @@ function ReadFlow() {
       {view.kind === "pick" && (
         <div className="animate-pop-in flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold">Mau baca buku apa? 📚</h1>
+            <h1 className="text-2xl font-bold">Mau baca buku apa? 📚</h1>
             <p className="mt-1 text-muted">
               {today?.full_points_done
-                ? "Sesi poin penuh hari ini sudah tercapai — membaca lagi tetap tercatat!"
-                : `Baca minimal ${config.min_seconds / 60} menit untuk sesi poin penuh hari ini.`}
+                ? "Target poin penuh hari ini sudah tercapai — membaca lagi tetap tercatat."
+                : `Hari ini ${today?.minutes_today ?? 0}/${config.min_seconds / 60} menit. Sesi kilat ikut dihitung.`}
             </p>
           </div>
           <BookSearch
@@ -127,15 +131,33 @@ function ReadFlow() {
         <div className="animate-pop-in flex flex-col items-center gap-4 pt-4 text-center">
           <BookCover url={view.book.cover_url} title={view.book.title} size="lg" />
           <div>
-            <h1 className="text-2xl font-extrabold">{view.book.title}</h1>
+            <h1 className="text-2xl font-bold">{view.book.title}</h1>
             <p className="text-muted">{view.book.authors.join(", ")}</p>
           </div>
-          <p className="text-sm text-muted">
-            Siapkan bukumu, cari tempat nyaman, lalu mulai timer. Minimal{" "}
-            {config.min_seconds / 60} menit ya!
-          </p>
+          <fieldset className="grid w-full grid-cols-2 gap-2 text-left">
+            <legend className="sr-only">Jenis sesi</legend>
+            {(
+              [
+                { value: "standard", title: "Sesi standar", detail: `${config.min_seconds / 60} menit · poin penuh` },
+                { value: "micro", title: "Sesi kilat", detail: `${config.micro_min_seconds / 60} menit · untuk jam istirahat` },
+              ] as const
+            ).map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={mode === option.value}
+                onClick={() => setMode(option.value)}
+                className={`rounded-xl border p-3 transition ${
+                  mode === option.value ? "border-primary bg-primary/10" : "border-border bg-surface"
+                }`}
+              >
+                <span className="block font-semibold">{option.title}</span>
+                <span className="block text-xs text-muted">{option.detail}</span>
+              </button>
+            ))}
+          </fieldset>
           <Button onClick={() => start(view.book)} loading={pending}>
-            ▶️ Mulai membaca
+            Mulai membaca
           </Button>
           <button
             type="button"
@@ -162,7 +184,10 @@ function ReadFlow() {
         <FinishForm
           session={view.session}
           config={config}
-          onDone={(result) => setView({ kind: "done", result })}
+          onDone={(result) => {
+            refreshShellData(true);
+            setView({ kind: "done", result });
+          }}
           onBack={(tooShort) => backToTimer(view.session, tooShort)}
         />
       )}
@@ -183,7 +208,7 @@ export default function ReadPage() {
         >
           ←
         </Link>
-        <span className="font-extrabold">Sesi Baca</span>
+        <span className="font-bold">Sesi Baca</span>
       </header>
       <Suspense fallback={<FullScreenSpinner />}>
         <ReadFlow />

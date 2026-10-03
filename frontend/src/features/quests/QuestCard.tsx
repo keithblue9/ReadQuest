@@ -10,7 +10,7 @@ export function QuestCard({ quest }: { quest: Quest }) {
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-extrabold">
+          <p className="font-bold">
             {quest.completed ? "✅ " : "🎯 "}
             {quest.title}
           </p>

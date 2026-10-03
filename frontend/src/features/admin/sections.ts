@@ -1,5 +1,6 @@
 export const ADMIN_SECTIONS = [
   { href: "/admin", label: "Dashboard", icon: "📊", permission: "admin.dashboard.view" },
+  { href: "/admin/reports", label: "Laporan Divisi", icon: "📈", permission: "reports.view" },
   { href: "/admin/users", label: "Pengguna", icon: "👥", permission: "users.manage" },
   { href: "/admin/functions", label: "Fungsi", icon: "🏢", permission: "config.functions.manage" },
   { href: "/admin/roles", label: "Role & Akses", icon: "🔐", permission: "config.roles.manage" },

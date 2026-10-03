@@ -8,7 +8,7 @@ from app.core.errors import AppError
 from app.core.rate_limit import rate_limiter
 from app.core.storage import get_storage
 from app.schemas.uploads import UploadOut
-from app.services import upload_service
+from app.services import avatar_service, upload_service
 
 router = APIRouter(tags=["uploads"])
 
@@ -40,4 +40,19 @@ async def get_media(
             "Cache-Control": "private, max-age=86400",
             "X-Content-Type-Options": "nosniff",
         },
+    )
+
+
+@router.get("/avatars/{name}", include_in_schema=False)
+async def get_avatar(name: str) -> Response:
+    key = avatar_service.key_for(name)
+    found = await get_storage().get(key) if key else None
+    if found is None:
+        raise AppError(404, "media_not_found", "Media tidak ditemukan")
+    data, content_type = found
+    # Nama berkas berubah setiap ganti foto → aman di-cache lama.
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={"Cache-Control": "public, max-age=31536000, immutable"},
     )

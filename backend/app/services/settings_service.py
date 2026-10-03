@@ -10,6 +10,7 @@ from app.core import clock
 from app.core.errors import AppError
 from app.repositories import leaderboard_cache
 from app.services import audit_service
+from app.services.note_validation import NOTE_TYPES
 
 
 def _int(lo: int, hi: int) -> Callable[[Any], int]:
@@ -37,9 +38,11 @@ def _hhmm(v: Any) -> str:
 
 
 def _min_words(v: Any) -> dict:
-    if not isinstance(v, dict) or set(v) != {"quick_note", "chapter_story", "book_review"}:
-        raise ValueError("butuh quick_note, chapter_story, book_review")
-    return {k: _int(5, 2000)(x) for k, x in v.items()}
+    required = {"quick_note", "chapter_story", "book_review"}
+    if not isinstance(v, dict) or not required <= set(v) or set(v) - set(NOTE_TYPES):
+        raise ValueError("butuh quick_note, chapter_story, book_review (opsional: takeaway)")
+    # Takeaway sengaja pendek (satu kalimat), jadi batas bawahnya lebih kecil.
+    return {k: _int(3 if k == "takeaway" else 5, 2000)(x) for k, x in v.items()}
 
 
 def _thresholds(v: Any) -> dict:
@@ -88,6 +91,10 @@ VALIDATORS: dict[str, Callable[[Any], Any]] = {
     "notifications.schedule": _schedule,
     "auth.max_pin_attempts": _int(3, 20),
     "auth.lockout_minutes": _int(1, 1440),
+    "session.micro_min_minutes": _int(1, 30),
+    "streak.freezes_per_month": _int(0, 10),
+    "onboarding.default_weekly_target_minutes": _int(30, 1200),
+    "reports.min_group_size": _int(1, 50),
 }
 
 

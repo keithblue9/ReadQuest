@@ -15,10 +15,27 @@ export function noteStats(text: string) {
 }
 
 export const NOTE_TYPES = [
-  { value: "quick_note", label: "Quick Note", emoji: "⚡" },
-  { value: "chapter_story", label: "Chapter Story", emoji: "📖" },
-  { value: "book_review", label: "Book Review", emoji: "⭐" },
+  { value: "takeaway", label: "Takeaway 1 Menit", emoji: "⚡", hint: "Satu kalimat inti" },
+  { value: "quick_note", label: "Quick Note", emoji: "📝", hint: "Catatan singkat" },
+  { value: "chapter_story", label: "Chapter Story", emoji: "📖", hint: "Cerita per bab" },
+  { value: "book_review", label: "Book Review", emoji: "⭐", hint: "Ulasan lengkap" },
 ] as const;
+
+/** Template Takeaway: awalan kalimat agar menulis cukup 1 menit. */
+export const TAKEAWAY_TEMPLATES = [
+  { kind: "insight", label: "Insight", prefix: "Insight utama: ", placeholder: "ide paling penting dari bacaan ini…" },
+  { kind: "action", label: "Aksi", prefix: "Yang akan saya terapkan: ", placeholder: "satu hal yang akan dicoba di kerjaan…" },
+  { kind: "quote", label: "Kutipan", prefix: "Kalimat favorit: ", placeholder: "kutipan yang paling mengena…" },
+] as const;
+
+export const POST_TYPE_LABEL: Record<string, string> = {
+  takeaway: "Takeaway",
+  quick_note: "Quick Note",
+  chapter_story: "Chapter Story",
+  book_review: "Book Review",
+  discussion: "Diskusi",
+  quote: "Kutipan",
+};
 
 export function formatDuration(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
