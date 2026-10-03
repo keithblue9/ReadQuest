@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 
 import { BookCover } from "@/components/BookCover";
 import { ProgressBar } from "@/components/ProgressBar";
+import { useUiConfig } from "@/features/ui-config/store";
 import { api } from "@/lib/api";
 import type { BookOfMonth, Buddies, Quest } from "@/lib/types";
 
 /** Kartu gamifikasi di beranda: Book of the Month, quest, Reading Buddy, Reading Room. */
 export function HomeExtras() {
+  const on = useUiConfig().features.enabled;
   const [bom, setBom] = useState<BookOfMonth | null>(null);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [buddies, setBuddies] = useState<Buddies | null>(null);
@@ -26,7 +28,7 @@ export function HomeExtras() {
 
   return (
     <>
-      {bom?.book && (
+      {on.book_of_month && bom?.book && (
         <Link
           href={`/books/${bom.book.id}`}
           className="flex items-center gap-4 rounded-3xl bg-gradient-to-br from-accent/20 to-primary/15 p-4"
@@ -45,7 +47,7 @@ export function HomeExtras() {
         </Link>
       )}
 
-      {quests.length > 0 && (
+      {on.quests && quests.length > 0 && (
         <Link href="/quests" className="rounded-3xl border border-border bg-surface p-4">
           <div className="flex items-baseline justify-between">
             <p className="font-extrabold">🎯 Quest minggu ini</p>
@@ -72,6 +74,7 @@ export function HomeExtras() {
       )}
 
       <div className="grid grid-cols-2 gap-3">
+        {on.buddy && (
         <Link href="/buddy" className="rounded-3xl border border-border bg-surface p-4">
           <p className="text-2xl" aria-hidden>
             🤝
@@ -85,6 +88,8 @@ export function HomeExtras() {
                 : "Ajak rekan berpasangan"}
           </p>
         </Link>
+        )}
+        {on.room && (
         <Link href="/room" className="rounded-3xl border border-border bg-surface p-4">
           <p className="text-2xl" aria-hidden>
             🛋️
@@ -92,6 +97,7 @@ export function HomeExtras() {
           <p className="mt-1 font-extrabold">Reading Room</p>
           <p className="text-xs text-muted">Baca bersama secara live</p>
         </Link>
+        )}
       </div>
     </>
   );

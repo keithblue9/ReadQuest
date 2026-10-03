@@ -104,10 +104,12 @@ def to_xlsx(dashboard: dict, users: list[dict]) -> bytes:
 
 
 class _Report(FPDF):
+    app_name = "ReadQuest"
+
     def header(self) -> None:
         self.set_font("Nunito", "B", 9)
         self.set_text_color(108, 77, 246)
-        self.cell(0, 6, "ReadQuest · Laporan Admin", align="R")
+        self.cell(0, 6, f"{self.app_name} · Laporan Admin", align="R")
         self.ln(8)
 
     def footer(self) -> None:
@@ -138,8 +140,9 @@ def _table(pdf: FPDF, headers: list[str], rows: list[list], widths: list[float])
     pdf.ln(4)
 
 
-def to_pdf(dashboard: dict, users: list[dict]) -> bytes:
+def to_pdf(dashboard: dict, users: list[dict], app_name: str = "ReadQuest") -> bytes:
     pdf = _Report(orientation="P", unit="mm", format="A4")
+    pdf.app_name = app_name
     pdf.add_font("Nunito", "", str(FONT_DIR / "Nunito-Regular.ttf"))
     pdf.add_font("Nunito", "B", str(FONT_DIR / "Nunito-Bold.ttf"))
     pdf.set_auto_page_break(auto=True, margin=15)

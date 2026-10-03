@@ -7,6 +7,7 @@ import { Alert, Button } from "@/components/ui";
 import { api } from "@/lib/api";
 import { errorMessage } from "@/lib/errors";
 import { needsIOSInstallGuide } from "@/lib/platform";
+import { useFeature } from "@/features/ui-config/store";
 import { disablePush, enablePush, getPushState, type PushState } from "@/lib/push";
 import type { NotificationPreferences } from "@/lib/types";
 
@@ -29,7 +30,7 @@ const PUSH_TEXT: Record<PushState, string> = {
   off: "Push belum aktif di perangkat ini.",
   denied: "Izin notifikasi diblokir. Aktifkan lewat pengaturan browser.",
   unsupported: "Browser ini tidak mendukung notifikasi push.",
-  "ios-install": "Di iPhone, pasang ReadQuest ke Layar Utama dulu agar push bisa aktif.",
+  "ios-install": "Di iPhone, pasang aplikasi ini ke Layar Utama dulu agar push bisa aktif.",
 };
 
 function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
@@ -55,6 +56,7 @@ export default function NotificationSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const pushEnabled = useFeature("push");
 
   useEffect(() => {
     api<NotificationPreferences>("/me/notification-preferences").then(setPrefs).catch(() => undefined);
@@ -106,6 +108,11 @@ export default function NotificationSettingsPage() {
       </div>
       {error && <Alert>{error}</Alert>}
 
+      {!pushEnabled ? (
+        <p className="rounded-3xl border border-dashed border-border p-4 text-sm text-muted">
+          🔕 Notifikasi push sedang dimatikan Admin. Notifikasi tetap muncul di aplikasi.
+        </p>
+      ) : (
       <section className="rounded-3xl border border-border bg-surface p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -130,6 +137,7 @@ export default function NotificationSettingsPage() {
           </button>
         )}
       </section>
+      )}
 
       {prefs && (
         <>

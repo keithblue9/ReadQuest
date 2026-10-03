@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from bson import ObjectId
-from fastapi import APIRouter, Body, Depends, Query, Request, Response, status
+from fastapi import APIRouter, Body, Depends, File, Query, Request, Response, UploadFile, status
 from pydantic import ValidationError
 
 from app.api.deps import CurrentUser, Db, require_permission
@@ -21,6 +21,7 @@ from app.services import (
     moderation_service,
     permissions,
     settings_service,
+    ui_config_service,
 )
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -67,7 +68,8 @@ async def export(
         content = export_service.to_xlsx(data, users)
         media = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     else:
-        content = export_service.to_pdf(data, users)
+        brand = await ui_config_service.branding(db)
+        content = export_service.to_pdf(data, users, brand["app_name"])
         media = "application/pdf"
     await audit_service.log(
         db,
@@ -163,6 +165,7 @@ ADMIN_AREA_PERMISSIONS = {
     "config.books.manage",
     "config.notifications.manage",
     "config.settings.manage",
+    "config.appearance.manage",
 }
 
 
@@ -227,6 +230,30 @@ async def put_setting(
         if "config.notifications.manage" not in (role or {}).get("permission_codes", []):
             raise forbidden()
     return await settings_service.update_setting(db, actor, key, value, m)
+
+
+# ---------- Tampilan (branding, background login, fitur, teks) ----------
+
+
+@router.put("/ui/{section}")
+async def put_ui_section(
+    section: str,
+    db: Db,
+    actor: need("config.appearance.manage"),
+    m: Meta,
+    value: Annotated[Any, Body(embed=True)],
+) -> dict:
+    return await ui_config_service.update_section(db, actor, section, value, m)
+
+
+@router.post("/ui/images", status_code=status.HTTP_201_CREATED)
+async def upload_ui_image(
+    _: need("config.appearance.manage"),
+    file: Annotated[UploadFile, File()],
+    kind: Annotated[str, Query(pattern="^(background|logo)$")] = "background",
+) -> dict:
+    raw = await file.read(ui_config_service.MAX_IMAGE_BYTES + 1)
+    return await ui_config_service.store_image(kind, raw)
 
 
 # ---------- Pengguna ----------

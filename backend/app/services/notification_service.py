@@ -23,6 +23,7 @@ from app.schemas.notifications import (
     PreferencesOut,
     QuietHours,
 )
+from app.services import ui_config_service
 
 BATCH_WINDOW = timedelta(minutes=5)
 BATCH_MAX_AGE = timedelta(hours=12)
@@ -214,6 +215,9 @@ async def notify(
         return None
     prefs = await get_preferences(db, user_id)
     channel = prefs.types.get(PREFERENCE_KEY.get(type_, type_), ChannelPrefs())
+    # Admin bisa mematikan Web Push untuk seluruh tim (fitur "push" di menu Tampilan).
+    if channel.push and not await ui_config_service.feature_enabled(db, "push"):
+        channel = channel.model_copy(update={"push": False})
     if not channel.in_app and not channel.push:
         return None
 

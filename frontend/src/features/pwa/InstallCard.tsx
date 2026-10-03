@@ -3,6 +3,7 @@
 import { useState, useSyncExternalStore } from "react";
 
 import { IOSInstallGuide } from "@/features/onboarding/IOSInstallGuide";
+import { useUiConfig } from "@/features/ui-config/store";
 import { needsIOSInstallGuide } from "@/lib/platform";
 
 import { promptInstall, useCanInstall } from "./installPrompt";
@@ -12,6 +13,7 @@ const noopSubscribe = () => () => {};
 /** Ajakan memasang PWA: tombol (Android/desktop) atau panduan Add to Home Screen (iOS). */
 export function InstallCard() {
   const canInstall = useCanInstall();
+  const appName = useUiConfig().branding.app_name;
   const ios = useSyncExternalStore(noopSubscribe, needsIOSInstallGuide, () => false);
   const [showGuide, setShowGuide] = useState(false);
 
@@ -23,7 +25,7 @@ export function InstallCard() {
           📲
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-bold">Pasang ReadQuest</p>
+          <p className="font-bold">Pasang {appName}</p>
           <p className="text-sm text-muted">Buka lebih cepat dari layar utama dan terima pengingat baca.</p>
         </div>
         {canInstall ? (

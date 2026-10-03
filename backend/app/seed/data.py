@@ -22,6 +22,7 @@ PERMISSIONS: list[tuple[str, str, str]] = [
     ("config.books.manage", "config", "Kelola katalog & kategori buku"),
     ("config.notifications.manage", "config", "Kelola jadwal & template notifikasi"),
     ("config.settings.manage", "config", "Kelola pengaturan aplikasi & threshold"),
+    ("config.appearance.manage", "config", "Kelola tampilan: branding, background, fitur, teks"),
     ("audit.view", "admin", "Melihat audit log"),
     ("users.manage", "admin", "Kelola pengguna (role, fungsi, status)"),
 ]

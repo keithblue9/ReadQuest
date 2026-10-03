@@ -12,11 +12,13 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { STATUS_STYLE, StatusBadge } from "@/features/authenticity/StatusBadge";
 import { ChangePinCard } from "@/features/auth/ChangePinCard";
 import { InstallCard } from "@/features/pwa/InstallCard";
+import { useUiConfig } from "@/features/ui-config/store";
 import { api } from "@/lib/api";
 import type { Authenticity, Badge, LedgerEntry, LedgerPage, PointsSummary } from "@/lib/types";
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
+  const on = useUiConfig().features.enabled;
   const [summary, setSummary] = useState<PointsSummary | null>(null);
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -123,24 +125,30 @@ export default function ProfilePage() {
       )}
 
       <nav className="grid grid-cols-3 gap-2 text-center text-sm font-bold" aria-label="Gamifikasi">
+        {on.quests && (
         <Link href="/quests" className="rounded-2xl border border-border bg-surface p-3">
           <span className="block text-2xl" aria-hidden>
             🎯
           </span>
           Quest
         </Link>
+        )}
+        {on.buddy && (
         <Link href="/buddy" className="rounded-2xl border border-border bg-surface p-3">
           <span className="block text-2xl" aria-hidden>
             🤝
           </span>
           Buddy
         </Link>
+        )}
+        {on.room && (
         <Link href="/room" className="rounded-2xl border border-border bg-surface p-3">
           <span className="block text-2xl" aria-hidden>
             🛋️
           </span>
           Reading Room
         </Link>
+        )}
       </nav>
       {(user.permissions.includes("authenticity.view_team") ||
         user.permissions.includes("authenticity.view_all")) && (

@@ -15,7 +15,13 @@ from app.schemas.posts import (
     ReactionIn,
     ReactionStateOut,
 )
-from app.services import moderation_service, post_service, share_card, social_service
+from app.services import (
+    moderation_service,
+    post_service,
+    share_card,
+    social_service,
+    ui_config_service,
+)
 
 router = APIRouter(tags=["feed"])
 
@@ -132,7 +138,7 @@ async def report_comment(
 async def share_card_png(post_id: PyObjectId, db: Db, _: CurrentUser) -> Response:
     post = await social_service.get_post_or_404(db, post_id)
     return Response(
-        content=await share_card.render(post),
+        content=await share_card.render(post, await ui_config_service.branding(db)),
         media_type="image/png",
         headers={"Cache-Control": "private, max-age=3600"},
     )

@@ -3,18 +3,19 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { useUiConfig } from "@/features/ui-config/store";
 import { apiBlob } from "@/lib/api";
 import type { Post } from "@/lib/types";
 
-function shareText(post: Post) {
+function shareText(post: Post, appName: string) {
   const excerpt = post.content.length > 180 ? `${post.content.slice(0, 177)}…` : post.content;
-  return `“${excerpt}”\n\n— ${post.author.name} tentang “${post.book.title}” (${post.book.authors.join(", ")}) di ReadQuest 📚`;
+  return `“${excerpt}”\n\n— ${post.author.name} tentang “${post.book.title}” (${post.book.authors.join(", ")}) di ${appName} 📚`;
 }
 
 export function ShareSheet({ post, onClose }: { post: Post; onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const text = shareText(post);
+  const text = shareText(post, useUiConfig().branding.app_name);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();

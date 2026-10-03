@@ -296,6 +296,21 @@ Leaderboard tidak butuh job: dihitung saat diminta dengan cache (lihat §4.5).
   (`ResourceManager`) melayani semuanya; matriks permission punya halaman khusus.
 - **Pengaturan** (`app_settings`) divalidasi per kunci; perubahan zona waktu/cache langsung
   membatalkan snapshot leaderboard yang masih terbuka.
+- **Tampilan & Teks** (`ui_config_service`, kunci `app_settings` `ui.*`):
+  - `GET /api/v1/ui-config` publik (dibutuhkan halaman login): branding, URL gambar
+    bertanda tangan, fitur aktif + urutan menu, dan override teks.
+  - Admin menyimpan per bagian lewat `PUT /admin/ui/{branding|login|features|texts}` (validasi
+    + audit log; audit teks hanya mencatat kunci yang berubah) dan mengunggah gambar lewat
+    `POST /admin/ui/images?kind=background|logo`. Gambar diproses ulang dengan Pillow
+    (background maks. 2400 px JPEG, logo maks. 512 px dengan transparansi PNG), metadata dibuang.
+  - Frontend membaca konfigurasi lewat store `useSyncExternalStore` (`features/ui-config`).
+    Snapshot server selalu default sehingga hidrasi cocok, lalu klien memakai cache
+    localStorage dan memperbaruinya dari API. `useT()` mengambil teks dari override Admin atau
+    `DEFAULT_TEXTS`.
+  - Judul tab diganti klien (`BrandingEffects`), manifest PWA membaca nama dari API
+    (revalidate 5 menit).
+  - Fitur yang dimatikan disembunyikan di menu dan dikunci per rute (`FeatureGate`); fitur
+    `push` juga dicek di server sehingga notifikasi baru tidak dikirim sebagai push.
 - **Pengguna**: ubah role/fungsi/status. Admin tidak bisa mengubah role/status dirinya sendiri;
   menonaktifkan akun langsung mencabut semua refresh token.
 - **Moderasi**: anggota melaporkan posting/komentar (`POST /posts/{id}/report`,
