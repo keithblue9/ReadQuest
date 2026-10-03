@@ -6,6 +6,7 @@ import { useEffect, useId, useState } from "react";
 import { Alert, Button, Field } from "@/components/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { PhoneField, PinField } from "@/features/auth/PinField";
+import { useT } from "@/features/ui-config/store";
 import { api } from "@/lib/api";
 import { errorMessage, fieldErrors } from "@/lib/errors";
 import { detectTimezone } from "@/lib/platform";
@@ -14,6 +15,7 @@ type FunctionOption = { id: string; name: string; parent_id: string | null };
 
 export default function RegisterPage() {
   const { register } = useAuth();
+  const t = useT();
   const selectId = useId();
   const [functions, setFunctions] = useState<FunctionOption[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,22 +45,22 @@ export default function RegisterPage() {
     } catch (err) {
       const perField = fieldErrors(err);
       setErrors(perField);
-      setError(Object.keys(perField).length ? "Periksa kembali isian Anda." : errorMessage(err));
+      setError(Object.keys(perField).length ? t("auth.register.check_fields") : errorMessage(err));
       setPending(false);
     }
   }
 
   return (
     <div className="animate-pop-in">
-      <h1 className="text-3xl font-extrabold">Gabung tim baca 📖</h1>
-      <p className="mt-2 text-muted">Cukup nama, fungsi, nomor HP, dan PIN.</p>
+      <h1 className="text-3xl font-extrabold">{t("auth.register.title")}</h1>
+      <p className="mt-2 text-muted">{t("auth.register.subtitle")}</p>
 
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4" noValidate>
         {error && <Alert>{error}</Alert>}
-        <Field label="Nama" name="name" autoComplete="name" error={errors.name} required />
+        <Field label={t("auth.register.name")} name="name" autoComplete="name" error={errors.name} required />
         <div className="flex flex-col gap-1.5">
           <label htmlFor={selectId} className="text-sm font-semibold">
-            Fungsi / bagian
+            {t("auth.register.function")}
           </label>
           <select
             id={selectId}
@@ -71,7 +73,7 @@ export default function RegisterPage() {
             }`}
           >
             <option value="" disabled>
-              {functions ? "Pilih fungsi…" : "Memuat…"}
+              {functions ? t("auth.register.function_placeholder") : "…"}
             </option>
             {functions?.map((f) => (
               <option key={f.id} value={f.id}>
@@ -79,23 +81,23 @@ export default function RegisterPage() {
               </option>
             ))}
           </select>
-          {errors.function_id && <p className="text-sm text-danger">Pilih fungsi/bagianmu</p>}
+          {errors.function_id && <p className="text-sm text-danger">{t("auth.register.function_error")}</p>}
         </div>
         <PhoneField error={errors.phone} />
         <PinField
           autoComplete="new-password"
           error={errors.pin}
-          hint="Hindari PIN mudah ditebak seperti 123456 atau 111111"
+          hint={t("auth.register.pin_hint")}
         />
         <Button type="submit" loading={pending} className="mt-2">
-          Daftar
+          {t("auth.register.submit")}
         </Button>
       </form>
 
       <p className="mt-6 text-center text-sm text-muted">
-        Sudah punya akun?{" "}
+        {t("auth.register.has_account")}{" "}
         <Link href="/login" className="font-bold text-primary">
-          Masuk
+          {t("auth.register.login_link")}
         </Link>
       </p>
     </div>

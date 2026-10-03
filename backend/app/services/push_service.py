@@ -13,7 +13,7 @@ from pywebpush import WebPushException, webpush
 from app.core import clock
 from app.core.config import get_settings
 from app.schemas.notifications import PushSubscriptionIn
-from app.services import notification_service
+from app.services import notification_service, ui_config_service
 
 log = logging.getLogger(__name__)
 MAX_FAILURES = 5
@@ -138,7 +138,7 @@ async def dispatch_due(db: AsyncDatabase, limit: int = 500) -> dict[str, int]:
             status = "sent" if ok else "failed"
         else:
             summary = {
-                "title": "ReadQuest",
+                "title": (await ui_config_service.branding(db))["app_name"],
                 "body": f"{len(docs)} notifikasi baru · {docs[-1]['title']}",
                 "url": "/notifications",
                 "tag": "digest",

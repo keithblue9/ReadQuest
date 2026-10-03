@@ -190,6 +190,15 @@ Semua konfigurasi disimpan di database, **bukan hardcode**:
 - **Katalog** & **kategori buku**.
 - **Jadwal** & **template notifikasi**.
 - **Moderasi**.
+- **Tampilan & Teks** (`config.appearance.manage`):
+  - Branding: nama aplikasi, slogan/jargon di bawah nama, ikon emoji atau logo gambar.
+  - Background halaman login desktop: unggah lebih dari satu gambar (maks. 12) menjadi
+    slideshow, urutan bisa diatur, durasi per gambar 3–60 detik.
+  - Fitur on/off (Feed, Katalog, Peringkat, Quest, Reading Buddy, Reading Room, Book of the
+    Month, notifikasi push) dan urutan menu. Fitur yang dimatikan disembunyikan dari menu dan
+    halamannya tidak bisa dibuka; datanya tidak dihapus.
+  - Semua teks UI (judul, label, tombol, pesan) bisa diganti, dicari, dan dikembalikan ke
+    default.
 - **Audit log** untuk setiap perubahan konfigurasi.
 
 ## 4. Tech Stack & Kebutuhan Non-Fungsional
@@ -209,7 +218,9 @@ Semua konfigurasi disimpan di database, **bukan hardcode**:
 ### 4.2 UI/UX
 
 - Modern dan ceria.
-- **Mobile-first**, responsif.
+- **Mobile-first**, responsif. Desktop punya tata letak sendiri: halaman login dengan
+  background slideshow penuh dan kotak login di sisi kiri.
+- Input nomor HP & PIN memunculkan **keypad angka** di HP (bukan keyboard QWERTY).
 - **Dark mode**.
 - **Mikro-animasi** (konfeti, streak, transisi).
 

@@ -1,9 +1,12 @@
 "use client";
 
+import { useUiConfig } from "@/features/ui-config/store";
+
 import { Button } from "./ui";
 
 /** Layar penuh saat aplikasi dibuka tanpa koneksi (sesi belum bisa dipulihkan). */
 export function OfflineScreen({ onRetry }: { onRetry: () => void }) {
+  const appName = useUiConfig().branding.app_name;
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
       <span className="animate-pop-in text-6xl" aria-hidden>
@@ -11,7 +14,7 @@ export function OfflineScreen({ onRetry }: { onRetry: () => void }) {
       </span>
       <h1 className="text-2xl font-extrabold">Kamu sedang offline</h1>
       <p className="text-muted">
-        ReadQuest butuh koneksi untuk memuat feed dan mencatat sesi baca. Kami akan mencoba lagi
+        {appName} butuh koneksi untuk memuat feed dan mencatat sesi baca. Kami akan mencoba lagi
         otomatis begitu koneksi kembali.
       </p>
       <p className="rounded-2xl bg-surface-muted px-4 py-3 text-sm">

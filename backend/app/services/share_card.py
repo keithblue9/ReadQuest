@@ -8,6 +8,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 from app.core.storage import get_storage
+from app.services import ui_config_service
 
 FONT_PATH = Path(__file__).resolve().parent.parent / "assets" / "fonts" / "Nunito.ttf"
 WIDTH, HEIGHT = 1080, 1350
@@ -67,7 +68,7 @@ def _gradient() -> Image.Image:
     return Image.composite(top, base, ImageOps.invert(mask))
 
 
-async def render(post: dict) -> bytes:
+async def render(post: dict, branding: dict | None = None) -> bytes:
     photo = None
     if post.get("image_keys"):
         found = await get_storage().get(post["image_keys"][0])
@@ -76,18 +77,20 @@ async def render(post: dict) -> bytes:
                 photo = Image.open(io.BytesIO(found[0])).convert("RGB")
             except OSError:
                 photo = None
-    return _render_sync(post, photo)
+    return _render_sync(post, photo, branding or {"app_name": "ReadQuest", "tagline": ""})
 
 
-def _render_sync(post: dict, photo: Image.Image | None) -> bytes:
+def _render_sync(post: dict, photo: Image.Image | None, branding: dict) -> bytes:
     img = _gradient()
     draw = ImageDraw.Draw(img)
     margin = 80
 
     # Brand
-    draw.text((margin, 70), "Read", font=_font(54, "ExtraBold"), fill=CREAM)
-    read_w = draw.textlength("Read", font=_font(54, "ExtraBold"))
-    draw.text((margin + read_w, 70), "Quest", font=_font(54, "ExtraBold"), fill=ACCENT)
+    first, second = ui_config_service.split_brand(branding["app_name"])
+    brand_font = _font(54, "ExtraBold")
+    draw.text((margin, 70), first, font=brand_font, fill=CREAM)
+    first_w = draw.textlength(first, font=brand_font)
+    draw.text((margin + first_w, 70), second, font=brand_font, fill=ACCENT)
     label = NOTE_LABELS.get(post["type"], "Catatan")
     label_font = _font(30, "Bold")
     label_w = draw.textlength(label, font=label_font) + 48
@@ -153,7 +156,8 @@ def _render_sync(post: dict, photo: Image.Image | None) -> bytes:
     draw.text((inner_x + 88, footer_y + 8), name, font=_font(36, "Bold"), fill=INK)
 
     # Tagline
-    tagline = "Baca 15 menit sehari · ReadQuest"
+    slogan = textwrap.shorten(branding.get("tagline") or "", width=40, placeholder="…")
+    tagline = f"{slogan} · {branding['app_name']}" if slogan else branding["app_name"]
     tag_font = _font(34, "Bold")
     tw = draw.textlength(tagline, font=tag_font)
     draw.text(((WIDTH - tw) / 2, HEIGHT - 120), tagline, font=tag_font, fill=CREAM)

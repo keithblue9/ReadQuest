@@ -14,7 +14,7 @@ from app.schemas.notifications import (
     PushSubscriptionIn,
     PushUnsubscribeIn,
 )
-from app.services import notification_service, push_service
+from app.services import notification_service, push_service, ui_config_service
 
 router = APIRouter(tags=["notifications"])
 
@@ -75,11 +75,12 @@ async def push_test(db: Db, user: CurrentUser) -> dict[str, int]:
     if not push_service.enabled():
         raise AppError(503, "push_disabled", "Push belum dikonfigurasi di server")
     rate_limiter.hit(f"push-test:{user['_id']}", limit=3, window_seconds=60)
+    app_name = (await ui_config_service.branding(db))["app_name"]
     delivered = await push_service.send_to_user(
         db,
         user["_id"],
         {
-            "title": "Tes notifikasi ReadQuest 🔔",
+            "title": f"Tes notifikasi {app_name} 🔔",
             "body": "Notifikasi push sudah aktif!",
             "url": "/",
         },

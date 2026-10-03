@@ -1,17 +1,22 @@
+"use client";
+
+import { useUiConfig } from "@/features/ui-config/store";
+
 const steps = [
   { icon: "⬆️", text: "Ketuk tombol Bagikan di bilah bawah Safari." },
   { icon: "➕", text: "Gulir lalu pilih “Tambah ke Layar Utama” (Add to Home Screen)." },
-  { icon: "✅", text: "Ketuk “Tambah”, lalu buka ReadQuest dari ikon di Layar Utama." },
+  { icon: "✅", text: "Ketuk “Tambah”, lalu buka aplikasi dari ikon di Layar Utama." },
 ];
 
 export function IOSInstallGuide({ compact = false }: { compact?: boolean }) {
+  const appName = useUiConfig().branding.app_name;
   return (
     <div>
       {!compact && (
         <>
           <h2 className="text-2xl font-extrabold">Pasang di iPhone 📲</h2>
           <p className="mt-2 text-muted">
-            Agar pengingat baca dan notifikasi bisa muncul, pasang ReadQuest ke Layar Utama.
+            Agar pengingat baca dan notifikasi bisa muncul, pasang {appName} ke Layar Utama.
           </p>
         </>
       )}

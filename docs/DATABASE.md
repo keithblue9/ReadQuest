@@ -613,6 +613,14 @@ Contoh kunci:
 | `onboarding.default_daily_target_minutes` | `15` |
 | `team.timezone` | `"Asia/Jakarta"` (batas periode leaderboard) |
 | `leaderboard.cache_seconds` | `300` |
+| `ui.branding` | `{ app_name: "ReadQuest", tagline, logo_emoji: "📚", logo_key: null }` |
+| `ui.login` | `{ background_keys: ["ui/backgrounds/<uuid>.jpg"], interval_seconds: 6 }` |
+| `ui.features` | `{ enabled: { feed: true, books: true, …, push: true }, menu_order: ["dashboard", …] }` |
+| `ui.texts` | `{ "auth.login.title": "Halo pembaca! 👋" }` (hanya teks yang diubah Admin) |
+
+Kunci `ui.*` tidak di-seed: bila belum ada, server memakai default di
+`ui_config_service.DEFAULTS`; default teks UI ada di frontend (`src/lib/texts.ts`). Gambar
+logo/background disimpan di storage dengan prefix `ui/logo/` dan `ui/backgrounds/`.
 | `notifications.schedule` | `{ streak_risk_time: "20:00", weekly_leaderboard: {weekday: 0, time: "09:00"}, new_quest: {weekday: 0, time: "08:00"}, authenticity_time: "07:00" }` |
 
 Admin mengubah nilai lewat `PUT /api/v1/admin/settings/{key}`. Setiap kunci divalidasi tipe &

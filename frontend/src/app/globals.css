@@ -50,6 +50,14 @@ body {
   color: var(--foreground);
 }
 
+/* Background login bawaan (sebelum Admin mengunggah gambar). */
+.login-gradient {
+  background:
+    radial-gradient(circle at 20% 15%, color-mix(in oklab, var(--accent) 70%, transparent) 0, transparent 45%),
+    radial-gradient(circle at 85% 80%, color-mix(in oklab, #ffffff 25%, transparent) 0, transparent 40%),
+    linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 55%, var(--accent)));
+}
+
 @keyframes pop-in {
   from {
     opacity: 0;

@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { AuthProvider } from "@/features/auth/AuthProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { PwaManager } from "@/features/pwa/PwaManager";
+import { BrandingEffects } from "@/features/ui-config/BrandingEffects";
 
 import "./globals.css";
 
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
           <PwaManager />
+          <BrandingEffects />
         </ThemeProvider>
       </body>
     </html>

@@ -28,13 +28,18 @@ async function decode(file: Blob): Promise<ImageBitmap | HTMLImageElement> {
   }
 }
 
+type CompressOptions = { maxDimension?: number; targetBytes?: number };
+
 /**
- * Perkecil & kompres foto di perangkat (≤ ~1MB). Menggambar ulang ke canvas membuang seluruh
- * metadata EXIF (termasuk lokasi GPS).
+ * Perkecil & kompres foto di perangkat (default ≤ ~1MB). Menggambar ulang ke canvas membuang
+ * seluruh metadata EXIF (termasuk lokasi GPS).
  */
-export async function compressImage(file: Blob): Promise<Blob> {
+export async function compressImage(
+  file: Blob,
+  { maxDimension = MAX_DIMENSION, targetBytes = TARGET_BYTES }: CompressOptions = {},
+): Promise<Blob> {
   const source = await decode(file);
-  const scale = Math.min(1, MAX_DIMENSION / Math.max(source.width, source.height));
+  const scale = Math.min(1, maxDimension / Math.max(source.width, source.height));
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(source.width * scale);
   canvas.height = Math.round(source.height * scale);
@@ -45,7 +50,7 @@ export async function compressImage(file: Blob): Promise<Blob> {
 
   let quality = 0.85;
   let blob = await canvasToBlob(canvas, quality);
-  while (blob.size > TARGET_BYTES && quality > 0.45) {
+  while (blob.size > targetBytes && quality > 0.45) {
     quality -= 0.1;
     blob = await canvasToBlob(canvas, quality);
   }

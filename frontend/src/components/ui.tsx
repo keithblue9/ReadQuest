@@ -1,5 +1,7 @@
 import { forwardRef, useId } from "react";
 
+export { Logo } from "./Logo";
+
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "ghost" | "danger";
   loading?: boolean;
@@ -81,17 +83,6 @@ export function Alert({ children }: { children: React.ReactNode }) {
       className="animate-pop-in rounded-2xl border border-danger/30 bg-danger/10 px-4 py-3 text-sm text-danger"
     >
       {children}
-    </div>
-  );
-}
-
-export function Logo() {
-  return (
-    <div className="flex items-center gap-2 text-xl font-extrabold tracking-tight">
-      <span className="grid size-10 place-items-center rounded-2xl bg-primary text-xl text-primary-foreground shadow-lg shadow-primary/30">
-        📚
-      </span>
-      Read<span className="-ml-2 text-accent">Quest</span>
     </div>
   );
 }
