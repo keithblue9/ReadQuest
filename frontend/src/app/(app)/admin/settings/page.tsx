@@ -11,8 +11,14 @@ type Setting = { key: string; value: unknown; description: string };
 const GROUPS: { title: string; keys: string[] }[] = [
   {
     title: "Sesi baca",
-    keys: ["session.min_minutes", "session.idle_timeout_seconds", "session.heartbeat_max_gap_seconds"],
+    keys: [
+      "session.min_minutes",
+      "session.micro_min_minutes",
+      "session.idle_timeout_seconds",
+      "session.heartbeat_max_gap_seconds",
+    ],
   },
+  { title: "Target & streak", keys: ["onboarding.default_weekly_target_minutes", "streak.freezes_per_month"] },
   {
     title: "Kualitas catatan & komentar",
     keys: ["note.min_words", "note.min_unique_word_ratio", "note.max_paste_ratio", "comment.meaningful_min_words"],
@@ -20,12 +26,22 @@ const GROUPS: { title: string; keys: string[] }[] = [
   { title: "Reading Authenticity Index", keys: ["authenticity.thresholds"] },
   {
     title: "Umum",
-    keys: ["team.timezone", "onboarding.default_daily_target_minutes", "leaderboard.cache_seconds", "upload.max_bytes"],
+    keys: [
+      "team.timezone",
+      "onboarding.default_daily_target_minutes",
+      "leaderboard.cache_seconds",
+      "upload.max_bytes",
+      "reports.min_group_size",
+    ],
   },
 ];
 
 const LABELS: Record<string, string> = {
   "session.min_minutes": "Durasi minimal sesi valid (menit)",
+  "session.micro_min_minutes": "Durasi minimal sesi kilat (menit)",
+  "onboarding.default_weekly_target_minutes": "Target mingguan default (menit)",
+  "streak.freezes_per_month": "Jatah streak freeze per bulan (hari)",
+  "reports.min_group_size": "Ukuran minimal fungsi di Laporan Divisi (privasi)",
   "session.idle_timeout_seconds": "Auto-pause saat idle (detik)",
   "session.heartbeat_max_gap_seconds": "Jeda heartbeat maksimum (detik)",
   "note.min_words": "Minimal kata per jenis catatan",
@@ -43,6 +59,7 @@ const SUB_LABELS: Record<string, string> = {
   quick_note: "Quick Note",
   chapter_story: "Chapter Story",
   book_review: "Book Review",
+  takeaway: "Takeaway 1 Menit",
   active_reader: "Active Reader ≥",
   warming_up: "Warming Up ≥",
   observer: "Observer ≥",
@@ -157,7 +174,7 @@ export default function AdminSettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-extrabold">Pengaturan</h1>
+        <h1 className="text-2xl font-bold">Pengaturan</h1>
         <p className="text-sm text-muted">Aturan bisnis yang tersimpan di database. Perubahan langsung berlaku.</p>
       </header>
       {GROUPS.map((group) => {
@@ -165,7 +182,7 @@ export default function AdminSettingsPage() {
         if (!rows.length) return null;
         return (
           <section key={group.title} className="flex flex-col gap-2">
-            <h2 className="text-lg font-extrabold">{group.title}</h2>
+            <h2 className="text-lg font-bold">{group.title}</h2>
             <ul className="divide-y divide-border rounded-2xl border border-border bg-surface">
               {rows.map((s) => (
                 <SettingRow

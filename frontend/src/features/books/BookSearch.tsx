@@ -12,6 +12,7 @@ type Props = {
   categoryId?: string | null;
   /** Katalog: daftar berupa grid responsif dan tombol "Tambah buku" di atas (bukan di dasar daftar). */
   catalog?: boolean;
+  initialQuery?: string;
 };
 
 export function BookSearch({
@@ -19,8 +20,9 @@ export function BookSearch({
   onCreateNew,
   categoryId,
   catalog = false,
+  initialQuery = "",
 }: Props) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [results, setResults] = useState<Book[] | null>(null);
 
   useEffect(() => {

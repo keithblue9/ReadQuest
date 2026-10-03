@@ -11,12 +11,14 @@ import type {
   NoteType,
   ReadingSession,
   SessionConfig,
+  TakeawayKind,
   UploadedPhoto,
 } from "@/lib/types";
-import { NOTE_TYPES, noteStats } from "@/lib/words";
+import { NOTE_TYPES, noteStats, TAKEAWAY_TEMPLATES } from "@/lib/words";
 
 type Draft = {
   noteType: NoteType;
+  takeawayKind: TakeawayKind;
   content: string;
   pastedChars: number;
   photos: UploadedPhoto[];
@@ -48,7 +50,9 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
   const [draft, setDraft] = useState<Draft>(
     () =>
       loadDraft(session.id) ?? {
-        noteType: "quick_note",
+        // Sesi kilat → Takeaway 1 menit (satu kalimat), sesi standar → Quick Note.
+        noteType: session.mode === "micro" ? "takeaway" : "quick_note",
+        takeawayKind: "insight",
         content: "",
         pastedChars: 0,
         photos: [],
@@ -70,12 +74,14 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
   }, [draft, session.id]);
 
   const update = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }));
-  const minWords = config.note_min_words[draft.noteType];
+  const minWords = config.note_min_words[draft.noteType] ?? 8;
+  const isTakeaway = draft.noteType === "takeaway";
+  const photoOk = isTakeaway || draft.photos.length > 0;
   const { wordCount, uniqueRatio } = noteStats(draft.content);
   const pasteRatio = draft.content.trim() ? draft.pastedChars / draft.content.trim().length : 0;
   const lowUnique = wordCount >= 10 && uniqueRatio < config.note_min_unique_ratio;
   const tooMuchPaste = pasteRatio > config.note_max_paste_ratio;
-  const ready = wordCount >= minWords && !lowUnique && !tooMuchPaste && draft.photos.length > 0;
+  const ready = wordCount >= minWords && !lowUnique && !tooMuchPaste && photoOk;
 
   async function submit() {
     setPending(true);
@@ -86,6 +92,7 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
         method: "POST",
         json: {
           note_type: draft.noteType,
+          takeaway_kind: isTakeaway ? draft.takeawayKind : null,
           content: draft.content,
           image_keys: draft.photos.map((p) => p.key),
           rating: draft.rating,
@@ -114,7 +121,7 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
   return (
     <div className="animate-pop-in flex flex-col gap-5 pb-6">
       <div>
-        <h1 className="text-2xl font-extrabold">Tulis catatan bacamu ✍️</h1>
+        <h1 className="text-2xl font-bold">{isTakeaway ? "Takeaway 1 menit" : "Tulis catatan bacamu"}</h1>
         <p className="mt-1 text-muted">
           <span className="font-semibold text-foreground">{session.book.title}</span> — ceritakan
           dengan kata-katamu sendiri.
@@ -125,7 +132,7 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
 
       <fieldset>
         <legend className="mb-2 text-sm font-semibold">Jenis catatan</legend>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {NOTE_TYPES.map((type) => (
             <button
               key={type.value}
@@ -143,16 +150,38 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
               </span>
               <span className="block text-xs font-bold">{type.label}</span>
               <span className="block text-[11px] opacity-80">
-                ≥{config.note_min_words[type.value]} kata
+                ≥{config.note_min_words[type.value] ?? 8} kata
               </span>
             </button>
           ))}
         </div>
       </fieldset>
 
+      {isTakeaway && (
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Template takeaway">
+          {TAKEAWAY_TEMPLATES.map((tpl) => (
+            <button
+              key={tpl.kind}
+              type="button"
+              aria-pressed={draft.takeawayKind === tpl.kind}
+              onClick={() => {
+                const others = TAKEAWAY_TEMPLATES.map((x) => x.prefix);
+                const body = others.reduce((text, prefix) => (text.startsWith(prefix) ? text.slice(prefix.length) : text), draft.content);
+                update({ takeawayKind: tpl.kind, content: tpl.prefix + body });
+              }}
+              className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
+                draft.takeawayKind === tpl.kind ? "bg-primary text-primary-foreground" : "bg-surface-muted text-muted"
+              }`}
+            >
+              {tpl.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="flex flex-col gap-1.5">
         <label htmlFor="note-content" className="text-sm font-semibold">
-          Catatan
+          {isTakeaway ? "Satu kalimat inti" : "Catatan"}
         </label>
         <textarea
           id="note-content"
@@ -161,8 +190,12 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
           onPaste={(e) =>
             update({ pastedChars: draft.pastedChars + e.clipboardData.getData("text").length })
           }
-          rows={8}
-          placeholder="Apa ide paling menarik dari bacaan hari ini? Gunakan #tag untuk topik."
+          rows={isTakeaway ? 3 : 8}
+          placeholder={
+            isTakeaway
+              ? TAKEAWAY_TEMPLATES.find((x) => x.kind === draft.takeawayKind)?.placeholder
+              : "Apa ide paling menarik dari bacaan hari ini? Gunakan #tag untuk topik."
+          }
           className="rounded-2xl border border-border bg-surface p-4 leading-relaxed outline-none focus:border-primary focus:ring-4 focus:ring-primary/15"
         />
         <div className="flex items-center justify-between text-sm">
@@ -194,7 +227,7 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
       <PhotoPicker
         photos={draft.photos}
         onChange={(photos) => update({ photos })}
-        label="Foto buku / halaman (wajib)"
+        label={isTakeaway ? "Foto buku / halaman (opsional)" : "Foto buku / halaman (wajib)"}
       />
 
       <div className="grid grid-cols-2 gap-3">
@@ -262,7 +295,7 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
       </div>
       {!ready && !pending && (
         <p className="-mt-2 text-center text-xs text-muted">
-          {draft.photos.length === 0
+          {!photoOk
             ? "Tambahkan minimal 1 foto buku."
             : `Lengkapi catatan minimal ${minWords} kata.`}
         </p>

@@ -40,7 +40,7 @@ export default function AdminLayout({ children }: LayoutProps<"/">) {
           </Link>
           <ThemeToggle />
         </div>
-        <p className="px-4 text-xs font-extrabold tracking-wide text-muted uppercase">Admin</p>
+        <p className="px-4 text-xs font-bold tracking-wide text-muted uppercase">Admin</p>
         <nav aria-label="Menu admin" className="flex gap-1 overflow-x-auto px-3 py-2 md:flex-col md:overflow-visible">
           {sections.map((s) => {
             const active = current?.href === s.href;

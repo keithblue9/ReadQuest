@@ -52,7 +52,7 @@ export default function BuddyPage() {
   return (
     <div className="flex flex-col gap-5 pt-2">
       <div>
-        <h1 className="text-2xl font-extrabold">Reading Buddy 🤝</h1>
+        <h1 className="text-2xl font-bold">Reading Buddy 🤝</h1>
         <p className="mt-1 text-muted">Berpasangan dengan satu rekan untuk saling menyemangati membaca.</p>
       </div>
       {error && <Alert>{error}</Alert>}
@@ -68,7 +68,7 @@ export default function BuddyPage() {
             <Avatar name={buddy.user.name} url={buddy.user.avatar_url} />
             <div className="min-w-0">
               <p className="text-sm font-semibold opacity-80">Buddy-mu</p>
-              <p className="truncate text-xl font-extrabold">{buddy.user.name}</p>
+              <p className="truncate text-xl font-bold">{buddy.user.name}</p>
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 text-center">
@@ -79,14 +79,14 @@ export default function BuddyPage() {
               <p className="text-xs font-semibold">{buddy.read_today ? "Sudah baca hari ini" : "Belum baca hari ini"}</p>
             </div>
             <div className="rounded-2xl bg-white/15 p-3">
-              <p className="text-2xl font-extrabold">{buddy.streak}🔥</p>
+              <p className="text-2xl font-bold">{buddy.streak}🔥</p>
               <p className="text-xs font-semibold">Streak</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => run(() => api(`/buddies/${buddy.pair_id}/cheer`, { method: "POST" }), "Semangat terkirim! 📣")}
-            className="mt-4 h-12 w-full rounded-2xl bg-white font-extrabold text-[#6c4df6] transition active:scale-[0.98]"
+            className="mt-4 h-12 w-full rounded-2xl bg-white font-bold text-[#6c4df6] transition active:scale-[0.98]"
           >
             📣 Semangati {buddy.user.name.split(" ")[0]}
           </button>
@@ -140,7 +140,7 @@ export default function BuddyPage() {
 
       {!!data?.incoming.length && (
         <section className="flex flex-col gap-2">
-          <h2 className="font-extrabold">Ajakan masuk</h2>
+          <h2 className="font-bold">Ajakan masuk</h2>
           {data.incoming.map((r) => (
             <div key={r.pair_id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
               <Avatar name={r.user.name} url={r.user.avatar_url} />
@@ -165,7 +165,7 @@ export default function BuddyPage() {
 
       {!!data?.outgoing.length && (
         <section className="flex flex-col gap-2">
-          <h2 className="font-extrabold">Menunggu jawaban</h2>
+          <h2 className="font-bold">Menunggu jawaban</h2>
           {data.outgoing.map((r) => (
             <div key={r.pair_id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
               <Avatar name={r.user.name} url={r.user.avatar_url} />

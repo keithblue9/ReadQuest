@@ -1,5 +1,6 @@
 "use client";
 
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
 
@@ -15,10 +16,10 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="grid size-10 place-items-center rounded-full border border-border bg-surface text-lg transition hover:scale-105 active:scale-95"
+      className="grid size-10 place-items-center rounded-full bg-surface-muted text-foreground transition hover:brightness-95 active:scale-95"
       aria-label={isDark ? "Gunakan tema terang" : "Gunakan tema gelap"}
     >
-      <span aria-hidden>{mounted ? (isDark ? "🌙" : "☀️") : "◐"}</span>
+      {isDark ? <Moon className="size-5" aria-hidden /> : <Sun className="size-5" aria-hidden />}
     </button>
   );
 }

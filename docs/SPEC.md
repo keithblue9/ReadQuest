@@ -59,7 +59,17 @@ Role dan permission dikelola secara **data-driven** (RBAC) melalui Admin Config
 | Quick Note | ≥ 30 kata |
 | Chapter Story | ≥ 80 kata |
 | Book Review | ≥ 200 kata |
+| Takeaway 1 Menit | ≥ 8 kata (satu kalimat; template Insight / Aksi / Kutipan) |
 
+- **Sesi kilat (5 menit)** untuk pekerja sibuk: sesi berdurasi minimal
+  `session.micro_min_minutes`, ditutup dengan Takeaway (foto opsional). Mendapat poin kecil
+  `micro_session` (maks. 3/hari). Menit sesi kilat **diakumulasi**: begitu total menit hari itu
+  mencapai 15 menit, sesi yang melewati batas itu mendapat poin penuh harian dan menghitung streak.
+- **Target harian atau mingguan** (dipilih pengguna). Target mingguan (default 75 menit) boleh
+  dikumpulkan di hari mana pun; tercapai → bonus `weekly_target` sekali per minggu.
+- **Streak freeze**: jatah libur `streak.freezes_per_month` (default 2) per bulan. Hari yang
+  terlewat otomatis dibekukan saat pengguna membaca lagi, sehingga lembur/dinas tidak memutus
+  streak.
 - **Validasi kualitas catatan:**
   - Tolak **copy-paste massal**.
   - Tolak teks dengan **jumlah kata unik terlalu sedikit** (repetitif).
@@ -103,7 +113,16 @@ diaudit dan dihitung ulang.
 ### 3.5 Feed Sosial
 
 - **Kartu catatan** (note card) berisi info buku dan catatan pembaca.
-- **Reaksi:** Like, Insightful, Inspiring.
+- **Beranda bergaya media sosial**: kotak "Apa yang kamu baca hari ini?" (sesi baca, sesi
+  kilat, bagikan kutipan) lalu feed tim dengan tab Semua / Fungsiku / Kutipan / Diskusi /
+  Tersimpan.
+- **Reaksi bermakna:** 👍 Setuju, 💡 Insightful, 🙌 Menginspirasi, 📚 Mau baca juga (sekaligus
+  menaruh buku di rak "Ingin dibaca"). Tahan/arahkan kursor untuk memilih reaksi.
+- **Kutipan favorit**: kutipan + halaman + refleksi, tampil khusus di feed dan bisa dibagikan
+  sebagai kartu gambar bermerek.
+- **Rak buku pribadi**: Sedang dibaca, Ingin dibaca, Selesai; terisi otomatis dan terlihat rekan.
+- **Profil publik**: foto, headline, fungsi, statistik, rak buku, badge, 3 buku favorit, dan
+  postingan. Status Authenticity Index tetap privat.
 - **Komentar berantai** (threaded).
 - **Mention** pengguna lain.
 - **Bookmark** posting.
@@ -152,6 +171,11 @@ Ketentuan:
 - **Reading Buddy** (pasangan baca).
 - **Reading Room live** (via WebSocket) — membaca bersama secara real-time.
 - **Animasi** konfeti & streak.
+- **Badge profesional** (mis. Pembaca 30 Hari, Mentor Bacaan, Kontributor Insight, Kurator
+  Kutipan) yang bisa dibagikan sebagai sertifikat PNG dan ditambahkan ke profil LinkedIn
+  ("Add licence or certification").
+- **Statistik Tim** untuk semua anggota: anggota terdaftar, pembaca hari ini/7 hari, menit baca,
+  partisipasi per fungsi, pembaca teratas, buku terpopuler, aktivitas terbaru.
 
 ### 3.9 Notifikasi
 
@@ -164,6 +188,11 @@ Ketentuan:
   - Quest baru
   - Nudge untuk Observer
 - **Preferensi per pengguna:** jenis notifikasi, jam tenang (quiet hours), frekuensi.
+- **Pengingat cerdas**: jam pengingat mengikuti kebiasaan baca (median jam mulai 4 minggu
+  terakhir − 30 menit) setelah minimal 3 sesi; pengguna target mingguan yang sudah tercapai
+  tidak diingatkan.
+- **Blok waktu baca di kalender**: jadwal berulang ke Google Calendar (tautan) atau
+  Outlook/Apple Calendar (berkas .ics).
 - **Batching reaksi** (digabung agar tidak spam).
 - **Lonceng notifikasi in-app**.
 - Onboarding memandu **"Add to Home Screen"** untuk iOS.
@@ -177,6 +206,9 @@ Ketentuan:
 - Kelola fungsi, badge, dan quest.
 - Moderasi konten.
 - Export laporan ke **Excel** dan **PDF**.
+- **Laporan Divisi** untuk HR/manajer (`reports.view`, default Admin & Team Lead): tren
+  partisipasi & menit per fungsi per minggu (4–52 minggu), hanya agregat; fungsi dengan anggota
+  < `reports.min_group_size` digabung. Export CSV/XLSX tercatat di audit log.
 
 ### 3.11 Admin Config (Data-Driven)
 
@@ -217,7 +249,12 @@ Semua konfigurasi disimpan di database, **bukan hardcode**:
 
 ### 4.2 UI/UX
 
-- Modern dan ceria.
+- **Modern dan profesional** untuk pekerja kantoran, terinspirasi media sosial (Facebook):
+  latar abu-abu muda, kartu putih, ikon garis, font sistem, satu warna merek (bisa diganti
+  Admin).
+- Desktop: top bar (logo, pencarian buku, tombol Mulai membaca, notifikasi, profil) + navigasi
+  kiri + konten tengah + panel kanan (target, streak & freeze, tim hari ini, teratas, Book of
+  the Month, quest, kalender). HP: top bar ringkas + bottom nav + menu "Lainnya" + tombol cepat.
 - **Mobile-first**, responsif. Desktop punya tata letak sendiri: halaman login dengan
   background slideshow penuh dan kotak login di sisi kiri.
 - Input nomor HP & PIN memunculkan **keypad angka** di HP (bukan keyboard QWERTY).

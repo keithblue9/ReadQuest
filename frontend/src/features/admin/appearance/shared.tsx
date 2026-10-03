@@ -40,7 +40,7 @@ export function Card({ title, description, children }: { title: string; descript
   return (
     <section className="flex flex-col gap-4 rounded-3xl border border-border bg-surface p-4 md:p-6">
       <header>
-        <h2 className="text-lg font-extrabold">{title}</h2>
+        <h2 className="text-lg font-bold">{title}</h2>
         {description && <p className="text-sm text-muted">{description}</p>}
       </header>
       {children}

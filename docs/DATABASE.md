@@ -80,6 +80,12 @@ erDiagram
 | `function_id` | ObjectId → `functions` | fungsi/bagian |
 | `interests` | ObjectId[] → `book_categories` | minat baca |
 | `daily_target_minutes` | int | target harian (default dari `app_settings`) |
+| `target_mode` | string | `daily` (default) \| `weekly` |
+| `weekly_target_minutes` | int \| null | target mingguan; kosong = `onboarding.default_weekly_target_minutes` |
+| `headline` | string | satu baris perkenalan di profil publik (≤ 120) |
+| `favorite_book_ids` | ObjectId[] → `books` | maks. 3 buku favorit (profil publik) |
+| `avatar_url` | string \| null | `/api/v1/avatars/<uuid>.jpg` (foto 256 px di storage `avatars/`) |
+| `reading_habit` | object | cache pengingat cerdas `{ date, time }` (dihitung ulang sekali sehari) |
 | `timezone` | string | IANA, mis. `Asia/Jakarta` |
 | `onboarding_completed_at` | Date \| null | |
 | `stats` | object | cache: `{ points_total, level_id, books_finished, posts_count, current_streak }` (diturunkan dari ledger/aktivitas) |
@@ -211,7 +217,8 @@ Katalog permission (di-seed dari kode, dapat diberi label oleh admin).
 | `active_seconds` | int | dihitung server dari heartbeat (tanpa waktu idle/pause) |
 | `last_heartbeat_at` | Date | |
 | `status` | string | `active` \| `paused` \| `completed` \| `abandoned` \| `rejected` |
-| `note_type` | string \| null | `quick_note` \| `chapter_story` \| `book_review` |
+| `note_type` | string \| null | `quick_note` \| `chapter_story` \| `book_review` \| `takeaway` |
+| `mode` | string | `standard` \| `micro` (sesi kilat, durasi minimal `session.micro_min_minutes`) |
 | `post_id` | ObjectId \| null → `posts` | catatan yang dihasilkan |
 | `validation` | object | `{ word_count, unique_word_ratio, pasted_chars, passed, reasons[] }` |
 | `is_full_points` | bool | `true` hanya untuk sesi poin penuh pertama hari itu |
@@ -235,7 +242,8 @@ Satu dokumen per user.
 | `longest` | int | |
 | `last_read_date` | string | `local_date` sesi valid terakhir |
 | `milestones_awarded` | int[] | mis. `[7, 14]`, mencegah bonus ganda; dikosongkan saat streak putus |
-| `freeze_tokens` | int | cadangan untuk fitur masa depan |
+| `freeze_tokens` | int | cadangan (tidak dipakai) |
+| `freezes_used` | string[] | tanggal yang dibekukan (streak freeze, maks. `streak.freezes_per_month`/bulan) |
 | `updated_at` | Date | |
 
 **Index:** `{ user_id: 1 }` unique · `{ current: -1 }` (Streak Master)
@@ -253,7 +261,9 @@ Satu dokumen per user.
 | `session_id` | ObjectId \| null → `reading_sessions` | |
 | `book_id` | ObjectId → `books` | |
 | `book` | object | denormalisasi `{ title, authors, category_id }` |
-| `type` | string | `quick_note` \| `chapter_story` \| `book_review` \| `progress_photo` \| `discussion` |
+| `type` | string | `quick_note` \| `chapter_story` \| `book_review` \| `takeaway` \| `progress_photo` \| `discussion` \| `quote` |
+| `takeaway_kind` | string \| null | untuk `takeaway`: `insight` \| `action` \| `quote` |
+| `quote` | object \| null | untuk `quote`: `{ text, page }`; `content` berisi refleksi (atau teks kutipan) |
 | `content` | string | teks catatan |
 | `word_count` | int | |
 | `content_hash` | string | SHA-256 dari kata-kata yang dinormalisasi; menolak catatan duplikat |
@@ -287,7 +297,7 @@ Satu dokumen per user.
 | `post_id` | ObjectId → `posts` | |
 | `post_author_id` | ObjectId → `users` | denormalisasi untuk poin & statistik penerima |
 | `user_id` | ObjectId → `users` | pemberi reaksi |
-| `type` | string \| null | `like` \| `insightful` \| `inspiring`; `null` = reaksi dibatalkan (dokumen dipertahankan agar poin idempoten) |
+| `type` | string \| null | `like` (Setuju) \| `insightful` \| `inspiring` \| `want_to_read` (Mau baca juga → rak "Ingin dibaca"); `null` = reaksi dibatalkan (dokumen dipertahankan agar poin idempoten) |
 | `created_at`, `updated_at` | Date | |
 
 **Index:**
@@ -316,6 +326,19 @@ Satu dokumen per user.
 | `created_at`, `updated_at` | Date | |
 
 **Index:** `{ post_id: 1, created_at: 1 }` · `{ root_id: 1, created_at: 1 }` · `{ author_id: 1, created_at: -1 }` · `{ author_id: 1, content_hash: 1 }` · `{ "moderation.status": 1, updated_at: -1 }`
+
+### 7.3a `shelves` (rak buku pribadi)
+
+| Field | Tipe | Keterangan |
+|-------|------|------------|
+| `user_id` | ObjectId → `users` | |
+| `book_id` | ObjectId → `books` | |
+| `status` | string | `reading` \| `want` \| `finished` |
+| `created_at`, `updated_at` | Date | |
+
+Index: `{user_id, book_id}` unik; `{user_id, status, updated_at}`. Terisi otomatis (mulai sesi →
+`reading`, tamat → `finished`, reaksi `want_to_read` → `want`) tanpa menurunkan status `finished`,
+dan bisa diubah manual. Terlihat oleh rekan setim.
 
 ### 7.4 `bookmarks`
 
@@ -604,13 +627,17 @@ Contoh kunci:
 | `session.min_minutes` | `15` |
 | `session.idle_timeout_seconds` | `300` (dialog "Masih membaca?") |
 | `session.heartbeat_max_gap_seconds` | `45` |
-| `note.min_words` | `{ quick_note: 30, chapter_story: 80, book_review: 200 }` |
+| `note.min_words` | `{ quick_note: 30, chapter_story: 80, book_review: 200, takeaway: 8 }` |
 | `note.min_unique_word_ratio` | `0.4` |
 | `note.max_paste_ratio` | `0.5` |
 | `comment.meaningful_min_words` | `8` |
 | `authenticity.thresholds` | `{ active_reader: 0.5, warming_up: 0.25, observer: 0.0 }` (+ `silent` = tanpa aktivitas) |
 | `upload.max_bytes` | `1048576` |
 | `onboarding.default_daily_target_minutes` | `15` |
+| `onboarding.default_weekly_target_minutes` | `75` |
+| `session.micro_min_minutes` | `5` (sesi kilat) |
+| `streak.freezes_per_month` | `2` |
+| `reports.min_group_size` | `3` (fungsi lebih kecil digabung di laporan divisi) |
 | `team.timezone` | `"Asia/Jakarta"` (batas periode leaderboard) |
 | `leaderboard.cache_seconds` | `300` |
 | `ui.branding` | `{ app_name: "ReadQuest", tagline, logo_emoji: "📚", logo_key: null }` |

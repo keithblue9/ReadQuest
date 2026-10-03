@@ -29,7 +29,9 @@ type Props = {
 export function ReadingTimer({ initial, config, onFinish, onAbandon, notice }: Props) {
   const timer = useReadingTimer(initial, config);
   const { user } = useAuth();
-  const reached = timer.elapsedSeconds >= config.min_seconds;
+  // Target per sesi dari server: sesi kilat (mis. 5 menit) atau sesi standar (mis. 15 menit).
+  const target = timer.session.min_seconds;
+  const reached = timer.elapsedSeconds >= target;
   // Presence di Reading Room (dibulatkan per menit agar tidak mengirim pesan tiap detik).
   const elapsedMinute = Math.floor(timer.elapsedSeconds / 60) * 60;
   const roomStatus = useMemo(
@@ -77,7 +79,7 @@ export function ReadingTimer({ initial, config, onFinish, onAbandon, notice }: P
 
       <TimerRing
         elapsed={timer.elapsedSeconds}
-        target={config.min_seconds}
+        target={target}
         running={timer.running}
       />
 
@@ -100,8 +102,16 @@ export function ReadingTimer({ initial, config, onFinish, onAbandon, notice }: P
         ) : (
           <Button onClick={() => timer.resume()}>▶️ Lanjutkan membaca</Button>
         )}
+        {timer.session.mode === "micro" && (
+          <p className="text-center text-sm text-muted">
+            Sesi kilat: poin kecil sekarang, dan otomatis jadi sesi penuh bila total bacaan hari ini
+            mencapai {Math.round(config.min_seconds / 60)} menit.
+          </p>
+        )}
         <Button onClick={finish} disabled={!reached} variant={reached ? "primary" : "ghost"}>
-          {reached ? "✅ Selesai & tulis catatan" : "Selesai (minimal 15 menit)"}
+          {reached
+            ? "Selesai & tulis catatan"
+            : `Selesai (minimal ${Math.round(target / 60)} menit)`}
         </Button>
         <button
           type="button"
@@ -129,7 +139,7 @@ export function ReadingTimer({ initial, config, onFinish, onAbandon, notice }: P
             <p className="text-4xl" aria-hidden>
               📖
             </p>
-            <h2 id="presence-title" className="mt-2 text-xl font-extrabold">
+            <h2 id="presence-title" className="mt-2 text-xl font-bold">
               Masih membaca?
             </h2>
             <p className="mt-1 text-sm text-muted">

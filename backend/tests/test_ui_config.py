@@ -166,7 +166,7 @@ async def test_features_and_menu_order(client):
     assert ok.status_code == 200
     features = ok.json()["features"]
     assert features["enabled"]["buddy"] is False and features["enabled"]["feed"] is True
-    assert features["menu_order"][:3] == ["books", "dashboard", "feed"]
+    assert features["menu_order"][:3] == ["books", "dashboard", "read"]
     assert len(features["menu_order"]) == len(set(features["menu_order"]))
 
 
@@ -214,3 +214,11 @@ def test_split_brand():
     assert split_brand("Baca Bareng Yuk") == ("Baca Bareng ", "Yuk")
     assert split_brand("pustaka") == ("pustaka", "")
     assert split_brand("ABC") == ("ABC", "")
+
+
+async def test_legacy_menu_keys_are_ignored_on_load(client, database):
+    await database["app_settings"].insert_one(
+        {"key": "ui.features", "value": {"enabled": {}, "menu_order": ["feed", "books"]}}
+    )
+    features = (await client.get("/api/v1/ui-config")).json()["features"]
+    assert features["menu_order"][0] == "books" and "feed" not in features["menu_order"]

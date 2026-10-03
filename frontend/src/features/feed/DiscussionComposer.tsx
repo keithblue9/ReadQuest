@@ -27,9 +27,9 @@ export function DiscussionComposer({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-2xl border-2 border-dashed border-primary/40 p-3 text-left font-semibold text-primary"
+        className="card p-3 text-left text-muted hover:brightness-[0.98]"
       >
-        💬 Mulai diskusi tentang buku ini…
+        Mulai diskusi tentang buku ini…
       </button>
     );
   }

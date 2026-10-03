@@ -18,12 +18,14 @@ from app.services import audit_service
 
 # Fitur yang bisa dimatikan Admin (menu disembunyikan; push tidak dikirim).
 FEATURES = ("feed", "books", "leaderboard", "quests", "buddy", "room", "book_of_month", "push")
-# Menu navigasi utama yang urutannya bisa diatur.
+# Menu navigasi utama yang urutannya bisa diatur. Beranda = feed tim (gaya media sosial);
+# "stats" = infografis tim, "shelf" = rak buku pribadi.
 MENUS = (
     "dashboard",
-    "feed",
     "read",
+    "stats",
     "books",
+    "shelf",
     "leaderboard",
     "quests",
     "buddy",
@@ -147,8 +149,15 @@ async def _load(db: AsyncDatabase) -> tuple[dict[str, Any], Any]:
     config: dict[str, Any] = {}
     for section, default in DEFAULTS.items():
         row = stored.get(section)
+        value = row["value"] if row else None
+        if section == "features" and isinstance(value, dict):
+            # Menu yang sudah tidak ada (mis. "feed" lama) diabaikan, urutan lain dipertahankan.
+            value = {
+                **value,
+                "menu_order": [m for m in value.get("menu_order", []) if m in MENUS],
+            }
         try:
-            config[section] = VALIDATORS[section](row["value"]) if row else default
+            config[section] = VALIDATORS[section](value) if row else default
         except ValueError:
             config[section] = default  # data rusak tidak boleh membuat aplikasi gagal tampil
     stamps = [r.get("updated_at") for r in rows if r.get("updated_at")]

@@ -16,7 +16,7 @@ export default function QuestsPage() {
   return (
     <div className="flex flex-col gap-4 pt-2">
       <div>
-        <h1 className="text-2xl font-extrabold">Quest Mingguan 🎯</h1>
+        <h1 className="text-2xl font-bold">Quest Mingguan 🎯</h1>
         <p className="mt-1 text-muted">
           Selesaikan tantangan untuk poin bonus.
           {ends &&

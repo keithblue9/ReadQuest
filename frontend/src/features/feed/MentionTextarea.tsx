@@ -141,7 +141,7 @@ export function MentionTextarea({
                   i === active ? "bg-primary/10 text-primary" : ""
                 }`}
               >
-                <span className="grid size-7 place-items-center rounded-full bg-accent/20 text-xs font-extrabold text-accent">
+                <span className="grid size-7 place-items-center rounded-full bg-accent/20 text-xs font-bold text-accent">
                   {user.name.slice(0, 1).toUpperCase()}
                 </span>
                 {user.name}

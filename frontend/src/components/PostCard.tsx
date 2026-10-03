@@ -1,33 +1,32 @@
+import { BookOpen, PartyPopper } from "lucide-react";
 import Link from "next/link";
 
 import { PostActions } from "@/features/feed/PostActions";
 import { RichText } from "@/features/feed/RichText";
 import type { Post } from "@/lib/types";
-import { NOTE_TYPES } from "@/lib/words";
+import { POST_TYPE_LABEL } from "@/lib/words";
 
-const TYPE_LABEL: Record<string, string> = {
-  ...Object.fromEntries(NOTE_TYPES.map((t) => [t.value, `${t.emoji} ${t.label}`])),
-  discussion: "💬 Diskusi",
-};
+import { Avatar } from "./Avatar";
+
+export { Avatar } from "./Avatar";
 
 export function timeAgo(iso: string): string {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000;
   if (diff < 60) return "baru saja";
-  if (diff < 3600) return `${Math.floor(diff / 60)} mnt lalu`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} mnt`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} j`;
+  if (diff < 7 * 86400) return `${Math.floor(diff / 86400)} h`;
   return new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 }
 
-export function Avatar({ name, url }: { name: string; url: string | null }) {
-  if (url) return <img src={url} alt="" className="size-10 rounded-full object-cover" />;
-  return (
-    <span
-      aria-hidden
-      className="grid size-10 place-items-center rounded-full bg-accent/20 font-extrabold text-accent"
-    >
-      {name.slice(0, 1).toUpperCase()}
-    </span>
-  );
+const TAKEAWAY_LABEL = { insight: "Insight", action: "Aksi", quote: "Kutipan" } as const;
+
+/** Kalimat aktivitas di bawah nama, seperti "menulis Chapter Story". */
+function activity(post: Post): string {
+  if (post.type === "quote") return "membagikan kutipan";
+  if (post.type === "discussion") return "memulai diskusi";
+  if (post.is_book_finished) return "menyelesaikan buku";
+  return `menulis ${POST_TYPE_LABEL[post.type] ?? "catatan"}`;
 }
 
 type PostCardProps = {
@@ -37,6 +36,7 @@ type PostCardProps = {
   linkComments?: boolean;
   actions?: boolean;
   commentCount?: number;
+  menu?: React.ReactNode;
 };
 
 export function PostCard({
@@ -45,75 +45,114 @@ export function PostCard({
   linkComments = true,
   actions = true,
   commentCount,
+  menu,
 }: PostCardProps) {
+  const progress = post.page_progress;
+  const pct =
+    progress?.current_page && progress.total_pages
+      ? Math.min(100, Math.round((progress.current_page / progress.total_pages) * 100))
+      : null;
+
   return (
-    <article className="animate-pop-in rounded-3xl border border-border bg-surface p-4">
-      <header className="flex items-center gap-3">
-        <Avatar name={post.author.name} url={post.author.avatar_url} />
+    <article className="card animate-pop-in overflow-hidden">
+      <header className="flex items-start gap-3 px-4 pt-3">
+        <Avatar name={post.author.name} url={post.author.avatar_url} userId={post.author.id} />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-bold">{post.author.name}</p>
+          <p className="text-[15px] leading-snug">
+            <Link href={`/u/${post.author.id}`} className="font-semibold hover:underline">
+              {post.author.name}
+            </Link>{" "}
+            <span className="text-muted">{activity(post)}</span>
+          </p>
           <p className="text-xs text-muted">
-            {TYPE_LABEL[post.type] ?? post.type} · {timeAgo(post.created_at)}
+            <Link href={`/posts/${post.id}`} className="hover:underline">
+              <time dateTime={post.created_at}>{timeAgo(post.created_at)}</time>
+            </Link>
+            {post.type === "takeaway" && post.takeaway_kind && <> · {TAKEAWAY_LABEL[post.takeaway_kind]}</>}
+            {post.rating ? (
+              <span className="ml-1 text-amber-500" aria-label={`Rating ${post.rating} dari 5`}>
+                · {"★".repeat(post.rating)}
+                <span className="text-border">{"★".repeat(5 - post.rating)}</span>
+              </span>
+            ) : null}
           </p>
         </div>
-        {post.rating ? (
-          <span className="text-sm font-bold text-accent" aria-label={`Rating ${post.rating}`}>
-            {"★".repeat(post.rating)}
-          </span>
-        ) : null}
+        {menu}
       </header>
 
-      {showBook && (
-        <Link
-          href={`/books/${post.book.id}`}
-          className="mt-3 block rounded-2xl bg-surface-muted px-3 py-2 text-sm"
-        >
-          <span className="font-bold">{post.book.title}</span>
-          <span className="text-muted"> · {post.book.authors.join(", ")}</span>
-        </Link>
-      )}
-
-      <p className="mt-3 leading-relaxed whitespace-pre-line">
-        <RichText text={post.content} mentions={post.mentions} />
-      </p>
+      <div className="px-4 pt-2">
+        {post.type === "quote" && post.quote ? (
+          <figure className="my-1 border-l-4 border-primary bg-primary/5 py-3 pr-3 pl-4">
+            <blockquote className="font-serif text-lg leading-relaxed italic">“{post.quote.text}”</blockquote>
+            <figcaption className="mt-1.5 text-sm text-muted">
+              — {post.book.title}
+              {post.quote.page ? `, hlm. ${post.quote.page}` : ""}
+            </figcaption>
+          </figure>
+        ) : null}
+        {(post.type !== "quote" || post.content !== post.quote?.text) && (
+          <p className={`leading-relaxed whitespace-pre-line ${post.type === "takeaway" ? "text-lg" : "text-[15px]"} ${post.type === "quote" ? "mt-2" : ""}`}>
+            <RichText text={post.content} mentions={post.mentions} />
+          </p>
+        )}
+        {post.topics.length > 0 && (
+          <p className="mt-1.5 flex flex-wrap gap-x-2 text-sm">
+            {post.topics.map((topic) => (
+              <Link key={topic} href={`/feed?topic=${encodeURIComponent(topic)}`} className="font-medium text-primary hover:underline">
+                #{topic}
+              </Link>
+            ))}
+          </p>
+        )}
+      </div>
 
       {post.image_urls.length > 0 && (
-        <div className={`mt-3 grid gap-2 ${post.image_urls.length > 1 ? "grid-cols-2" : ""}`}>
+        <div className={`mt-3 grid gap-0.5 ${post.image_urls.length > 1 ? "grid-cols-2" : ""}`}>
           {post.image_urls.map((url) => (
             <img
               key={url}
               src={url}
               alt={`Foto buku ${post.book.title}`}
               loading="lazy"
-              className="aspect-[4/3] w-full rounded-2xl object-cover"
+              className="aspect-[4/3] w-full bg-surface-muted object-cover"
             />
           ))}
         </div>
       )}
 
-      <footer className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-muted">
-        {post.is_book_finished && (
-          <span className="rounded-full bg-success/15 px-2.5 py-1 text-success">🎉 Buku selesai</span>
-        )}
-        {post.page_progress?.current_page != null && (
-          <span className="rounded-full bg-surface-muted px-2.5 py-1">
-            Hal. {post.page_progress.current_page}
-            {post.page_progress.total_pages ? `/${post.page_progress.total_pages}` : ""}
+      {showBook && (
+        <Link
+          href={`/books/${post.book.id}`}
+          className="mx-4 mt-3 flex items-center gap-3 rounded-lg border border-border bg-surface-muted/60 p-2.5 transition hover:bg-surface-muted"
+        >
+          <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+            <BookOpen className="size-5" aria-hidden />
           </span>
-        )}
-        {post.topics.map((topic) => (
-          <Link
-            key={topic}
-            href={`/feed?topic=${encodeURIComponent(topic)}`}
-            className="rounded-full bg-primary/10 px-2.5 py-1 text-primary"
-          >
-            #{topic}
-          </Link>
-        ))}
-      </footer>
-      {actions && (
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold">{post.book.title}</span>
+            <span className="block truncate text-xs text-muted">{post.book.authors.join(", ")}</span>
+          </span>
+          {post.is_book_finished ? (
+            <span className="flex shrink-0 items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">
+              <PartyPopper className="size-3.5" aria-hidden /> Selesai
+            </span>
+          ) : pct !== null ? (
+            <span className="w-20 shrink-0 text-right text-xs text-muted">
+              <span className="block font-semibold tabular-nums">{pct}%</span>
+              <span className="mt-0.5 block h-1.5 overflow-hidden rounded-full bg-border">
+                <span className="block h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+              </span>
+            </span>
+          ) : null}
+        </Link>
+      )}
+
+      {actions ? (
         <PostActions post={post} linkComments={linkComments} commentCount={commentCount} />
+      ) : (
+        <div className="h-3" />
       )}
     </article>
   );
 }
+

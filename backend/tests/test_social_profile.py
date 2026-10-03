@@ -213,7 +213,7 @@ async def test_participation_report_is_aggregate_and_exportable(client, database
 
     # Fungsi kecil digabung agar tidak bisa ditelusuri ke individu.
     await database["app_settings"].update_one(
-        {"key": "reports.min_group_size"}, {"$set": {"value": 50}}
+        {"key": "reports.min_group_size"}, {"$set": {"value": 1_000_000}}
     )
     try:
         merged = (await client.get("/api/v1/reports/participation", headers=admin)).json()

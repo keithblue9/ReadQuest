@@ -1,32 +1,33 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
 import { useState } from "react";
 
 import { CountUp } from "@/components/CountUp";
 
 /** Kartu angka utama: satu angka besar + konteks. */
 export function StatTile({
-  icon,
+  icon: Icon,
   label,
   value,
   suffix,
   hint,
 }: {
-  icon: string;
+  icon: LucideIcon;
   label: string;
   value: number;
   suffix?: string;
   hint?: string;
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-surface p-4">
-      <p className="flex items-center gap-2 text-xs font-bold text-muted">
-        <span className="text-base" aria-hidden>
-          {icon}
+    <div className="card p-4">
+      <p className="flex items-center gap-2 text-xs font-semibold text-muted">
+        <span className="grid size-7 place-items-center rounded-md bg-primary/10 text-primary">
+          <Icon className="size-4" aria-hidden />
         </span>
         {label}
       </p>
-      <p className="mt-2 text-3xl font-extrabold tabular-nums">
+      <p className="mt-2 text-2xl font-bold tabular-nums">
         <CountUp to={value} />
         {suffix && <span className="ml-1 text-base font-bold text-muted">{suffix}</span>}
       </p>
@@ -56,7 +57,7 @@ export function Donut({ value, label }: { value: number; label: string }) {
           strokeDashoffset={c * (1 - pct / 100)}
           transform="rotate(-90 64 64)"
         />
-        <text x="64" y="72" textAnchor="middle" className="fill-foreground text-[28px] font-extrabold">
+        <text x="64" y="72" textAnchor="middle" className="fill-foreground text-[28px] font-bold">
           {pct}%
         </text>
       </svg>
@@ -136,9 +137,9 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`flex flex-col gap-3 rounded-3xl border border-border bg-surface p-4 md:p-5 ${className}`}>
+    <section className={`card flex flex-col gap-3 p-4 md:p-5 ${className}`}>
       <header className="flex items-baseline justify-between gap-2">
-        <h2 className="text-base font-extrabold">{title}</h2>
+        <h2 className="text-[15px] font-semibold">{title}</h2>
         {action}
       </header>
       {children}

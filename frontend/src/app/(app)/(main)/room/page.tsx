@@ -17,7 +17,7 @@ export default function RoomPage() {
     <div className="flex flex-col gap-4 pt-2">
       <CheerToasts cheers={cheers} myId={user?.id} />
       <div>
-        <h1 className="text-2xl font-extrabold">Reading Room 🛋️</h1>
+        <h1 className="text-2xl font-bold">Reading Room 🛋️</h1>
         <p className="mt-1 text-muted">Membaca bersama secara live. Semangati rekan yang sedang membaca!</p>
       </div>
 

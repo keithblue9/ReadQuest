@@ -1,5 +1,6 @@
 "use client";
 
+import { Bell } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -41,11 +42,11 @@ export function NotificationBell() {
     <Link
       href="/notifications"
       aria-label={count ? `Notifikasi, ${count} belum dibaca` : "Notifikasi"}
-      className="relative grid size-10 place-items-center rounded-full border border-border bg-surface text-lg transition hover:scale-105"
+      className="relative grid size-10 place-items-center rounded-full bg-surface-muted text-foreground transition hover:brightness-95"
     >
-      <span aria-hidden>🔔</span>
+      <Bell className="size-5" aria-hidden />
       {count > 0 && (
-        <span className="animate-pop-in absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-danger px-1 text-[11px] font-extrabold text-white">
+        <span className="animate-pop-in absolute -top-1 -right-1 grid h-5 min-w-5 place-items-center rounded-full bg-danger px-1 text-[11px] font-bold text-white">
           {count > 99 ? "99+" : count}
         </span>
       )}

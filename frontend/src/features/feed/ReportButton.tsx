@@ -46,7 +46,7 @@ export function ReportButton({ path, what, className = "" }: { path: string; wha
         className="m-auto w-[min(92vw,24rem)] rounded-3xl border border-border bg-surface p-5 text-foreground backdrop:bg-black/50"
       >
         <form onSubmit={submit} className="flex flex-col gap-3">
-          <h2 className="text-lg font-extrabold">Laporkan {what}</h2>
+          <h2 className="text-lg font-bold">Laporkan {what}</h2>
           <p className="text-sm text-muted">
             Admin akan meninjau laporanmu. Namamu tidak ditampilkan kepada penulis.
           </p>

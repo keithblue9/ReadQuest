@@ -92,7 +92,7 @@ export function ShareSheet({ post, onClose }: { post: Post; onClose: () => void 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-border" aria-hidden />
-        <h2 id={`share-${post.id}`} className="text-lg font-extrabold">
+        <h2 id={`share-${post.id}`} className="text-lg font-bold">
           Bagikan catatan
         </h2>
         <p className="mt-1 text-sm text-muted">Kartu berisi kutipan, judul buku, dan namamu.</p>

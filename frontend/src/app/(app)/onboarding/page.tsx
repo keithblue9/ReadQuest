@@ -112,7 +112,7 @@ export default function OnboardingPage() {
 
         {step === "function" && (
           <fieldset>
-            <legend className="text-2xl font-extrabold">Kamu dari fungsi mana? 🏢</legend>
+            <legend className="text-2xl font-bold">Kamu dari fungsi mana? 🏢</legend>
             <p className="mt-2 text-muted">Poinmu ikut menyumbang di Battle Antar-Fungsi.</p>
             <div className="mt-6 flex flex-col gap-2">
               {options.functions.map((fn) => (
@@ -141,7 +141,7 @@ export default function OnboardingPage() {
 
         {step === "interests" && (
           <fieldset>
-            <legend className="text-2xl font-extrabold">Suka baca tentang apa? 📚</legend>
+            <legend className="text-2xl font-bold">Suka baca tentang apa? 📚</legend>
             <p className="mt-2 text-muted">Pilih minimal satu. Bisa diubah kapan saja.</p>
             <div className="mt-6 flex flex-wrap gap-2">
               {options.categories.map((cat) => {
@@ -168,7 +168,7 @@ export default function OnboardingPage() {
 
         {step === "target" && (
           <fieldset>
-            <legend className="text-2xl font-extrabold">Target baca harian ⏱️</legend>
+            <legend className="text-2xl font-bold">Target baca harian ⏱️</legend>
             <p className="mt-2 text-muted">
               Minimal {minTarget} menit sehari. Mulai dari yang realistis!
             </p>
@@ -185,7 +185,7 @@ export default function OnboardingPage() {
                       : "border-border bg-surface hover:bg-surface-muted"
                   }`}
                 >
-                  <span className="block text-2xl font-extrabold">{minutes}</span>
+                  <span className="block text-2xl font-bold">{minutes}</span>
                   <span className="text-xs font-semibold opacity-80">menit</span>
                 </button>
               ))}

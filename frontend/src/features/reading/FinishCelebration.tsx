@@ -28,7 +28,7 @@ export function FinishCelebration({ result }: { result: FinishResult }) {
         <p className="text-5xl" aria-hidden>
           🏆
         </p>
-        <h1 className="mt-3 text-3xl font-extrabold">Sesi selesai!</h1>
+        <h1 className="mt-3 text-3xl font-bold">Sesi selesai!</h1>
         <p className="mt-2 text-muted">
           Kamu membaca{" "}
           <strong className="text-foreground">{formatDuration(session.active_seconds)}</strong>{" "}
@@ -38,7 +38,7 @@ export function FinishCelebration({ result }: { result: FinishResult }) {
 
       <section className="animate-pop-in rounded-3xl bg-primary p-5 text-primary-foreground shadow-xl shadow-primary/25">
         <p className="text-sm font-semibold opacity-80">Poin didapat</p>
-        <p className="text-5xl font-extrabold tabular-nums" aria-live="polite">
+        <p className="text-5xl font-bold tabular-nums" aria-live="polite">
           +<CountUp to={points.total_awarded} />
         </p>
         {points.awarded.length > 0 ? (
@@ -62,7 +62,7 @@ export function FinishCelebration({ result }: { result: FinishResult }) {
 
       {result.badges.length > 0 && (
         <section className="animate-pop-in rounded-3xl border-2 border-accent bg-accent/10 p-4">
-          <p className="font-extrabold">Badge baru! 🏅</p>
+          <p className="font-bold">Badge baru! 🏅</p>
           <ul className="mt-2 flex flex-wrap gap-2">
             {result.badges.map((b) => (
               <li key={b.id} className="flex items-center gap-2 rounded-full bg-surface px-3 py-1.5 text-sm font-bold">
@@ -78,7 +78,7 @@ export function FinishCelebration({ result }: { result: FinishResult }) {
 
       {result.quests_completed.length > 0 && (
         <section className="animate-pop-in rounded-3xl border-2 border-success/50 bg-success/10 p-4">
-          <p className="font-extrabold">Quest selesai! 🎯</p>
+          <p className="font-bold">Quest selesai! 🎯</p>
           <ul className="mt-1 text-sm">
             {result.quests_completed.map((q) => (
               <li key={q.id}>
@@ -94,7 +94,7 @@ export function FinishCelebration({ result }: { result: FinishResult }) {
           <p className="text-3xl" aria-hidden>
             🆙
           </p>
-          <p className="mt-1 font-extrabold">Naik level!</p>
+          <p className="mt-1 font-bold">Naik level!</p>
           <p className="text-sm text-muted">
             Sekarang kamu <strong className="text-foreground">{points.level.title}</strong>
           </p>
@@ -106,7 +106,7 @@ export function FinishCelebration({ result }: { result: FinishResult }) {
           <p className="streak-flame text-3xl" aria-hidden>
             🔥
           </p>
-          <p className="mt-1 text-2xl font-extrabold">{points.streak.current} hari</p>
+          <p className="mt-1 text-2xl font-bold">{points.streak.current} hari</p>
           <p className="text-xs text-muted">
             {points.streak.milestone
               ? `Bonus streak ${points.streak.milestone} hari!`
@@ -117,7 +117,7 @@ export function FinishCelebration({ result }: { result: FinishResult }) {
           <p className="text-3xl" aria-hidden>
             💎
           </p>
-          <p className="mt-1 text-2xl font-extrabold">{points.points_total}</p>
+          <p className="mt-1 text-2xl font-bold">{points.points_total}</p>
           <p className="text-xs text-muted">Total poin</p>
         </div>
       </div>

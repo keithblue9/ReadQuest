@@ -167,7 +167,7 @@ export function BackgroundsCard({ config, onSaved }: { config: UiConfig; onSaved
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-extrabold tracking-wide text-muted uppercase">Pratinjau desktop</p>
+          <p className="text-xs font-bold tracking-wide text-muted uppercase">Pratinjau desktop</p>
           <div className="relative aspect-video overflow-hidden rounded-2xl border border-border">
             <Slideshow
               slides={draft.backgrounds}

@@ -98,7 +98,7 @@ export function CommentThread({ postId, onCountChange }: Props) {
     const parent = comment.parent_id ? byId.get(comment.parent_id) : null;
     return (
       <li key={comment.id} className={`flex gap-3 ${isReply ? "ml-10" : ""}`}>
-        <Avatar name={comment.author.name || "?"} url={comment.author.avatar_url} />
+        <Avatar name={comment.author.name || "?"} url={comment.author.avatar_url} size="sm" userId={comment.deleted ? undefined : comment.author.id} />
         <div className="min-w-0 flex-1">
           <div className="rounded-2xl bg-surface-muted px-3 py-2">
             <p className="text-sm font-bold">
@@ -143,7 +143,7 @@ export function CommentThread({ postId, onCountChange }: Props) {
 
   return (
     <section className="flex flex-col gap-4" aria-label="Komentar">
-      <h2 className="text-lg font-extrabold">Komentar</h2>
+      <h2 className="text-[15px] font-semibold">Komentar</h2>
       {comments === null ? (
         <p className="text-sm text-muted">Memuat komentar…</p>
       ) : threads.length === 0 ? (
@@ -159,7 +159,7 @@ export function CommentThread({ postId, onCountChange }: Props) {
         </ul>
       )}
 
-      <div className="sticky bottom-24 z-10 flex flex-col gap-2 rounded-3xl border border-border bg-surface p-3 shadow-lg">
+      <div className="sticky bottom-24 z-10 flex flex-col gap-2 rounded-xl border border-border bg-surface p-3 shadow-lg lg:bottom-4">
         {replyTo && (
           <p className="flex items-center justify-between text-xs font-semibold text-muted">
             Membalas {replyTo.author.name}

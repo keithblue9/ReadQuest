@@ -15,7 +15,7 @@ export default function ErrorPage({ error, retry }: { error: Error & { digest?: 
       <span className="text-6xl" aria-hidden>
         🫣
       </span>
-      <h1 className="text-2xl font-extrabold">Ups, ada yang tidak beres</h1>
+      <h1 className="text-2xl font-bold">Ups, ada yang tidak beres</h1>
       <p className="text-muted">Halaman ini gagal dimuat. Coba lagi, atau kembali ke beranda.</p>
       {error.digest && <p className="text-xs text-muted">Kode: {error.digest}</p>}
       <div className="flex gap-2">

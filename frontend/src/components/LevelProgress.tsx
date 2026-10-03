@@ -7,7 +7,7 @@ export function LevelProgress({ level, points }: { level: Level | null; points: 
   return (
     <div>
       <div className="flex items-baseline justify-between text-sm">
-        <span className="font-extrabold">
+        <span className="font-bold">
           Lv. {level.level} · {level.title}
         </span>
         <span className="text-xs font-semibold text-muted">

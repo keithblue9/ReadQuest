@@ -3,10 +3,10 @@
 // Menggantikan root layout saat layout itu sendiri gagal; CSS global tidak dimuat, jadi gaya ditulis di sini.
 const CSS = `
   body { margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: 24px;
-    font-family: system-ui, sans-serif; text-align: center; background: #fff8f0; color: #1f1b2e; }
+    font-family: system-ui, sans-serif; text-align: center; background: #f0f2f5; color: #1c1e21; }
   p.muted { color: #6b6480; }
   button { margin-top: 8px; border: 0; border-radius: 16px; padding: 12px 28px; font: 700 16px system-ui, sans-serif;
-    background: #6c4df6; color: #fff; cursor: pointer; }
+    background: #2563eb; color: #fff; cursor: pointer; }
   @media (prefers-color-scheme: dark) {
     body { background: #14111f; color: #f5f3ff; }
     p.muted { color: #a39cb8; }

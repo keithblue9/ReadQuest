@@ -9,6 +9,10 @@ export type Me = {
   function_id: string | null;
   interests: string[];
   daily_target_minutes: number;
+  target_mode: TargetMode;
+  weekly_target_minutes: number;
+  headline: string;
+  favorite_book_ids: string[];
   timezone: string;
   onboarding_completed: boolean;
   level: Level | null;
@@ -19,6 +23,8 @@ export type Me = {
     current_streak: number;
   };
 };
+
+export type TargetMode = "daily" | "weekly";
 
 export type TokenResponse = {
   access_token: string;
@@ -55,17 +61,20 @@ export type Book = {
   created_at: string;
 };
 
-export type NoteType = "quick_note" | "chapter_story" | "book_review";
+export type NoteType = "quick_note" | "chapter_story" | "book_review" | "takeaway";
+export type TakeawayKind = "insight" | "action" | "quote";
 
 export type Post = {
   id: string;
-  type: NoteType | "progress_photo" | "discussion";
+  type: NoteType | "progress_photo" | "discussion" | "quote";
   content: string;
   word_count: number;
   image_urls: string[];
   rating: number | null;
   page_progress: { current_page: number | null; total_pages: number | null } | null;
   is_book_finished: boolean;
+  takeaway_kind: TakeawayKind | null;
+  quote: { text: string; page: number | null } | null;
   topics: string[];
   author: { id: string; name: string; avatar_url: string | null; function_id: string | null };
   book: { id: string; title: string; authors: string[]; category_id: string | null };
@@ -75,12 +84,13 @@ export type Post = {
   created_at: string;
 };
 
-export type ReactionType = "like" | "insightful" | "inspiring";
+export type ReactionType = "like" | "insightful" | "inspiring" | "want_to_read";
 
 export type PostCounts = {
   like: number;
   insightful: number;
   inspiring: number;
+  want_to_read: number;
   comments: number;
   bookmarks: number;
 };
@@ -111,6 +121,7 @@ export type ReadingSession = {
   id: string;
   book: { id: string; title: string; authors: string[]; cover_url: string | null };
   status: "active" | "paused" | "completed" | "abandoned";
+  mode: SessionMode;
   active_seconds: number;
   min_seconds: number;
   started_at: string;
@@ -120,8 +131,11 @@ export type ReadingSession = {
   post_id: string | null;
 };
 
+export type SessionMode = "standard" | "micro";
+
 export type SessionConfig = {
   min_seconds: number;
+  micro_min_seconds: number;
   idle_timeout_seconds: number;
   heartbeat_interval_seconds: number;
   note_min_words: Record<NoteType, number>;
@@ -133,6 +147,8 @@ export type Today = {
   local_date: string;
   full_points_done: boolean;
   active_session: ReadingSession | null;
+  minutes_today: number;
+  min_minutes: number;
 };
 
 export type Level = {
@@ -162,6 +178,8 @@ export type PointsSummary = {
     last_read_date: string | null;
     read_today: boolean;
     next_milestone: number | null;
+    freezes_per_month: number;
+    freezes_left: number;
   };
 };
 
@@ -324,6 +342,8 @@ export type NotificationPreferences = {
   types: Record<string, ChannelPrefs>;
   quiet_hours: { enabled: boolean; start: string; end: string };
   reminder_time: string;
+  smart_reminder: boolean;
+  smart_reminder_time: string | null;
   digest_time: string;
   frequency: "realtime" | "batched" | "daily_digest";
 };
@@ -355,4 +375,67 @@ export type TeamDashboard = {
   }[];
   recent_posts: { post_id: string; author: string; type: string; book_title: string | null; created_at: string }[];
   me: { rank_week: number | null; readers_week: number; minutes_week: number; daily: { date: string; minutes: number }[] };
+};
+
+export type Progress = {
+  target_mode: TargetMode;
+  daily_target_minutes: number;
+  weekly_target_minutes: number;
+  today: string;
+  today_minutes: number;
+  week_minutes: number;
+  week_start: string;
+  week_end: string;
+  daily_met: boolean;
+  weekly_met: boolean;
+  days: { date: string; minutes: number }[];
+};
+
+export type ShelfStatus = "reading" | "want" | "finished";
+export type ShelfBook = { id: string; title: string; authors: string[]; cover_url: string | null };
+export type Shelf = {
+  items: { book: ShelfBook; status: ShelfStatus; updated_at: string }[];
+  counts: Record<ShelfStatus, number>;
+};
+
+export type PublicProfile = {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  headline: string;
+  function: string | null;
+  role: string | null;
+  joined_at: string | null;
+  level: Level | null;
+  stats: {
+    points_total: number;
+    books_finished: number;
+    posts_count: number;
+    current_streak: number;
+    longest_streak: number;
+    reading_minutes: number;
+  };
+  badges: { id: string; name: string; icon: string; description: string; awarded_at: string }[];
+  favorite_books: ShelfBook[];
+  currently_reading: ShelfBook[];
+  shelf_counts: Record<ShelfStatus, number>;
+  is_me: boolean;
+};
+
+export type ParticipationPoint = {
+  week: string;
+  members: number;
+  readers: number;
+  rate: number;
+  minutes: number;
+  avg_minutes_per_member: number;
+};
+
+export type ParticipationReport = {
+  weeks: string[];
+  start: string;
+  end: string;
+  min_group_size: number;
+  functions: { function: string; members: number; series: ParticipationPoint[] }[];
+  overall: ParticipationPoint[];
 };
