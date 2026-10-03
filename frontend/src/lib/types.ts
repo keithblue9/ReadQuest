@@ -327,3 +327,32 @@ export type NotificationPreferences = {
   digest_time: string;
   frequency: "realtime" | "batched" | "daily_digest";
 };
+
+export type TeamDashboard = {
+  today: string;
+  team: {
+    members: number;
+    new_members_week: number;
+    reading_now: number;
+    readers_today: number;
+    minutes_today: number;
+    readers_week: number;
+    minutes_week: number;
+    participation_week: number;
+    notes_week: number;
+    books_finished_week: number;
+  };
+  daily: { date: string; minutes: number; readers: number }[];
+  by_function: { function: string; members: number; readers: number; rate: number }[];
+  top_readers: { user_id: string; name: string; avatar_url: string | null; function: string | null; minutes: number }[];
+  popular_books: {
+    book_id: string;
+    title: string;
+    authors: string[];
+    cover_url: string | null;
+    readers: number;
+    minutes: number;
+  }[];
+  recent_posts: { post_id: string; author: string; type: string; book_title: string | null; created_at: string }[];
+  me: { rank_week: number | null; readers_week: number; minutes_week: number; daily: { date: string; minutes: number }[] };
+};

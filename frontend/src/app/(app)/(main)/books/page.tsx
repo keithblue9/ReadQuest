@@ -31,7 +31,7 @@ export default function BooksPage() {
         <h1 className="text-2xl font-extrabold">Katalog Buku 📚</h1>
         <p className="mt-1 text-muted">Satu buku, satu ruang diskusi bersama tim.</p>
       </div>
-      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Kategori">
+      <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1 lg:mx-0 lg:flex-wrap lg:px-0" role="group" aria-label="Kategori">
         <button
           type="button"
           aria-pressed={categoryId === null}
@@ -62,6 +62,7 @@ export default function BooksPage() {
         categoryId={categoryId}
         onSelect={(book) => router.push(`/books/${book.id}`)}
         onCreateNew={(title) => setAdding(title)}
+        catalog
       />
     </div>
   );

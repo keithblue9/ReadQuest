@@ -32,7 +32,7 @@ export const DEFAULT_TEXTS = {
   "auth.footer": "© {year} {app}",
 
   // Menu navigasi
-  "nav.dashboard": "Beranda",
+  "nav.dashboard": "Dashboard",
   "nav.read": "Baca",
   "nav.feed": "Feed",
   "nav.books": "Katalog",
@@ -44,6 +44,8 @@ export const DEFAULT_TEXTS = {
   "nav.profile": "Profil",
   "nav.admin": "Admin",
   "nav.main_label": "Navigasi utama",
+  "nav.more": "Lainnya",
+  "nav.start_reading": "Mulai membaca",
 
   // Umum
   "common.feature_off_title": "Fitur ini sedang dimatikan",
