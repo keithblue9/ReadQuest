@@ -39,7 +39,9 @@ async def overview(db: AsyncDatabase, user: dict) -> BuddiesOut:
                 pair_id=pair["_id"],
                 user=_mini(other),
                 read_today=(streak or {}).get("last_read_date") == today,
-                streak=streak_service.effective_current(streak, today),
+                streak=streak_service.effective_current(
+                    streak, today, await streak_service.allowance(db)
+                ),
                 since=pair.get("accepted_at"),
             )
     pending = await _col(db).find({"user_ids": user["_id"], "status": "pending"}).to_list()

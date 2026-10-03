@@ -58,6 +58,18 @@ async def has_full_points_on(db: AsyncDatabase, user_id: ObjectId, local_date: s
     return found is not None
 
 
+async def completed_seconds_on(db: AsyncDatabase, user_id: ObjectId, local_date: str) -> int:
+    rows = await (
+        await _col(db).aggregate(
+            [
+                {"$match": {"user_id": user_id, "local_date": local_date, "status": "completed"}},
+                {"$group": {"_id": None, "s": {"$sum": "$active_seconds"}}},
+            ]
+        )
+    ).to_list()
+    return int(rows[0]["s"]) if rows else 0
+
+
 async def has_completed_book(db: AsyncDatabase, user_id: ObjectId, book_id: ObjectId) -> bool:
     found = await _col(db).find_one(
         {"user_id": user_id, "book_id": book_id, "status": "completed"}, {"_id": 1}

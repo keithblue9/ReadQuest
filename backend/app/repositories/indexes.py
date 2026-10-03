@@ -95,6 +95,10 @@ INDEXES: dict[str, list[IndexModel]] = {
         IndexModel([("author_id", ASC), ("content_hash", ASC)]),
         IndexModel([("moderation.status", ASC), ("updated_at", DESC)]),
     ],
+    "shelves": [
+        IndexModel([("user_id", ASC), ("book_id", ASC)], unique=True),
+        IndexModel([("user_id", ASC), ("status", ASC), ("updated_at", DESC)]),
+    ],
     "bookmarks": [
         IndexModel([("user_id", ASC), ("post_id", ASC)], unique=True),
         IndexModel([("user_id", ASC), ("created_at", DESC)]),

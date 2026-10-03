@@ -23,8 +23,9 @@ from app.schemas.leaderboard import (
     MyRankOut,
 )
 from app.schemas.posts import UserMiniOut
+from app.services.note_validation import NOTE_TYPES as ALL_NOTE_TYPES
 
-NOTE_TYPES = ["quick_note", "chapter_story", "book_review"]
+NOTE_TYPES = list(ALL_NOTE_TYPES)
 USER_CATEGORIES = ["top_storyteller", "streak_master", "book_finisher", "most_inspiring"]
 TOP_N = 50
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"]

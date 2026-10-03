@@ -32,13 +32,14 @@ async def seed(db: AsyncDatabase) -> dict[str, int]:
     async def count(collection: str, inserted: bool) -> None:
         created[collection] = created.get(collection, 0) + int(inserted)
 
+    new_permissions: list[str] = []
     for code, group, description in data.PERMISSIONS:
-        await count(
-            "permissions",
-            await _upsert(
-                db, "permissions", {"code": code}, {"group": group, "description": description}
-            ),
+        inserted = await _upsert(
+            db, "permissions", {"code": code}, {"group": group, "description": description}
         )
+        await count("permissions", inserted)
+        if inserted:
+            new_permissions.append(code)
     # Permission yang sudah dihapus dari katalog (mis. `invites.manage`) dibersihkan dari role.
     known = [c for c, _, _ in data.PERMISSIONS]
     await db["permissions"].delete_many({"code": {"$nin": known}})
@@ -48,11 +49,18 @@ async def seed(db: AsyncDatabase) -> dict[str, int]:
         await count(
             "roles", await _upsert(db, "roles", {"code": role["code"]}, {**doc, "is_system": True})
         )
-    # Permission baru selalu ditambahkan ke Admin; role lain tidak diubah (pilihan Admin dijaga).
+    # Permission baru selalu ditambahkan ke Admin. Role bawaan lain hanya mendapat permission
+    # yang baru muncul di katalog (sekali), sehingga pilihan Admin sesudahnya tetap dijaga.
     await db["roles"].update_one(
         {"code": "admin"},
         {"$addToSet": {"permission_codes": {"$each": [c for c, _, _ in data.PERMISSIONS]}}},
     )
+    for role in data.ROLES:
+        fresh = [c for c in role["permission_codes"] if c in new_permissions]
+        if fresh and role["code"] != "admin":
+            await db["roles"].update_one(
+                {"code": role["code"]}, {"$addToSet": {"permission_codes": {"$each": fresh}}}
+            )
     for rule in data.POINT_RULES:
         doc = {k: v for k, v in rule.items() if k != "code"}
         doc.setdefault("daily_cap_points", None)

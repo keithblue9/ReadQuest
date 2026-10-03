@@ -91,6 +91,10 @@ async def test_branding_validation(client):
         return await client.put("/api/v1/admin/ui/branding", json={"value": value}, headers=admin)
 
     assert (await put({"app_name": "", "logo_emoji": "📚"})).status_code == 422
+    bad_color = await put({"app_name": "A", "logo_emoji": "📚", "primary_color": "blue"})
+    assert bad_color.status_code == 422
+    ok = await put({"app_name": "A", "logo_emoji": "📚", "primary_color": "#0F766E"})
+    assert ok.json()["branding"]["primary_color"] == "#0f766e"
     assert (await put({"app_name": "A" * 41, "logo_emoji": "📚"})).status_code == 422
     assert (
         await put({"app_name": "A", "logo_emoji": "📚", "logo_key": "photos/x/../y.jpg"})

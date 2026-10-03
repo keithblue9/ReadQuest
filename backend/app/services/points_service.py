@@ -206,7 +206,8 @@ async def summary(db: AsyncDatabase, user: dict) -> PointsSummaryOut:
     total = int((user.get("stats") or {}).get("points_total", 0))
     level, upcoming = await level_for(db, total)
     streak = await streak_service.get(db, user["_id"])
-    current = streak_service.effective_current(streak, today)
+    per_month = await streak_service.allowance(db)
+    current = streak_service.effective_current(streak, today, per_month)
     next_milestone = next((m for m in streak_service.MILESTONES if m > current), None)
     return PointsSummaryOut(
         points_total=total,
@@ -218,6 +219,8 @@ async def summary(db: AsyncDatabase, user: dict) -> PointsSummaryOut:
             last_read_date=(streak or {}).get("last_read_date"),
             read_today=(streak or {}).get("last_read_date") == today,
             next_milestone=next_milestone,
+            freezes_per_month=per_month,
+            freezes_left=streak_service.freezes_left(streak, today, per_month),
         ),
     )
 

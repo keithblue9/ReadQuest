@@ -17,6 +17,7 @@ from app.schemas.posts import (
     DiscussionIn,
     PostCountsOut,
     PostOut,
+    QuoteIn,
     ReactionStateOut,
 )
 from app.services import (
@@ -26,6 +27,7 @@ from app.services import (
     points_service,
     post_service,
     quest_service,
+    shelf_service,
 )
 from app.services.note_validation import content_hash, tokenize
 from app.services.upload_service import owns_key
@@ -82,6 +84,8 @@ async def react(db: AsyncDatabase, user: dict, post_id: ObjectId, type_: str) ->
 
     if previous != type_:
         await leaderboard_cache.invalidate_open(db)
+    if type_ == "want_to_read":
+        await shelf_service.set_status(db, user["_id"], post["book_id"], "want", automatic=True)
     if post["author_id"] != user["_id"]:
         reaction = await db["reactions"].find_one({"post_id": post_id, "user_id": user["_id"]})
         author = await db["users"].find_one({"_id": post["author_id"]})
@@ -352,21 +356,87 @@ async def delete_comment(
     await db["posts"].update_one({"_id": post_id}, {"$inc": {"counts.comments": -1}})
 
 
-# ---------- Posting diskusi buku ----------
+# ---------- Posting diskusi buku & kutipan ----------
+
+
+EMPTY_COUNTS = {
+    "like": 0,
+    "insightful": 0,
+    "inspiring": 0,
+    "want_to_read": 0,
+    "comments": 0,
+    "bookmarks": 0,
+}
 
 
 async def create_discussion(
     db: AsyncDatabase, user: dict, book_id: ObjectId, data: DiscussionIn
 ) -> PostOut:
-    book = await books.get(db, book_id)
-    if book is None:
-        raise AppError(404, "book_not_found", "Buku tidak ditemukan")
     tokens = tokenize(data.content)
     if len(tokens) < DISCUSSION_MIN_WORDS:
         raise AppError(422, "discussion_too_short", f"Tulis minimal {DISCUSSION_MIN_WORDS} kata")
-    if any(not owns_key(user["_id"], k) for k in data.image_keys):
+    post = await _insert_book_post(
+        db,
+        user,
+        book_id,
+        type_="discussion",
+        content=data.content,
+        tokens=tokens,
+        image_keys=data.image_keys,
+        mention_ids=data.mention_ids,
+    )
+    return (await post_service.enrich(db, [post], user["_id"]))[0]
+
+
+async def create_quote(db: AsyncDatabase, user: dict, book_id: ObjectId, data: QuoteIn) -> PostOut:
+    """Kutipan favorit dari buku (+ refleksi opsional); bisa dibagikan sebagai kartu gambar."""
+    text = data.text.strip().strip('"“”')
+    reflection = data.reflection.strip()
+    tokens = tokenize(f"{text} {reflection}")
+    if len(tokenize(text)) < 2:
+        raise AppError(422, "quote_too_short", "Kutipan terlalu pendek")
+    post = await _insert_book_post(
+        db,
+        user,
+        book_id,
+        type_="quote",
+        content=reflection or text,
+        tokens=tokens,
+        image_keys=[],
+        mention_ids=data.mention_ids,
+        extra={"quote": {"text": text, "page": data.page}},
+    )
+    award = await points_service.award(
+        db,
+        user=user,
+        rule_code="quote_shared",
+        source_type="post",
+        source_id=post["_id"],
+        local_date=_local_date(user),
+    )
+    if award:
+        await badge_service.evaluate(db, user)
+    return (await post_service.enrich(db, [post], user["_id"]))[0]
+
+
+async def _insert_book_post(
+    db: AsyncDatabase,
+    user: dict,
+    book_id: ObjectId,
+    *,
+    type_: str,
+    content: str,
+    tokens: list[str],
+    image_keys: list[str],
+    mention_ids: list[ObjectId],
+    extra: dict | None = None,
+) -> dict:
+    book = await books.get(db, book_id)
+    if book is None:
+        raise AppError(404, "book_not_found", "Buku tidak ditemukan")
+    if any(not owns_key(user["_id"], k) for k in image_keys):
         raise AppError(422, "invalid_image", "Foto tidak valid, unggah ulang fotonya")
-    mentions = await validate_mentions(db, data.mention_ids)
+    mentions = await validate_mentions(db, mention_ids)
     digest = content_hash(tokens)
     if await posts.exists_with_hash(db, user["_id"], digest):
         raise AppError(422, "duplicate_post", "Kamu sudah pernah mengirim tulisan yang sama")
@@ -387,24 +457,25 @@ async def create_discussion(
             "authors": book["authors"],
             "category_id": book["category_id"],
         },
-        "type": "discussion",
-        "content": data.content.strip(),
+        "type": type_,
+        "content": content.strip(),
         "word_count": len(tokens),
         "content_hash": digest,
-        "image_keys": data.image_keys,
+        "image_keys": image_keys,
         "rating": None,
         "page_progress": None,
         "is_book_finished": False,
         "topics": [category["code"]] if category else [],
         "mentions": mentions,
-        "counts": {"like": 0, "insightful": 0, "inspiring": 0, "comments": 0, "bookmarks": 0},
+        "counts": dict(EMPTY_COUNTS),
         "visibility": "team",
         "moderation": {"status": "visible", "by": None, "reason": None, "at": None},
         "deleted_at": None,
         "created_at": now,
         "updated_at": now,
+        **(extra or {}),
     }
     post["_id"] = await posts.insert(db, post)
     await books.update(db, book_id, {"$inc": {"stats.posts_count": 1}})
     await notify_mentions(db, user, mentions, post["content"], f"/posts/{post['_id']}")
-    return (await post_service.enrich(db, [post], user["_id"]))[0]
+    return post

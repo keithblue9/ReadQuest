@@ -1,8 +1,10 @@
 from typing import Annotated
 
+import anyio
 from fastapi import APIRouter, Depends, Query, Request, Response, status
 
 from app.api.deps import CurrentUser, Db, require_permission
+from app.core.errors import AppError
 from app.schemas.authenticity import AuthenticityOut, AuthenticityTeamOut
 from app.schemas.common import PyObjectId
 from app.schemas.gamification import BadgeOut, BookOfMonthOut, BuddiesOut, QuestOut
@@ -13,6 +15,8 @@ from app.services import (
     book_of_month_service,
     buddy_service,
     quest_service,
+    share_card,
+    ui_config_service,
 )
 
 router = APIRouter(tags=["gamification"])
@@ -45,6 +49,24 @@ async def team_authenticity(
 async def my_badges(db: Db, user: CurrentUser) -> list[BadgeOut]:
     await badge_service.evaluate(db, user)
     return await badge_service.list_for(db, user)
+
+
+@router.get("/me/badges/{badge_id}/card.png", include_in_schema=False)
+async def my_badge_card(badge_id: PyObjectId, db: Db, user: CurrentUser) -> Response:
+    """Kartu sertifikat badge (PNG) untuk dibagikan, mis. ke LinkedIn."""
+    earned = await db["user_badges"].find_one({"user_id": user["_id"], "badge_id": badge_id})
+    badge = await db["badges"].find_one({"_id": badge_id}) if earned else None
+    if badge is None:
+        raise AppError(404, "badge_not_found", "Badge belum kamu dapatkan")
+    branding = await ui_config_service.branding(db)
+    png = await anyio.to_thread.run_sync(
+        lambda: share_card.render_badge(
+            holder=user["name"], badge=badge, awarded_at=earned["awarded_at"], branding=branding
+        )
+    )
+    return Response(
+        content=png, media_type="image/png", headers={"Cache-Control": "private, max-age=3600"}
+    )
 
 
 @router.get("/quests", response_model=list[QuestOut])

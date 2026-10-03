@@ -122,14 +122,26 @@ async def test_streak_grows_daily_resets_and_awards_milestone(client, fake_clock
     assert summary["streak"]["read_today"] is False
     assert summary["streak"]["next_milestone"] == 14
 
-    # Lewat satu hari → streak putus, mulai lagi dari 1 tanpa bonus.
+    # Lewat satu hari → streak dijaga oleh freeze (jatah 2/bulan), lalu berlanjut saat membaca.
     fake_clock.advance(days=1)
+    me = (await client.get("/api/v1/me", headers=headers)).json()
+    assert me["stats"]["current_streak"] == 7
+    frozen = (await client.get("/api/v1/me/points", headers=headers)).json()["streak"]
+    assert frozen["freezes_per_month"] == 2
+    assert frozen["freezes_left"] in (1, 2)  # 2 bila hari beku jatuh di bulan sebelumnya
+    resumed = await _session(
+        client, headers, fake_clock, book["id"], content=_story("lanjut"), note_type="chapter_story"
+    )
+    assert resumed["points"]["streak"] == {"current": 8, "longest": 8, "milestone": None}
+
+    # Enam hari terlewat melebihi jatah freeze bulan mana pun → streak putus, mulai dari 1.
+    fake_clock.advance(days=7)
     me = (await client.get("/api/v1/me", headers=headers)).json()
     assert me["stats"]["current_streak"] == 0
     restarted = await _session(
         client, headers, fake_clock, book["id"], content=_story("baru"), note_type="chapter_story"
     )
-    assert restarted["points"]["streak"] == {"current": 1, "longest": 7, "milestone": None}
+    assert restarted["points"]["streak"] == {"current": 1, "longest": 8, "milestone": None}
 
 
 async def test_ledger_is_idempotent_and_reconcilable(client, fake_clock, database):

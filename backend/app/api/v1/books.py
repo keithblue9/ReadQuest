@@ -3,10 +3,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Response, status
 
 from app.api.deps import CurrentUser, Db, require_permission
+from app.core.rate_limit import rate_limiter
 from app.repositories import books, catalog
 from app.schemas.books import BookCreateIn, BookOut
 from app.schemas.common import PyObjectId
-from app.schemas.posts import DiscussionIn, PostOut, PostPageOut
+from app.schemas.posts import DiscussionIn, PostOut, PostPageOut, QuoteIn
 from app.services import book_service, post_service, social_service
 
 router = APIRouter(prefix="/books", tags=["books"])
@@ -65,3 +66,14 @@ async def create_discussion(
     user: Annotated[dict, Depends(require_permission("post.create"))],
 ) -> PostOut:
     return await social_service.create_discussion(db, user, book_id, data)
+
+
+@router.post("/{book_id}/quotes", response_model=PostOut, status_code=status.HTTP_201_CREATED)
+async def create_quote(
+    book_id: PyObjectId,
+    data: QuoteIn,
+    db: Db,
+    user: Annotated[dict, Depends(require_permission("post.create"))],
+) -> PostOut:
+    rate_limiter.hit(f"quote:{user['_id']}", limit=20, window_seconds=3600)
+    return await social_service.create_quote(db, user, book_id, data)

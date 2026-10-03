@@ -14,8 +14,9 @@ from app.core import clock, media
 from app.repositories import catalog
 from app.repositories.posts import VISIBLE
 from app.repositories.sessions import OPEN_STATUSES
+from app.services.note_validation import NOTE_TYPES as ALL_NOTE_TYPES
 
-NOTE_TYPES = ["quick_note", "chapter_story", "book_review"]
+NOTE_TYPES = list(ALL_NOTE_TYPES)
 DAYS = 14  # panjang grafik harian
 WEEK = 7
 TOP_READERS = 5

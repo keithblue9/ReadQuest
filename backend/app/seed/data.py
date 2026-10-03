@@ -24,6 +24,11 @@ PERMISSIONS: list[tuple[str, str, str]] = [
     ("config.settings.manage", "config", "Kelola pengaturan aplikasi & threshold"),
     ("config.appearance.manage", "config", "Kelola tampilan: branding, background, fitur, teks"),
     ("audit.view", "admin", "Melihat audit log"),
+    (
+        "reports.view",
+        "reports",
+        "Melihat laporan partisipasi per divisi (agregat, tanpa data pribadi)",
+    ),
     ("users.manage", "admin", "Kelola pengguna (role, fungsi, status)"),
 ]
 
@@ -48,7 +53,7 @@ ROLES: list[dict] = [
         "code": "team_lead",
         "name": "Team Lead",
         "description": "Pemimpin fungsi/bagian",
-        "permission_codes": [*_MEMBER, "authenticity.view_team"],
+        "permission_codes": [*_MEMBER, "authenticity.view_team", "reports.view"],
     },
     {
         "code": "admin",
@@ -89,6 +94,15 @@ POINT_RULES: list[dict] = [
     },
     # Nilai diambil dari quest masing-masing (reward.points); entri ini hanya nama di riwayat.
     {"code": "quest_reward", "name": "Hadiah quest", "points": 0, "daily_cap_count": None},
+    # Sesi kilat (mis. 5 menit) yang belum mencapai syarat harian: poin kecil bertahap.
+    {"code": "micro_session", "name": "Sesi baca kilat", "points": 3, "daily_cap_count": 3},
+    {
+        "code": "weekly_target",
+        "name": "Target mingguan tercapai",
+        "points": 50,
+        "daily_cap_count": None,
+    },
+    {"code": "quote_shared", "name": "Membagikan kutipan", "points": 5, "daily_cap_count": 2},
 ]
 
 # criteria.type = metrik di app/services/user_stats.py
@@ -155,6 +169,34 @@ BADGES: list[dict] = [
         "icon": "💬",
         "description": "Memberi 10 komentar bermakna.",
         "criteria": {"type": "meaningful_comments_given", "gte": 10},
+    },
+    {
+        "code": "reader-30-days",
+        "name": "Pembaca 30 Hari",
+        "icon": "📅",
+        "description": "Membaca di 30 hari berbeda.",
+        "criteria": {"type": "reading_days", "gte": 30},
+    },
+    {
+        "code": "reading-mentor",
+        "name": "Mentor Bacaan",
+        "icon": "🎓",
+        "description": "Memberi 25 komentar bermakna yang membantu rekan.",
+        "criteria": {"type": "meaningful_comments_given", "gte": 25},
+    },
+    {
+        "code": "insight-contributor",
+        "name": "Kontributor Insight",
+        "icon": "💡",
+        "description": "Menerima 50 reaksi atas catatan.",
+        "criteria": {"type": "reactions_received", "gte": 50},
+    },
+    {
+        "code": "quote-curator",
+        "name": "Kurator Kutipan",
+        "icon": "❝",
+        "description": "Membagikan 10 kutipan buku.",
+        "criteria": {"type": "quotes_count", "gte": 10},
     },
     {
         "code": "marathon-600",
@@ -247,7 +289,7 @@ APP_SETTINGS: list[tuple[str, object, str]] = [
     ),
     (
         "note.min_words",
-        {"quick_note": 30, "chapter_story": 80, "book_review": 200},
+        {"quick_note": 30, "chapter_story": 80, "book_review": 200, "takeaway": 8},
         "Jumlah kata minimal per jenis catatan",
     ),
     ("note.min_unique_word_ratio", 0.4, "Rasio kata unik minimal"),
@@ -274,4 +316,16 @@ APP_SETTINGS: list[tuple[str, object, str]] = [
     ),
     ("auth.max_pin_attempts", 5, "Jumlah PIN salah berturut-turut sebelum akun dikunci"),
     ("auth.lockout_minutes", 15, "Lama akun terkunci setelah PIN salah berulang (menit)"),
+    ("session.micro_min_minutes", 5, "Durasi minimal sesi baca kilat (menit)"),
+    ("streak.freezes_per_month", 2, "Jatah hari libur streak (freeze) per bulan"),
+    (
+        "onboarding.default_weekly_target_minutes",
+        75,
+        "Target mingguan default bagi yang memilih target mingguan (menit)",
+    ),
+    (
+        "reports.min_group_size",
+        3,
+        "Fungsi dengan anggota lebih sedikit dari ini digabung di laporan divisi (privasi)",
+    ),
 ]

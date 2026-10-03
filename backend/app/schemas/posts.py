@@ -6,7 +6,8 @@ from pydantic import BaseModel, Field
 from app.schemas.common import PyObjectId
 from app.schemas.points import AwardOut
 
-ReactionType = Literal["like", "insightful", "inspiring"]
+# like = "Setuju", want_to_read = "Mau baca juga" (sekaligus menaruh buku di rak Ingin Dibaca).
+ReactionType = Literal["like", "insightful", "inspiring", "want_to_read"]
 
 
 class PostAuthorOut(BaseModel):
@@ -32,6 +33,7 @@ class PostCountsOut(BaseModel):
     like: int = 0
     insightful: int = 0
     inspiring: int = 0
+    want_to_read: int = 0
     comments: int = 0
     bookmarks: int = 0
 
@@ -47,6 +49,11 @@ class ViewerStateOut(BaseModel):
     bookmarked: bool = False
 
 
+class QuoteOut(BaseModel):
+    text: str
+    page: int | None = None
+
+
 class PostOut(BaseModel):
     id: PyObjectId
     type: str
@@ -56,6 +63,8 @@ class PostOut(BaseModel):
     rating: int | None
     page_progress: PageProgressOut | None
     is_book_finished: bool
+    takeaway_kind: str | None = None
+    quote: QuoteOut | None = None
     topics: list[str]
     author: PostAuthorOut
     book: PostBookOut
@@ -63,6 +72,13 @@ class PostOut(BaseModel):
     mentions: list[UserMiniOut] = []
     viewer: ViewerStateOut = ViewerStateOut()
     created_at: datetime
+
+
+class QuoteIn(BaseModel):
+    text: str = Field(min_length=5, max_length=600)
+    page: int | None = Field(default=None, ge=1, le=10000)
+    reflection: str = Field(default="", max_length=1000)
+    mention_ids: list[PyObjectId] = Field(default_factory=list, max_length=10)
 
 
 class PostPageOut(BaseModel):

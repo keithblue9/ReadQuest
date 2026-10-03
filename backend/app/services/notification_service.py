@@ -4,7 +4,7 @@ Alur: `notify()` membuat/menggabungkan dokumen `notifications` → push dikirim 
 `push_service.dispatch_due()` (dijalankan scheduler) saat `deliver_after` tercapai.
 """
 
-from datetime import datetime, time, timedelta
+from datetime import UTC, datetime, time, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -133,6 +133,7 @@ async def get_preferences(db: AsyncDatabase, user_id: ObjectId) -> PreferencesOu
     prefs.reminder_time = doc.get("reminder_time", prefs.reminder_time)
     prefs.digest_time = doc.get("digest_time", prefs.digest_time)
     prefs.frequency = doc.get("frequency", prefs.frequency)
+    prefs.smart_reminder = doc.get("smart_reminder", True)
     return prefs
 
 
@@ -150,12 +151,60 @@ async def save_preferences(
                 "reminder_time": data.reminder_time,
                 "digest_time": data.digest_time,
                 "frequency": data.frequency,
+                "smart_reminder": data.smart_reminder,
                 "updated_at": clock.now(),
             }
         },
         upsert=True,
     )
     return await get_preferences(db, user_id)
+
+
+# ---------- Pengingat cerdas ----------
+
+HABIT_LOOKBACK = timedelta(days=28)
+HABIT_MIN_SESSIONS = 3
+HABIT_LEAD_MINUTES = 30
+HABIT_EARLIEST = 6 * 60
+HABIT_LATEST = 22 * 60
+
+
+def habit_time_from(starts_local_minutes: list[int]) -> str | None:
+    """Median jam mulai baca − 30 menit, dibulatkan ke bawah per 15 menit (06:00–22:00)."""
+    if len(starts_local_minutes) < HABIT_MIN_SESSIONS:
+        return None
+    ordered = sorted(starts_local_minutes)
+    median = ordered[len(ordered) // 2]
+    minutes = max(HABIT_EARLIEST, min(HABIT_LATEST, median - HABIT_LEAD_MINUTES))
+    minutes -= minutes % 15
+    return f"{minutes // 60:02d}:{minutes % 60:02d}"
+
+
+async def habit_reminder_time(db: AsyncDatabase, user: dict) -> str | None:
+    """Jam pengingat dari kebiasaan baca 4 minggu terakhir; dihitung sekali per hari (cache di
+    dokumen user) karena job pengingat berjalan tiap menit."""
+    tz = ZoneInfo(user.get("timezone", "Asia/Jakarta"))
+    now = clock.now()
+    today = now.astimezone(tz).date().isoformat()
+    cached = user.get("reading_habit") or {}
+    if cached.get("date") == today:
+        return cached.get("time")
+    starts = [
+        s["started_at"].replace(tzinfo=UTC).astimezone(tz)
+        async for s in db["reading_sessions"].find(
+            {
+                "user_id": user["_id"],
+                "status": "completed",
+                "started_at": {"$gte": now - HABIT_LOOKBACK},
+            },
+            {"started_at": 1},
+        )
+    ]
+    habit = habit_time_from([s.hour * 60 + s.minute for s in starts])
+    await db["users"].update_one(
+        {"_id": user["_id"]}, {"$set": {"reading_habit": {"date": today, "time": habit}}}
+    )
+    return habit
 
 
 def _parse(hhmm: str) -> time:

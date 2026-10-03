@@ -26,11 +26,18 @@ MESSAGES = {
     "duplicate": "Catatan ini sama dengan catatan yang pernah kamu kirim.",
 }
 
+# Semua jenis catatan baca (posting dari sesi baca). "takeaway" = catatan kilat 1 menit.
+NOTE_TYPES = ("quick_note", "chapter_story", "book_review", "takeaway")
+
 NOTE_LABELS = {
     "quick_note": "Quick Note",
     "chapter_story": "Chapter Story",
     "book_review": "Book Review",
+    "takeaway": "Takeaway",
 }
+
+# Default kata minimal; nilai di `app_settings.note.min_words` menimpa per jenis.
+DEFAULT_MIN_WORDS = {"quick_note": 30, "chapter_story": 80, "book_review": 200, "takeaway": 8}
 
 
 @dataclass

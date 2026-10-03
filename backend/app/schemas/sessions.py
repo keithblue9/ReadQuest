@@ -8,11 +8,15 @@ from app.schemas.gamification import BadgeOut, QuestOut
 from app.schemas.points import PointsResultOut
 from app.schemas.posts import PostOut
 
-NoteType = Literal["quick_note", "chapter_story", "book_review"]
+NoteType = Literal["quick_note", "chapter_story", "book_review", "takeaway"]
+SessionMode = Literal["standard", "micro"]
+TakeawayKind = Literal["insight", "action", "quote"]
 
 
 class SessionStartIn(BaseModel):
     book_id: PyObjectId
+    # "micro" = sesi kilat (mis. 5 menit di jam istirahat); poinnya bertahap.
+    mode: SessionMode = "standard"
 
 
 class HeartbeatIn(BaseModel):
@@ -22,7 +26,9 @@ class HeartbeatIn(BaseModel):
 class FinishIn(BaseModel):
     note_type: NoteType
     content: str = Field(min_length=1, max_length=10000)
-    image_keys: list[str] = Field(min_length=1, max_length=4)
+    # Foto bukti baca wajib, kecuali Takeaway kilat (satu kalimat) agar cepat dikirim.
+    image_keys: list[str] = Field(default_factory=list, max_length=4)
+    takeaway_kind: TakeawayKind | None = None
     rating: int | None = Field(default=None, ge=1, le=5)
     current_page: int | None = Field(default=None, ge=0, le=10000)
     total_pages: int | None = Field(default=None, ge=1, le=10000)
@@ -34,6 +40,10 @@ class FinishIn(BaseModel):
     def _pages(self) -> "FinishIn":
         if self.current_page and self.total_pages and self.current_page > self.total_pages:
             raise ValueError("Halaman saat ini melebihi total halaman")
+        if not self.image_keys and self.note_type != "takeaway":
+            raise ValueError("Tambahkan minimal satu foto halaman yang dibaca")
+        if self.note_type != "takeaway":
+            self.takeaway_kind = None
         return self
 
 
@@ -48,6 +58,7 @@ class SessionOut(BaseModel):
     id: PyObjectId
     book: SessionBookOut
     status: str
+    mode: SessionMode = "standard"
     active_seconds: int
     min_seconds: int
     started_at: datetime
@@ -59,6 +70,7 @@ class SessionOut(BaseModel):
 
 class SessionConfigOut(BaseModel):
     min_seconds: int
+    micro_min_seconds: int
     idle_timeout_seconds: int
     heartbeat_interval_seconds: int
     note_min_words: dict[str, int]
@@ -70,6 +82,9 @@ class TodayOut(BaseModel):
     local_date: str
     full_points_done: bool
     active_session: SessionOut | None
+    # Menit sesi selesai hari ini (termasuk sesi kilat) menuju syarat poin penuh harian.
+    minutes_today: int = 0
+    min_minutes: int = 15
 
 
 class FinishOut(BaseModel):

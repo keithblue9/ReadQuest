@@ -303,4 +303,10 @@ async def test_session_config(client):
     headers = await onboarded_user(client)
     cfg = (await client.get("/api/v1/sessions/config", headers=headers)).json()
     assert cfg["min_seconds"] == 900
-    assert cfg["note_min_words"] == {"quick_note": 30, "chapter_story": 80, "book_review": 200}
+    assert cfg["note_min_words"] == {
+        "quick_note": 30,
+        "chapter_story": 80,
+        "book_review": 200,
+        "takeaway": 8,
+    }
+    assert cfg["micro_min_seconds"] == 300
