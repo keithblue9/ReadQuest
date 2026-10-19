@@ -137,7 +137,7 @@ export default function NotificationsPage() {
                 type="button"
                 onClick={() => open(n)}
                 className={`flex w-full items-start gap-3 rounded-2xl border p-3 text-left transition active:scale-[0.99] ${
-                  n.read ? "border-line bg-surface" : "border-ink/30 bg-highlight/25 dark:border-highlight/40 dark:bg-highlight/10"
+                  n.read ? "border-line bg-surface" : "border-line border-l-highlight bg-surface border-l-[6px] pl-2.5 shadow-[var(--shadow-card)]"
                 }`}
               >
                 <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-muted text-ink" aria-hidden>
@@ -147,7 +147,7 @@ export default function NotificationsPage() {
                   })()}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-semibold">{n.title}</span>
+                  <span className={`block ${n.read ? "font-medium" : "font-semibold"}`}>{n.title}</span>
                   {n.body && <span className="line-clamp-2 block text-sm text-muted">{n.body}</span>}
                   <span className="mt-0.5 block text-xs text-muted">{timeAgo(n.updated_at)}</span>
                 </span>

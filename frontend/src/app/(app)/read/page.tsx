@@ -202,7 +202,10 @@ function ReadFlow() {
 
 export default function ReadPage() {
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+    <main
+      id="main"
+      className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+    >
       <header className="mb-4 flex items-center gap-3">
         <Link
           href="/"
@@ -216,6 +219,6 @@ export default function ReadPage() {
       <Suspense fallback={<FullScreenSpinner />}>
         <ReadFlow />
       </Suspense>
-    </div>
+    </main>
   );
 }

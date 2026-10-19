@@ -9,6 +9,9 @@ import { BUTTON_BASE, BUTTON_SIZES, BUTTON_VARIANTS, EmptyState, Logo } from "@/
 import { useAuth } from "@/features/auth/AuthProvider";
 import { ADMIN_SECTIONS, allowedSections } from "@/features/admin/sections";
 
+/** Halaman admin yang isinya langsung berupa panel (tanpa judul sendiri): judul dari label menu. */
+const TITLED_BY_LAYOUT = ["/admin/catalog", "/admin/functions", "/admin/gamification", "/admin/notifications", "/admin/points"];
+
 export default function AdminLayout({ children }: LayoutProps<"/">) {
   const { user } = useAuth();
   const pathname = usePathname();
@@ -79,7 +82,12 @@ export default function AdminLayout({ children }: LayoutProps<"/">) {
             body="Pilih menu lain di samping, atau minta Admin menambahkan izin untuk role-mu."
           />
         ) : (
-          children
+          <>
+            {current && TITLED_BY_LAYOUT.includes(current.href) && (
+              <h1 className="mb-4 text-[26px] leading-tight">{current.label}</h1>
+            )}
+            {children}
+          </>
         )}
       </main>
     </div>

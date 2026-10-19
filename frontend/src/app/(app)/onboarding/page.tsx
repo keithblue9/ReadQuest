@@ -84,6 +84,7 @@ export default function OnboardingPage() {
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+      <h1 className="sr-only">Atur profil bacamu</h1>
       <header className="flex items-center justify-between">
         <Logo />
         {!showInstall && (
@@ -95,8 +96,8 @@ export default function OnboardingPage() {
           {steps.map((_, i) => (
             <span
               key={i}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${
-                i <= stepIndex ? "bg-primary" : "bg-border"
+              className={`h-2 flex-1 rounded-[2px] transition-colors ${
+                i <= stepIndex ? "bg-highlight" : "bg-line"
               }`}
             />
           ))}
@@ -112,7 +113,7 @@ export default function OnboardingPage() {
 
         {step === "function" && (
           <fieldset>
-            <legend className="text-2xl font-bold">Kamu dari fungsi mana?</legend>
+            <legend className="font-display text-[26px] leading-tight font-semibold">Kamu dari fungsi mana?</legend>
             <p className="mt-2 text-muted">Poinmu ikut menyumbang di Battle Antar-Fungsi.</p>
             <div className="mt-6 flex flex-col gap-2">
               {options.functions.map((fn) => (
@@ -141,7 +142,7 @@ export default function OnboardingPage() {
 
         {step === "interests" && (
           <fieldset>
-            <legend className="text-2xl font-bold">Suka baca tentang apa?</legend>
+            <legend className="font-display text-[26px] leading-tight font-semibold">Suka baca tentang apa?</legend>
             <p className="mt-2 text-muted">Pilih minimal satu. Bisa diubah kapan saja.</p>
             <div className="mt-6 flex flex-wrap gap-2">
               {options.categories.map((cat) => {
@@ -168,7 +169,7 @@ export default function OnboardingPage() {
 
         {step === "target" && (
           <fieldset>
-            <legend className="text-2xl font-bold">Target baca harian ⏱️</legend>
+            <legend className="font-display text-[26px] leading-tight font-semibold">Target baca harian</legend>
             <p className="mt-2 text-muted">
               Minimal {minTarget} menit sehari. Mulai dari yang realistis!
             </p>

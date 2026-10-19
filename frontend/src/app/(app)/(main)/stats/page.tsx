@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { Avatar } from "@/components/Avatar";
 import { BookCover } from "@/components/BookCover";
+import { Skeleton } from "@/components/ui";
 import { DailyBars } from "@/features/admin/charts";
 import { Donut, FunctionBars, Panel, StatTile, WeekSpark } from "@/features/dashboard/widgets";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -29,16 +30,39 @@ export default function StatsPage() {
     api<TeamDashboard>("/dashboard").then(setData).catch(() => setFailed(true));
   }, []);
 
-  if (failed && !data) return <p className="card p-6 text-sm text-muted">Statistik tim belum bisa dimuat. Coba muat ulang.</p>;
-  if (!data || !user) return <div className="card h-64 animate-pulse" aria-busy="true" aria-label="Memuat statistik" />;
+  const header = (
+    <header>
+      <h1 className="text-[26px] leading-tight">Statistik tim</h1>
+      <p className="text-sm text-muted">Gambaran kebiasaan membaca tim, 14 hari terakhir.</p>
+    </header>
+  );
+  if (failed && !data)
+    return (
+      <div className="flex flex-col gap-4">
+        {header}
+        <p className="card p-6 text-sm text-muted">Statistik tim belum bisa dimuat. Coba muat ulang halaman.</p>
+      </div>
+    );
+  if (!data || !user)
+    return (
+      <div className="flex flex-col gap-4" aria-busy="true" aria-label="Memuat statistik">
+        {header}
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-[118px] rounded-2xl" />
+          ))}
+        </div>
+        <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
+          <Skeleton className="h-[318px] rounded-2xl" />
+          <Skeleton className="h-[318px] rounded-2xl" />
+        </div>
+      </div>
+    );
   const team = data.team;
 
   return (
     <div className="flex flex-col gap-4">
-      <header>
-        <h1 className="text-[26px] leading-tight">Statistik Tim</h1>
-        <p className="text-sm text-muted">Gambaran kebiasaan membaca tim, 14 hari terakhir.</p>
-      </header>
+      {header}
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <StatTile icon={Users} label="Anggota terdaftar" value={team.members} hint={team.new_members_week ? `+${team.new_members_week} minggu ini` : undefined} />

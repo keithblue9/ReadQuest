@@ -22,7 +22,17 @@
   --rating: #946200;
   --brand-accent: var(--brand-light, #1b2340);
 
-  /* Alias lama */
+  --shadow-card: 0 1px 2px rgb(27 35 64 / 0.06);
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: light;
+}
+
+/*
+ * Alias lama. Didefinisikan untuk :root DAN .dark agar var() di-resolve ulang pada setiap
+ * kontainer bertema (mis. pratinjau mode gelap di Admin), bukan sekali di :root.
+ */
+:root,
+.dark {
   --background: var(--paper);
   --foreground: var(--ink);
   --border: var(--line);
@@ -31,10 +41,6 @@
   --accent: var(--leaf);
   --success: var(--leaf);
   --warning: var(--rating);
-
-  --shadow-card: 0 1px 2px rgb(27 35 64 / 0.06);
-  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
-  color-scheme: light;
 }
 
 .dark {

@@ -128,7 +128,7 @@ export function FunctionHeatmap({ rows, weekdays }: { rows: HeatRow[]; weekdays:
   const step = (v: number) => (v <= 0 || max <= 0 ? -1 : Math.min(STEPS.length - 1, Math.floor((v / max) * STEPS.length)));
   return (
     <figure className="flex flex-col gap-2">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Heatmap aktivitas per fungsi (bisa digulir)">
         <table className="w-full border-separate border-spacing-[2px] text-xs">
           <thead>
             <tr>

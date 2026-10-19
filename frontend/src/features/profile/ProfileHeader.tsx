@@ -38,7 +38,7 @@ export function ProfileHeader({ name, avatarUrl, headline, fn, role, joinedAt, l
           </div>
           {actions && <div className="flex flex-wrap gap-2 pb-1">{actions}</div>}
         </div>
-        <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
+        <p className="mt-3 flex min-h-12 flex-wrap content-start gap-x-4 gap-y-1 text-sm text-muted sm:min-h-6">
           {(fn || role) && (
             <span className="flex items-center gap-1.5">
               <Briefcase className="size-4" aria-hidden />

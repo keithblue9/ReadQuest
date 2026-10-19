@@ -104,7 +104,7 @@ export default function NotificationSettingsPage() {
         <Link href="/notifications" className="text-sm font-bold text-primary">
           ← Notifikasi
         </Link>
-        <h1 className="mt-1 text-[26px] leading-tight">Pengaturan Notifikasi</h1>
+        <h1 className="mt-1 text-[26px] leading-tight">Pengaturan notifikasi</h1>
       </div>
       {error && <Alert>{error}</Alert>}
 

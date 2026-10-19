@@ -189,7 +189,12 @@ export default function AdminCatalogPage() {
         )}
 
         <ul className="divide-y divide-border rounded-2xl border border-border bg-surface">
-          {books === null && <li className="px-4 py-6 text-sm text-muted">Memuat…</li>}
+          {books === null &&
+            [0, 1, 2, 3, 4, 5].map((i) => (
+              <li key={i} className="flex min-h-[76px] items-center px-4">
+                <span className="block h-4 w-1/2 rounded bg-surface-muted motion-safe:animate-pulse" />
+              </li>
+            ))}
           {books?.length === 0 && <li className="px-4 py-6 text-center text-sm text-muted">Buku tidak ditemukan.</li>}
           {books?.map((b) => (
             <li key={b.id} className="flex items-center gap-3 px-4 py-3">

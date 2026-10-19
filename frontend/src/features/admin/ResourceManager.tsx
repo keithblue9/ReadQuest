@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Alert, Button } from "@/components/ui";
+import { Alert, Button, Skeleton } from "@/components/ui";
 import { api } from "@/lib/api";
 import { errorMessage, fieldErrors } from "@/lib/errors";
 
@@ -300,22 +300,28 @@ export function ResourceManager({
       )}
 
       {items === null ? (
-        <p className="text-sm text-muted">Memuat…</p>
+        <ul className="divide-y divide-line rounded-2xl border border-line bg-surface" aria-busy="true" aria-label="Memuat">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <li key={i} className="flex min-h-[60px] items-center gap-3 px-4 py-3">
+              <Skeleton className="h-4 w-1/2" />
+            </li>
+          ))}
+        </ul>
       ) : (
-        <ul className="divide-y divide-border rounded-2xl border border-border bg-surface">
+        <ul className="divide-y divide-line rounded-2xl border border-line bg-surface">
           {(orderItems ? orderItems(items) : items).map((item) => (
-            <li key={item.id} className="flex items-center gap-3 px-4 py-3">
+            <li key={item.id} className="flex min-h-[60px] items-center gap-1 px-4 py-2">
               <div className="min-w-0 flex-1">{summary(item)}</div>
               {actions?.(item)}
               <button
                 type="button"
-                className="text-sm font-bold text-primary"
+                className="min-h-11 rounded-lg px-2.5 text-sm font-semibold text-ink underline-offset-2 hover:bg-surface-muted hover:underline"
                 onClick={() => startEdit(item.id, { ...item })}
               >
                 Ubah
               </button>
               {creatable && (canDelete?.(item) ?? true) && (
-                <button type="button" className="text-sm font-bold text-muted hover:text-danger" onClick={() => remove(item)}>
+                <button type="button" className="min-h-11 rounded-lg px-2.5 text-sm font-semibold text-muted hover:bg-surface-muted hover:text-danger" onClick={() => remove(item)}>
                   Hapus
                 </button>
               )}

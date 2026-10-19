@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Alert, Button } from "@/components/ui";
+import { Alert, Button, Skeleton } from "@/components/ui";
 import { ResourceManager } from "@/features/admin/ResourceManager";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { api } from "@/lib/api";
@@ -62,7 +62,7 @@ function ScheduleForm() {
     }
   }
 
-  if (!schedule) return error ? <Alert>{error}</Alert> : <p className="text-sm text-muted">Memuat…</p>;
+  if (!schedule) return error ? <Alert>{error}</Alert> : <Skeleton className="h-[489px] w-full rounded-2xl sm:h-[275px]" />;
 
   const weekly = (key: "weekly_leaderboard" | "new_quest", label: string) => (
     <fieldset className="flex flex-col gap-1.5 text-sm font-semibold">

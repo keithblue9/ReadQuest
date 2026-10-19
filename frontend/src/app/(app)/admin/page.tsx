@@ -242,7 +242,7 @@ export default function AdminDashboardPage() {
             sub="Aktif bereaksi/berkomentar tetapi jarang menulis catatan sendiri — menerima nudge lembut otomatis"
           >
             {data.observers.length ? (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Daftar Observer (bisa digulir)">
                 <table className="w-full min-w-[480px] text-left text-sm">
                   <thead className="text-xs text-muted">
                     <tr>
