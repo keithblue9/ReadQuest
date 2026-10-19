@@ -40,7 +40,7 @@ function Reports({ reports }: { reports: Report[] }) {
     <ul className="flex flex-col gap-1 rounded-xl bg-danger/5 p-3 text-sm">
       {reports.map((r, i) => (
         <li key={i}>
-          🚩 <span className="font-semibold">{r.reason}</span>
+ <span className="font-semibold">{r.reason}</span>
           <span className="ml-2 text-xs text-muted">{date(r.at)}</span>
         </li>
       ))}
@@ -171,15 +171,15 @@ export default function AdminModerationPage() {
   return (
     <section className="flex flex-col gap-4">
       <header>
-        <h1 className="text-2xl font-bold">Moderasi</h1>
+        <h1 className="text-[26px] leading-tight">Moderasi</h1>
         <p className="text-sm text-muted">Konten yang dilaporkan anggota atau sudah disembunyikan.</p>
       </header>
 
       <div role="tablist" aria-label="Status moderasi" className="flex gap-1 self-start rounded-xl border border-border bg-surface p-1">
         {(
           [
-            ["flagged", "🚩 Dilaporkan"],
-            ["hidden", "🙈 Disembunyikan"],
+            ["flagged", "Dilaporkan"],
+            ["hidden", "Disembunyikan"],
           ] as const
         ).map(([value, label]) => (
           <button
@@ -212,7 +212,7 @@ export default function AdminModerationPage() {
         <p className="text-sm text-muted">Memuat…</p>
       ) : empty ? (
         <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted">
-          {status === "flagged" ? "Tidak ada laporan baru 🎉" : "Belum ada konten yang disembunyikan."}
+          {status === "flagged" ? "Tidak ada laporan baru" : "Belum ada konten yang disembunyikan."}
         </p>
       ) : (
         <>
@@ -243,7 +243,7 @@ export default function AdminModerationPage() {
             <article key={c.id} className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <p className="font-bold">
-                  💬 {c.author}
+ {c.author}
                   <span className="ml-2 text-xs font-semibold text-muted">Komentar · {date(c.created_at)}</span>
                 </p>
                 <Link href={`/posts/${c.post_id}`} className="text-xs font-bold text-primary">

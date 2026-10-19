@@ -1,5 +1,7 @@
 "use client";
 
+import { Smartphone } from "lucide-react";
+
 import { useState, useSyncExternalStore } from "react";
 
 import { IOSInstallGuide } from "@/features/onboarding/IOSInstallGuide";
@@ -19,10 +21,10 @@ export function InstallCard() {
 
   if (!canInstall && !ios) return null;
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border-2 border-dashed border-primary/40 p-4">
+    <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4">
       <div className="flex items-center gap-3">
-        <span className="text-3xl" aria-hidden>
-          📲
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-surface-muted text-ink" aria-hidden>
+          <Smartphone className="size-5" />
         </span>
         <div className="min-w-0 flex-1">
           <p className="font-bold">Pasang {appName}</p>

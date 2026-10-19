@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
@@ -105,7 +106,7 @@ function ReadFlow() {
       {view.kind === "pick" && (
         <div className="animate-pop-in flex flex-col gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Mau baca buku apa? 📚</h1>
+            <h1 className="text-[26px] leading-tight">Mau baca buku apa?</h1>
             <p className="mt-1 text-muted">
               {today?.full_points_done
                 ? "Target poin penuh hari ini sudah tercapai — membaca lagi tetap tercatat."
@@ -131,7 +132,7 @@ function ReadFlow() {
         <div className="animate-pop-in flex flex-col items-center gap-4 pt-4 text-center">
           <BookCover url={view.book.cover_url} title={view.book.title} size="lg" />
           <div>
-            <h1 className="text-2xl font-bold">{view.book.title}</h1>
+            <h1 className="text-[26px] leading-tight">{view.book.title}</h1>
             <p className="text-muted">{view.book.authors.join(", ")}</p>
           </div>
           <fieldset className="grid w-full grid-cols-2 gap-2 text-left">
@@ -147,8 +148,10 @@ function ReadFlow() {
                 type="button"
                 aria-pressed={mode === option.value}
                 onClick={() => setMode(option.value)}
-                className={`rounded-xl border p-3 transition ${
-                  mode === option.value ? "border-primary bg-primary/10" : "border-border bg-surface"
+                className={`min-h-16 rounded-xl border p-3 transition ${
+                  mode === option.value
+                    ? "border-ink bg-highlight/40 dark:border-highlight dark:bg-highlight/10"
+                    : "border-line bg-surface hover:bg-surface-muted"
                 }`}
               >
                 <span className="block font-semibold">{option.title}</span>
@@ -162,7 +165,7 @@ function ReadFlow() {
           <button
             type="button"
             onClick={() => setView({ kind: "pick" })}
-            className="text-sm font-semibold text-muted"
+            className="min-h-11 px-3 text-sm font-semibold text-muted hover:text-ink"
           >
             Ganti buku
           </button>
@@ -204,11 +207,11 @@ export default function ReadPage() {
         <Link
           href="/"
           aria-label="Kembali ke beranda"
-          className="grid size-10 place-items-center rounded-full border border-border bg-surface"
+          className="grid size-11 place-items-center rounded-full border border-line bg-surface hover:bg-surface-muted"
         >
-          ←
+          <ArrowLeft className="size-5" aria-hidden />
         </Link>
-        <span className="font-bold">Sesi Baca</span>
+        <span className="font-display text-lg font-semibold">Sesi baca</span>
       </header>
       <Suspense fallback={<FullScreenSpinner />}>
         <ReadFlow />

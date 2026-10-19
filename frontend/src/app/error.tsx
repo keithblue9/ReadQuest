@@ -1,5 +1,7 @@
 "use client";
 
+import { CircleAlert } from "lucide-react";
+
 import Link from "next/link";
 import { useEffect } from "react";
 
@@ -12,10 +14,10 @@ export default function ErrorPage({ error, retry }: { error: Error & { digest?: 
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
-      <span className="text-6xl" aria-hidden>
-        🫣
+      <span className="grid size-16 place-items-center rounded-full bg-surface-muted text-ink" aria-hidden>
+        <CircleAlert className="size-8" strokeWidth={1.6} />
       </span>
-      <h1 className="text-2xl font-bold">Ups, ada yang tidak beres</h1>
+      <h1 className="text-[26px] leading-tight">Ups, ada yang tidak beres</h1>
       <p className="text-muted">Halaman ini gagal dimuat. Coba lagi, atau kembali ke beranda.</p>
       {error.digest && <p className="text-xs text-muted">Kode: {error.digest}</p>}
       <div className="flex gap-2">

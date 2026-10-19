@@ -13,11 +13,11 @@ export function LevelProgress({ level, points }: { level: Level | null; points: 
         <span className="text-xs font-semibold text-muted">
           {level.next_min_points
             ? `${level.next_min_points - points} poin lagi → ${level.next_title ?? "level berikutnya"}`
-            : "Level tertinggi 🏅"}
+            : "Level tertinggi"}
         </span>
       </div>
       <div
-        className="mt-2 h-2.5 overflow-hidden rounded-full bg-border"
+        className="mt-2 h-3 overflow-hidden rounded-[3px] bg-line"
         role="progressbar"
         aria-valuemin={0}
         aria-valuemax={100}
@@ -25,7 +25,7 @@ export function LevelProgress({ level, points }: { level: Level | null; points: 
         aria-label="Progres level"
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-[width] duration-700"
+          className="marker-fill h-full rounded-[3px_9px_6px_3px] bg-highlight transition-[width] duration-700"
           style={{ width: `${Math.max(3, progress * 100)}%` }}
         />
       </div>

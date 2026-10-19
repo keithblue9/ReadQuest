@@ -107,7 +107,7 @@ export default function AdminDashboardPage() {
     <div className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-[26px] leading-tight">Dashboard</h1>
           <p className="text-sm text-muted">
             {data ? `${data.start} s/d ${data.end}` : "Ringkasan aktivitas membaca tim"}
           </p>
@@ -269,7 +269,7 @@ export default function AdminDashboardPage() {
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-muted">Tidak ada Observer saat ini 🎉</p>
+              <p className="text-sm text-muted">Tidak ada Observer saat ini</p>
             )}
           </Card>
         </>

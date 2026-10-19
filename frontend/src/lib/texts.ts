@@ -7,13 +7,13 @@
  */
 export const DEFAULT_TEXTS = {
   // Login & daftar
-  "auth.login.title": "Selamat datang kembali 👋",
+  "auth.login.title": "Selamat datang kembali",
   "auth.login.subtitle": "Masuk dengan nomor HP dan PIN-mu.",
   "auth.login.submit": "Masuk",
   "auth.login.forgot_pin": "Lupa PIN? Hubungi Admin tim untuk reset.",
   "auth.login.no_account": "Belum punya akun?",
   "auth.login.register_link": "Daftar di sini",
-  "auth.register.title": "Gabung tim baca 📖",
+  "auth.register.title": "Gabung tim baca",
   "auth.register.subtitle": "Cukup nama, fungsi, nomor HP, dan PIN.",
   "auth.register.name": "Nama",
   "auth.register.function": "Fungsi / bagian",

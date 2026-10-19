@@ -1,5 +1,5 @@
 const SIZES = {
-  sm: { cls: "h-16 w-11 text-[11px]", w: 44, h: 64 },
+  sm: { cls: "h-16 w-11 text-xs", w: 44, h: 64 },
   md: { cls: "h-24 w-16 text-xs", w: 64, h: 96 },
   lg: { cls: "h-40 w-[6.75rem] text-base", w: 108, h: 160 },
 };

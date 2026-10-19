@@ -16,33 +16,33 @@ export function TimerRing({
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[18rem]">
       <svg viewBox="0 0 280 280" className="size-full -rotate-90" aria-hidden>
-        <circle cx="140" cy="140" r={radius} fill="none" strokeWidth="18" className="stroke-border" />
+        <circle cx="140" cy="140" r={radius} fill="none" strokeWidth="22" className="stroke-line" />
         <circle
           cx="140"
           cy="140"
           r={radius}
           fill="none"
-          strokeWidth="18"
-          strokeLinecap={progress > 0.01 ? "round" : "butt"}
+          strokeWidth="22"
+          strokeLinecap="butt"
           strokeDasharray={circumference}
           strokeDashoffset={circumference * (1 - progress)}
           className={`transition-[stroke-dashoffset] duration-1000 ease-linear ${
-            reached ? "stroke-success" : "stroke-primary"
+            reached ? "stroke-leaf" : "stroke-highlight"
           }`}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span
-          className="font-mono text-5xl font-bold tabular-nums"
+          className="font-display text-6xl font-semibold tabular-nums"
           role="timer"
           aria-live="off"
           aria-label={`Waktu baca ${formatDuration(elapsed)}`}
         >
           {formatDuration(elapsed)}
         </span>
-        <span className="mt-2 text-sm font-semibold text-muted">
+        <span className={`mt-2 text-sm font-semibold ${reached ? "text-leaf" : "text-muted"}`}>
           {reached
-            ? "🎯 Target minimal tercapai!"
+            ? "Target minimal tercapai"
             : running
               ? `${Math.ceil((target - elapsed) / 60)} menit lagi`
               : "Dijeda"}

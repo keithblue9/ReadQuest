@@ -1,5 +1,7 @@
 "use client";
 
+import { Camera, ImagePlus, X } from "lucide-react";
+
 import { useRef, useState } from "react";
 
 import { errorMessage } from "@/lib/errors";
@@ -48,14 +50,14 @@ export function PhotoPicker({ photos, onChange, max = 4, label = "Foto buku", er
       <div className="flex flex-wrap gap-2">
         {photos.map((photo) => (
           <div key={photo.key} className="relative">
-            <img src={photo.url} alt="" className="size-20 rounded-2xl object-cover" />
+            <img src={photo.url} alt="" width={80} height={80} className="size-20 rounded-xl object-cover" />
             <button
               type="button"
               onClick={() => onChange(photos.filter((p) => p.key !== photo.key))}
-              className="absolute -top-1.5 -right-1.5 grid size-6 place-items-center rounded-full bg-foreground text-xs text-background"
+              className="absolute -top-2 -right-2 grid size-8 place-items-center rounded-full bg-ink text-paper ring-2 ring-surface"
               aria-label="Hapus foto"
             >
-              ✕
+              <X className="size-4" aria-hidden />
             </button>
           </div>
         ))}
@@ -65,7 +67,7 @@ export function PhotoPicker({ photos, onChange, max = 4, label = "Foto buku", er
             className="grid size-20 place-items-center rounded-2xl border border-dashed border-border"
             aria-label="Mengunggah foto"
           >
-            <span className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <span className="size-5 animate-spin rounded-full border-2 border-ink border-t-transparent" />
           </div>
         ))}
         {canAdd && (
@@ -73,21 +75,17 @@ export function PhotoPicker({ photos, onChange, max = 4, label = "Foto buku", er
             <button
               type="button"
               onClick={() => cameraRef.current?.click()}
-              className="flex size-20 flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-border bg-surface text-xs font-semibold text-muted transition hover:border-primary hover:text-primary"
+              className="flex size-20 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-line bg-surface text-xs font-semibold text-muted transition hover:border-ink hover:text-ink"
             >
-              <span className="text-xl" aria-hidden>
-                📷
-              </span>
+<Camera className="size-6" strokeWidth={1.8} aria-hidden />
               Kamera
             </button>
             <button
               type="button"
               onClick={() => galleryRef.current?.click()}
-              className="flex size-20 flex-col items-center justify-center gap-1 rounded-2xl border border-dashed border-border bg-surface text-xs font-semibold text-muted transition hover:border-primary hover:text-primary"
+              className="flex size-20 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-line bg-surface text-xs font-semibold text-muted transition hover:border-ink hover:text-ink"
             >
-              <span className="text-xl" aria-hidden>
-                🖼️
-              </span>
+<ImagePlus className="size-6" strokeWidth={1.8} aria-hidden />
               Galeri
             </button>
           </>

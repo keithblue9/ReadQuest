@@ -10,10 +10,10 @@ import { TextsCard } from "@/features/admin/appearance/TextsCard";
 import { normalizeUiConfig, setUiConfig, type UiConfig } from "@/features/ui-config/store";
 
 const TABS = [
-  { id: "branding", label: "🏷️ Branding" },
-  { id: "login", label: "🖼️ Background login" },
-  { id: "features", label: "🧩 Fitur & menu" },
-  { id: "texts", label: "✍️ Teks" },
+  { id: "branding", label: "Branding" },
+  { id: "login", label: "Background login" },
+  { id: "features", label: "Fitur & menu" },
+  { id: "texts", label: "Teks" },
 ] as const;
 
 type Tab = (typeof TABS)[number]["id"];
@@ -37,7 +37,7 @@ export default function AdminAppearancePage() {
   return (
     <section className="flex flex-col gap-4">
       <header>
-        <h1 className="text-2xl font-bold">Tampilan & Teks</h1>
+        <h1 className="text-[26px] leading-tight">Tampilan & Teks</h1>
         <p className="text-sm text-muted">
           Atur nama aplikasi, slogan, ikon, background login, fitur yang aktif, dan semua teks. Perubahan langsung
           berlaku untuk semua anggota dan tercatat di audit log.

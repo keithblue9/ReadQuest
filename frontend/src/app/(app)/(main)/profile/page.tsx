@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { BadgeGrid } from "@/components/BadgeGrid";
 import { LevelProgress } from "@/components/LevelProgress";
-import { Alert, Button } from "@/components/ui";
+import { Alert, Button, Tabs } from "@/components/ui";
 import { allowedSections } from "@/features/admin/sections";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { ChangePinCard } from "@/features/auth/ChangePinCard";
@@ -325,22 +325,7 @@ export default function ProfilePage() {
       />
       {avatarError && <Alert>{avatarError}</Alert>}
 
-      <div className="card grid grid-cols-3 gap-1 p-1.5 sm:grid-cols-5" role="tablist">
-        {TABS.map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={tab === value}
-            onClick={() => setTab(value)}
-            className={`h-9 rounded-md px-2 text-sm font-semibold ${
-              tab === value ? "bg-primary/10 text-primary" : "text-muted hover:bg-surface-muted"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <Tabs label="Bagian profil" items={TABS.map(([value, label]) => ({ value, label }))} value={tab} onChange={setTab} />
 
       {tab === "summary" && (
         <>

@@ -1,5 +1,7 @@
 "use client";
 
+import { CheckCircle2, Flame, Hourglass } from "lucide-react";
+
 import { useEffect, useState } from "react";
 
 import { Avatar } from "@/components/PostCard";
@@ -52,7 +54,7 @@ export default function BuddyPage() {
   return (
     <div className="flex flex-col gap-5 pt-2">
       <div>
-        <h1 className="text-2xl font-bold">Reading Buddy 🤝</h1>
+        <h1 className="text-[26px] leading-tight">Reading Buddy</h1>
         <p className="mt-1 text-muted">Berpasangan dengan satu rekan untuk saling menyemangati membaca.</p>
       </div>
       {error && <Alert>{error}</Alert>}
@@ -74,21 +76,21 @@ export default function BuddyPage() {
           <div className="mt-4 grid grid-cols-2 gap-2 text-center">
             <div className="rounded-2xl bg-white/15 p-3">
               <p className="text-2xl" aria-hidden>
-                {buddy.read_today ? "✅" : "⏳"}
+                {buddy.read_today ? <CheckCircle2 className="inline size-4 text-leaf" aria-hidden /> : <Hourglass className="inline size-4 text-muted" aria-hidden />}
               </p>
               <p className="text-xs font-semibold">{buddy.read_today ? "Sudah baca hari ini" : "Belum baca hari ini"}</p>
             </div>
             <div className="rounded-2xl bg-white/15 p-3">
-              <p className="text-2xl font-bold">{buddy.streak}🔥</p>
+              <p className="flex items-center gap-1 font-display text-2xl font-semibold">{buddy.streak}<Flame className="size-5 text-rating" aria-hidden /></p>
               <p className="text-xs font-semibold">Streak</p>
             </div>
           </div>
           <button
             type="button"
-            onClick={() => run(() => api(`/buddies/${buddy.pair_id}/cheer`, { method: "POST" }), "Semangat terkirim! 📣")}
+            onClick={() => run(() => api(`/buddies/${buddy.pair_id}/cheer`, { method: "POST" }), "Semangat terkirim!")}
             className="mt-4 h-12 w-full rounded-2xl bg-white font-bold text-[#6c4df6] transition active:scale-[0.98]"
           >
-            📣 Semangati {buddy.user.name.split(" ")[0]}
+ Semangati {buddy.user.name.split(" ")[0]}
           </button>
           <button
             type="button"
@@ -147,7 +149,7 @@ export default function BuddyPage() {
               <span className="flex-1 truncate font-semibold">{r.user.name}</span>
               <Button
                 className="h-9 w-auto px-4 text-sm"
-                onClick={() => run(() => api<Buddies>(`/buddies/${r.pair_id}/accept`, { method: "POST" }), "Kalian kini Reading Buddy! 🎉")}
+                onClick={() => run(() => api<Buddies>(`/buddies/${r.pair_id}/accept`, { method: "POST" }), "Kalian kini Reading Buddy!")}
               >
                 Terima
               </Button>

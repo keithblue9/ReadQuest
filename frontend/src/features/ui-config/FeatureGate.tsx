@@ -1,5 +1,7 @@
 "use client";
 
+import { Construction } from "lucide-react";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -29,11 +31,11 @@ export function FeatureGate({ children }: { children: React.ReactNode }) {
 
   if (feature && !enabled[feature]) {
     return (
-      <div className="mx-auto mt-10 max-w-md rounded-3xl border border-dashed border-border p-8 text-center">
-        <p className="text-4xl" aria-hidden>
-          🚧
-        </p>
-        <h1 className="mt-2 text-lg font-bold">{t("common.feature_off_title")}</h1>
+      <div className="mx-auto mt-10 max-w-md card p-8 text-center">
+        <span className="mx-auto grid size-12 place-items-center rounded-full bg-surface-muted text-ink" aria-hidden>
+          <Construction className="size-6" />
+        </span>
+        <h1 className="mt-3 text-xl">{t("common.feature_off_title")}</h1>
         <p className="mt-1 text-sm text-muted">{t("common.feature_off_body")}</p>
         <Link href="/" className="mt-4 inline-block font-bold text-primary">
           {t("common.back_home")}

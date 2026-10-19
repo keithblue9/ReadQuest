@@ -17,7 +17,7 @@ export default function RoomPage() {
     <div className="flex flex-col gap-4 pt-2">
       <CheerToasts cheers={cheers} myId={user?.id} />
       <div>
-        <h1 className="text-2xl font-bold">Reading Room 🛋️</h1>
+        <h1 className="text-[26px] leading-tight">Reading Room</h1>
         <p className="mt-1 text-muted">Membaca bersama secara live. Semangati rekan yang sedang membaca!</p>
       </div>
 
@@ -46,7 +46,7 @@ export default function RoomPage() {
                   {m.name}
                   {m.user_id === user?.id && <span className="text-muted"> (kamu)</span>}
                 </p>
-                <p className="truncate text-sm text-muted">📖 {m.book_title ?? "Sedang membaca"}</p>
+                <p className="truncate text-sm text-muted">{m.book_title ?? "Sedang membaca"}</p>
               </div>
             </div>
             {m.user_id !== user?.id && (
@@ -79,7 +79,7 @@ export default function RoomPage() {
       </ul>
       {connected && readers.length === 0 && (
         <p className="rounded-2xl bg-surface-muted p-4 text-center text-sm text-muted">
-          Belum ada yang membaca. Mulai sesi dan ajak rekanmu! 📚
+          Belum ada yang membaca. Mulai sesi dan ajak rekanmu!
         </p>
       )}
     </div>

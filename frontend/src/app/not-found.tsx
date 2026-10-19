@@ -1,12 +1,13 @@
+import { BookX } from "lucide-react";
 import Link from "next/link";
 
 export default function NotFound() {
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
-      <span className="text-6xl" aria-hidden>
-        📕
+      <span className="grid size-16 place-items-center rounded-full bg-surface-muted text-ink" aria-hidden>
+        <BookX className="size-8" strokeWidth={1.6} />
       </span>
-      <h1 className="text-2xl font-bold">Halaman tidak ditemukan</h1>
+      <h1 className="text-[26px] leading-tight">Halaman tidak ditemukan</h1>
       <p className="text-muted">Sepertinya halaman ini sudah dipindah atau belum pernah ditulis.</p>
       <Link
         href="/"

@@ -36,7 +36,7 @@ export default function StatsPage() {
   return (
     <div className="flex flex-col gap-4">
       <header>
-        <h1 className="text-2xl font-bold">Statistik Tim</h1>
+        <h1 className="text-[26px] leading-tight">Statistik Tim</h1>
         <p className="text-sm text-muted">Gambaran kebiasaan membaca tim, 14 hari terakhir.</p>
       </header>
 

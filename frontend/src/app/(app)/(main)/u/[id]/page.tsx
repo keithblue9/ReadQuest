@@ -1,5 +1,7 @@
 "use client";
 
+import { Tabs } from "@/components/ui";
+
 import { PenLine } from "lucide-react";
 import Link from "next/link";
 import { use, useEffect, useState } from "react";
@@ -82,26 +84,16 @@ export default function PublicProfilePage({ params }: PageProps<"/u/[id]">) {
         </div>
       )}
 
-      <div className="card flex gap-1 p-1.5" role="tablist">
-        {(
-          [
-            ["posts", "Postingan"],
-            ["shelf", "Rak buku"],
-            ["badges", `Badge (${profile.badges.length})`],
-          ] as [Tab, string][]
-        ).map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={tab === value}
-            onClick={() => setTab(value)}
-            className={`h-9 flex-1 rounded-md text-sm font-semibold ${tab === value ? "bg-primary/10 text-primary" : "text-muted hover:bg-surface-muted"}`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        label="Bagian profil"
+        items={[
+          { value: "posts" as Tab, label: "Postingan" },
+          { value: "shelf" as Tab, label: "Rak buku" },
+          { value: "badges" as Tab, label: "Badge", count: profile.badges.length },
+        ]}
+        value={tab}
+        onChange={setTab}
+      />
 
       {tab === "posts" && <AuthorPosts authorId={profile.id} />}
       {tab === "shelf" && <ShelfView userId={profile.id} />}

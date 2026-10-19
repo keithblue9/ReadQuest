@@ -50,11 +50,11 @@ export function ChangePinCard() {
           setDone(false);
         }}
       >
-        🔑 Ganti PIN
+ Ganti PIN
       </button>
       {done && (
         <p role="status" className="mt-2 text-center text-sm font-semibold text-success">
-          PIN berhasil diganti ✓
+          PIN berhasil diganti
         </p>
       )}
       {open && (

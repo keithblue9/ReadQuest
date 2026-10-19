@@ -174,7 +174,7 @@ export function BrandingCard({ config, onSaved }: { config: UiConfig; onSaved: (
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-bold tracking-wide text-muted uppercase">Pratinjau</p>
+          <p className="text-xs font-bold text-muted">Pratinjau</p>
           <div className="rounded-2xl border border-border bg-background p-4">
             <Logo tagline preview={draft} />
           </div>

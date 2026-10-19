@@ -98,7 +98,7 @@ export default function BookPage() {
           <p className="text-xs font-semibold text-primary">
             {book.category?.icon} {book.category?.name}
           </p>
-          <h1 className="mt-1 text-2xl leading-tight font-bold">{book.title}</h1>
+          <h1 className="mt-1 text-[26px] leading-tight">{book.title}</h1>
           <p className="mt-1 text-muted">{book.authors.join(", ")}</p>
           <p className="mt-2 text-xs text-muted">
             {[book.publisher, book.year, book.total_pages && `${book.total_pages} hal.`]
@@ -111,7 +111,7 @@ export default function BookPage() {
       <dl className="card grid grid-cols-4 divide-x divide-border text-center">
         {stats.map(([label, value]) => (
           <div key={label} className="px-1 py-3">
-            <dt className="text-[11px] font-semibold text-muted">{label}</dt>
+            <dt className="text-xs font-semibold text-muted">{label}</dt>
             <dd className="mt-0.5 font-bold">{value}</dd>
           </div>
         ))}
