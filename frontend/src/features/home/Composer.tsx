@@ -1,7 +1,6 @@
 "use client";
 
-import { Quote, Timer, Zap } from "lucide-react";
-import Link from "next/link";
+import { Quote } from "lucide-react";
 import { useState } from "react";
 
 import { Avatar } from "@/components/Avatar";
@@ -17,33 +16,25 @@ export function Composer({ onPosted }: { onPosted: (post: Post) => void }) {
   const [quoting, setQuoting] = useState(false);
   if (!user) return null;
   const firstName = user.name.split(" ")[0];
-  const action = "flex h-10 flex-1 items-center justify-center gap-2 rounded-lg text-sm font-semibold text-muted hover:bg-surface-muted";
-
   return (
-    <section className="card p-3" aria-label="Buat posting">
-      <div className="flex items-center gap-2">
-        <Avatar name={user.name} url={user.avatar_url} />
-        <Link
-          href="/read"
-          className="flex h-10 flex-1 items-center rounded-full bg-surface-muted px-4 text-[15px] text-muted transition hover:brightness-95"
-        >
-          {t("home.composer_prompt", { name: firstName })}
-        </Link>
-      </div>
-      <div className="mt-2 flex border-t border-border pt-2">
-        <Link href="/read" className={action}>
-          <Timer className="size-5 text-primary" aria-hidden />
-          <span>{t("home.composer_read")}</span>
-        </Link>
-        <Link href="/read?mode=micro" className={action}>
-          <Zap className="size-5 text-amber-500" aria-hidden />
-          <span>{t("home.composer_micro")}</span>
-        </Link>
-        <button type="button" onClick={() => setQuoting(true)} className={action}>
-          <Quote className="size-5 text-teal-600" aria-hidden />
-          <span>{t("home.composer_quote")}</span>
-        </button>
-      </div>
+    <section className="card flex items-center gap-3 p-3" aria-label="Bagikan kutipan">
+      <Avatar name={user.name} url={user.avatar_url} />
+      <button
+        type="button"
+        onClick={() => setQuoting(true)}
+        className="flex h-11 min-w-0 flex-1 items-center rounded-xl bg-surface-muted px-4 text-left text-[15px] text-muted transition hover:text-ink"
+      >
+        <span className="truncate">{t("home.composer_prompt", { name: firstName })}</span>
+      </button>
+      <button
+        type="button"
+        onClick={() => setQuoting(true)}
+        aria-label={t("home.composer_quote")}
+        className="flex h-11 shrink-0 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-ink transition hover:bg-surface-muted"
+      >
+        <Quote className="size-5" aria-hidden />
+        <span className="hidden sm:inline">{t("home.composer_quote")}</span>
+      </button>
       {quoting && (
         <QuoteComposer
           onClose={() => setQuoting(false)}

@@ -11,7 +11,7 @@ import { Card, inputClass, SaveBar, saveSection, uploadUiImage } from "./shared"
 
 const EMOJI_CHOICES = ["📚", "📖", "📘", "🔖", "🦉", "🚀", "⭐", "✨", "🌱", "🏆"];
 // Pilihan warna merek yang kontrasnya aman untuk teks putih di tombol.
-const COLOR_CHOICES = ["#2563eb", "#1877f2", "#0f766e", "#4f46e5", "#be123c", "#b45309", "#334155"];
+const COLOR_CHOICES = ["#2563eb", "#1b2340", "#1877f2", "#0f766e", "#4f46e5", "#be123c", "#b45309", "#334155"];
 
 type Draft = UiConfig["branding"];
 
@@ -174,7 +174,7 @@ export function BrandingCard({ config, onSaved }: { config: UiConfig; onSaved: (
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-bold tracking-wide text-muted uppercase">Pratinjau</p>
+          <p className="text-xs font-bold text-muted">Pratinjau</p>
           <div className="rounded-2xl border border-border bg-background p-4">
             <Logo tagline preview={draft} />
           </div>

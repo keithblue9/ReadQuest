@@ -12,17 +12,17 @@ import { disablePush, enablePush, getPushState, type PushState } from "@/lib/pus
 import type { NotificationPreferences } from "@/lib/types";
 
 const TYPE_LABELS: [string, string][] = [
-  ["reading_reminder", "📖 Pengingat baca"],
-  ["streak_at_risk", "🔥 Streak terancam"],
-  ["reaction", "✨ Reaksi di catatanmu"],
-  ["comment", "💬 Komentar & balasan"],
-  ["mention", "📣 Mention"],
-  ["weekly_leaderboard", "🏆 Leaderboard mingguan"],
-  ["new_quest", "🎯 Quest baru"],
-  ["quest_completed", "✅ Quest selesai"],
-  ["badge_awarded", "🏅 Badge baru"],
-  ["buddy", "🤝 Reading Buddy"],
-  ["observer_nudge", "🌱 Ajakan berbagi"],
+  ["reading_reminder", "Pengingat baca"],
+  ["streak_at_risk", "Streak terancam"],
+  ["reaction", "Reaksi di catatanmu"],
+  ["comment", "Komentar & balasan"],
+  ["mention", "Mention"],
+  ["weekly_leaderboard", "Leaderboard mingguan"],
+  ["new_quest", "Quest baru"],
+  ["quest_completed", "Quest selesai"],
+  ["badge_awarded", "Badge baru"],
+  ["buddy", "Reading Buddy"],
+  ["observer_nudge", "Ajakan berbagi"],
 ];
 
 const PUSH_TEXT: Record<PushState, string> = {
@@ -87,7 +87,7 @@ export default function NotificationSettingsPage() {
     setMessage(null);
     try {
       setPrefs(await api<NotificationPreferences>("/me/notification-preferences", { method: "PUT", json: prefs }));
-      setMessage("Pengaturan tersimpan ✅");
+      setMessage("Pengaturan tersimpan");
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -104,13 +104,13 @@ export default function NotificationSettingsPage() {
         <Link href="/notifications" className="text-sm font-bold text-primary">
           ← Notifikasi
         </Link>
-        <h1 className="mt-1 text-2xl font-bold">Pengaturan Notifikasi ⚙️</h1>
+        <h1 className="mt-1 text-[26px] leading-tight">Pengaturan notifikasi</h1>
       </div>
       {error && <Alert>{error}</Alert>}
 
       {!pushEnabled ? (
         <p className="rounded-3xl border border-dashed border-border p-4 text-sm text-muted">
-          🔕 Notifikasi push sedang dimatikan Admin. Notifikasi tetap muncul di aplikasi.
+          Notifikasi push sedang dimatikan Admin. Notifikasi tetap muncul di aplikasi.
         </p>
       ) : (
       <section className="rounded-3xl border border-border bg-surface p-4">
@@ -129,7 +129,7 @@ export default function NotificationSettingsPage() {
             className="mt-3 text-sm font-bold text-primary"
             onClick={() =>
               api<{ delivered: number }>("/push/test", { method: "POST" })
-                .then((r) => setMessage(r.delivered ? "Notifikasi tes terkirim 🔔" : "Tidak ada perangkat yang menerima."))
+                .then((r) => setMessage(r.delivered ? "Notifikasi tes terkirim" : "Tidak ada perangkat yang menerima."))
                 .catch((err) => setError(errorMessage(err)))
             }
           >
@@ -158,7 +158,7 @@ export default function NotificationSettingsPage() {
 
           <section className="flex flex-col gap-3 rounded-3xl border border-border bg-surface p-4">
             <div className="flex items-center justify-between">
-              <p className="font-bold">🌙 Jam tenang</p>
+              <p className="font-bold">Jam tenang</p>
               <Toggle
                 checked={prefs.quiet_hours.enabled}
                 onChange={(v) => setPrefs({ ...prefs, quiet_hours: { ...prefs.quiet_hours, enabled: v } })}

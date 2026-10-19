@@ -1,3 +1,4 @@
+import { CheckCircle2, Target } from "lucide-react";
 import { ProgressBar } from "@/components/ProgressBar";
 import type { Quest } from "@/lib/types";
 
@@ -11,7 +12,7 @@ export function QuestCard({ quest }: { quest: Quest }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-bold">
-            {quest.completed ? "✅ " : "🎯 "}
+            {quest.completed ? <CheckCircle2 className="mr-1 inline size-4 align-[-2px] text-leaf" aria-hidden /> : <Target className="mr-1 inline size-4 align-[-2px]" aria-hidden />}
             {quest.title}
           </p>
           <p className="text-sm text-muted">{quest.description}</p>

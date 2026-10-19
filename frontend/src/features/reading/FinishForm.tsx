@@ -121,7 +121,7 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
   return (
     <div className="animate-pop-in flex flex-col gap-5 pb-6">
       <div>
-        <h1 className="text-2xl font-bold">{isTakeaway ? "Takeaway 1 menit" : "Tulis catatan bacamu"}</h1>
+        <h1 className="text-[26px] leading-tight">{isTakeaway ? "Takeaway 1 menit" : "Tulis catatan bacamu"}</h1>
         <p className="mt-1 text-muted">
           <span className="font-semibold text-foreground">{session.book.title}</span> — ceritakan
           dengan kata-katamu sendiri.
@@ -149,7 +149,7 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
                 {type.emoji}
               </span>
               <span className="block text-xs font-bold">{type.label}</span>
-              <span className="block text-[11px] opacity-80">
+              <span className="block text-xs opacity-80">
                 ≥{config.note_min_words[type.value] ?? 8} kata
               </span>
             </button>
@@ -282,7 +282,7 @@ export function FinishForm({ session, config, onDone, onBack }: Props) {
           onChange={(e) => update({ finished: e.target.checked })}
           className="size-5 accent-[var(--primary)]"
         />
-        Saya sudah menyelesaikan buku ini 🎉
+        Saya sudah menyelesaikan buku ini
       </label>
 
       <div className="grid grid-cols-[1fr_2fr] gap-3">

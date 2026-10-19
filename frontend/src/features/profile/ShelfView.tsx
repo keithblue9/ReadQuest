@@ -1,5 +1,7 @@
 "use client";
 
+import { Tabs } from "@/components/ui";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -30,29 +32,18 @@ export function ShelfView({ userId, editable = false }: { userId?: string; edita
 
   return (
     <section className="card p-4" aria-label="Rak buku">
-      <div className="flex gap-1 overflow-x-auto" role="tablist">
-        {(Object.keys(SHELF_LABEL) as ShelfStatus[]).map((s) => (
-          <button
-            key={s}
-            type="button"
-            role="tab"
-            aria-selected={status === s}
-            onClick={() => setStatus(s)}
-            className={`h-9 shrink-0 rounded-md px-3 text-sm font-semibold ${
-              status === s ? "bg-primary/10 text-primary" : "text-muted hover:bg-surface-muted"
-            }`}
-          >
-            {SHELF_LABEL[s]}
-            {shelf && <span className="ml-1.5 text-xs tabular-nums opacity-80">{shelf.counts[s]}</span>}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        label="Status rak"
+        items={(Object.keys(SHELF_LABEL) as ShelfStatus[]).map((s) => ({ value: s, label: SHELF_LABEL[s], count: shelf?.counts[s] }))}
+        value={status}
+        onChange={setStatus}
+      />
       {!shelf ? (
         <div className="mt-4 h-40 animate-pulse rounded-lg bg-surface-muted" />
       ) : shelf.items.length === 0 ? (
         <p className="mt-4 rounded-lg bg-surface-muted p-4 text-sm text-muted">
           Belum ada buku di rak ini.
-          {editable && status === "want" && " Tekan reaksi “📚 Mau baca juga” di feed untuk menambahkan."}
+          {editable && status === "want" && " Tekan reaksi “Mau baca juga” di feed untuk menambahkan."}
         </p>
       ) : (
         <ul className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">

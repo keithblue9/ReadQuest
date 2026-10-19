@@ -1,5 +1,7 @@
 "use client";
 
+import { BookOpen } from "lucide-react";
+
 import { useMemo } from "react";
 
 import { BookCover } from "@/components/BookCover";
@@ -64,9 +66,9 @@ export function ReadingTimer({ initial, config, onFinish, onAbandon, notice }: P
       {othersReading > 0 && (
         <a
           href="/room"
-          className="flex items-center gap-2 rounded-2xl bg-success/10 px-4 py-2 text-sm font-semibold text-success"
+          className="flex items-center gap-2 rounded-xl bg-leaf/10 px-4 py-2 text-sm font-semibold text-leaf"
         >
-          <span className="size-2 animate-pulse rounded-full bg-success" aria-hidden />
+          <span className="size-2 rounded-full bg-leaf motion-safe:animate-pulse" aria-hidden />
           {othersReading} rekan sedang membaca bersamamu
         </a>
       )}
@@ -136,9 +138,9 @@ export function ReadingTimer({ initial, config, onFinish, onAbandon, notice }: P
           className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-6"
         >
           <div className="animate-pop-in w-full max-w-sm rounded-3xl bg-surface p-6 text-center shadow-2xl">
-            <p className="text-4xl" aria-hidden>
-              📖
-            </p>
+            <span className="mx-auto grid size-12 place-items-center rounded-full bg-highlight text-on-highlight" aria-hidden>
+              <BookOpen className="size-6" />
+            </span>
             <h2 id="presence-title" className="mt-2 text-xl font-bold">
               Masih membaca?
             </h2>

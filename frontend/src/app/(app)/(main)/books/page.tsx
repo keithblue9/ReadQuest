@@ -37,7 +37,7 @@ function Catalog() {
   return (
     <div className="flex flex-col gap-4 pt-2">
       <div>
-        <h1 className="text-2xl font-bold">Katalog Buku</h1>
+        <h1 className="text-[26px] leading-tight">Katalog buku</h1>
         <p className="mt-1 text-muted">Satu buku, satu ruang diskusi bersama tim.</p>
       </div>
       <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Kategori">

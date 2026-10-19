@@ -1,8 +1,11 @@
 "use client";
 
+import { Plus, Search } from "lucide-react";
+
 import { useEffect, useState } from "react";
 
 import { BookCover } from "@/components/BookCover";
+import { BUTTON_BASE, BUTTON_SIZES, BUTTON_VARIANTS } from "@/components/ui";
 import { api } from "@/lib/api";
 import type { Book } from "@/lib/types";
 
@@ -47,11 +50,11 @@ export function BookSearch({
       onClick={() => onCreateNew(query.trim())}
       className={
         catalog
-          ? "inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-primary px-5 font-bold text-primary-foreground shadow-lg shadow-primary/25 transition hover:brightness-110 active:scale-[0.98]"
-          : "rounded-2xl border-2 border-dashed border-primary/40 p-3 font-bold text-primary transition hover:bg-primary/5"
+          ? `${BUTTON_BASE} ${BUTTON_SIZES.md} ${BUTTON_VARIANTS.primary} shrink-0`
+          : "flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line p-3 font-semibold text-ink transition hover:border-ink hover:bg-surface"
       }
     >
-      ➕{" "}
+      <Plus className="size-5" aria-hidden />
       {catalog
         ? "Tambah buku"
         : `Tambah buku baru${query.trim() ? ` “${query.trim()}”` : ""}`}
@@ -63,12 +66,7 @@ export function BookSearch({
       <div className={catalog ? "flex flex-col gap-3 sm:flex-row" : ""}>
         <label className="relative block flex-1">
           <span className="sr-only">Cari judul atau pengarang</span>
-          <span
-            className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2"
-            aria-hidden
-          >
-            🔍
-          </span>
+          <Search className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted" aria-hidden />
           <input
             type="search"
             value={query}

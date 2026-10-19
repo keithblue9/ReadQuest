@@ -9,7 +9,7 @@ import type { Post } from "@/lib/types";
 
 function shareText(post: Post, appName: string) {
   const excerpt = post.content.length > 180 ? `${post.content.slice(0, 177)}…` : post.content;
-  return `“${excerpt}”\n\n— ${post.author.name} tentang “${post.book.title}” (${post.book.authors.join(", ")}) di ${appName} 📚`;
+  return `“${excerpt}”\n\n— ${post.author.name} tentang “${post.book.title}” (${post.book.authors.join(", ")}) di ${appName}`;
 }
 
 export function ShareSheet({ post, onClose }: { post: Post; onClose: () => void }) {
@@ -103,7 +103,7 @@ export function ShareSheet({ post, onClose }: { post: Post; onClose: () => void 
             disabled={busy}
             className="col-span-2 flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary font-bold text-primary-foreground disabled:opacity-60"
           >
-            📤 Bagikan kartu
+            Bagikan kartu
           </button>
           {options.map((o) => (
             <a

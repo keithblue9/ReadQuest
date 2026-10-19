@@ -1,5 +1,7 @@
 "use client";
 
+import { BadgeCheck } from "lucide-react";
+
 import { useEffect, useMemo, useState } from "react";
 
 import { Avatar, timeAgo } from "@/components/PostCard";
@@ -60,7 +62,7 @@ export function CommentThread({ postId, onCountChange }: Props) {
       setMentions([]);
       setReplyTo(null);
       const points = created.points.reduce((sum, p) => sum + p.points, 0);
-      setReward(points ? `+${points} poin komentar bermakna ✨` : null);
+      setReward(points ? `+${points} poin komentar bermakna` : null);
       if (points) setTimeout(() => setReward(null), 3500);
     } catch (err) {
       setError(errorMessage(err));
@@ -104,8 +106,9 @@ export function CommentThread({ postId, onCountChange }: Props) {
             <p className="text-sm font-bold">
               {comment.deleted ? "—" : comment.author.name}
               {comment.is_meaningful && !comment.deleted && (
-                <span className="ml-1 text-xs text-success" title="Komentar bermakna">
-                  ✓
+                <span className="ml-1 inline-flex align-middle text-leaf" title="Komentar bermakna">
+                  <BadgeCheck className="size-4" aria-hidden />
+                  <span className="sr-only">Komentar bermakna</span>
                 </span>
               )}
             </p>
@@ -148,7 +151,7 @@ export function CommentThread({ postId, onCountChange }: Props) {
         <p className="text-sm text-muted">Memuat komentar…</p>
       ) : threads.length === 0 ? (
         <p className="rounded-2xl bg-surface-muted p-4 text-sm text-muted">
-          Belum ada komentar. Mulai diskusinya! 💬
+          Belum ada komentar. Mulai diskusinya!
         </p>
       ) : (
         <ul className="flex flex-col gap-3">

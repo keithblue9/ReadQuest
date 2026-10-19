@@ -1,5 +1,7 @@
 "use client";
 
+import { Eye, EyeOff } from "lucide-react";
+
 import { useState, useSyncExternalStore } from "react";
 
 import { Field } from "@/components/ui";
@@ -78,7 +80,7 @@ export function PinField({ label, name = "pin", autoComplete, error, hint }: Pro
         aria-label={visible ? t("auth.field.pin_hide") : t("auth.field.pin_show")}
         className="absolute top-7 right-1 grid size-11 place-items-center rounded-xl text-lg text-muted transition hover:text-foreground"
       >
-        <span aria-hidden>{visible ? "🙈" : "👁️"}</span>
+        {visible ? <EyeOff className="size-5" aria-hidden /> : <Eye className="size-5" aria-hidden />}
       </button>
     </div>
   );

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { PostCard } from "@/components/PostCard";
-import { Button } from "@/components/ui";
+import { BUTTON_BASE, BUTTON_SIZES, BUTTON_VARIANTS, Button, EmptyState, Skeleton, Tabs } from "@/components/ui";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { api } from "@/lib/api";
 import type { OnboardingOptions, Post, PostPage } from "@/lib/types";
@@ -88,32 +88,21 @@ export function FeedView({ basePath, prepend }: { basePath: string; prepend?: Po
 
   return (
     <section className="flex flex-col gap-3" aria-label="Feed tim">
-      <div className="card flex flex-wrap items-center gap-1 p-1.5" role="tablist" aria-label="Filter feed">
-        {FILTERS.map((f) => {
-          const active = filter === f.value && !functionParam;
-          return (
-            <button
-              key={f.value}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              onClick={() => setParam({ filter: f.value === "all" ? null : f.value, function_id: null })}
-              className={`h-9 shrink-0 rounded-md px-3 text-sm font-semibold transition ${
-                active ? "bg-primary/10 text-primary" : "text-muted hover:bg-surface-muted"
-              }`}
-            >
-              {f.label}
-            </button>
-          );
-        })}
-        <span className="hidden flex-1 sm:block" />
-        <label className="shrink-0">
+      <div className="flex flex-wrap items-end gap-x-2 border-b border-line">
+        <Tabs
+          label="Filter feed"
+          className="min-w-0 basis-full border-b-0 sm:basis-auto sm:flex-1"
+          items={FILTERS.map((f) => ({ value: f.value, label: f.label }))}
+          value={functionParam ? ("__fn" as Filter) : filter}
+          onChange={(v) => setParam({ filter: v === "all" ? null : v, function_id: null })}
+        />
+        <label className="mb-1.5 ml-auto shrink-0">
           <span className="sr-only">Filter per fungsi</span>
           <select
             value={functionParam ?? ""}
             onChange={(e) => setParam({ function_id: e.target.value || null, filter: null })}
-            className={`h-9 max-w-36 rounded-md border-0 px-2 text-sm font-semibold outline-none ${
-              functionParam ? "bg-primary/10 text-primary" : "bg-surface-muted text-muted"
+            className={`h-9 max-w-36 rounded-lg border px-2 text-sm font-semibold ${
+              functionParam ? "border-ink bg-highlight/60 text-on-highlight" : "border-line bg-surface text-muted"
             }`}
           >
             <option value="">Per fungsi</option>
@@ -129,8 +118,8 @@ export function FeedView({ basePath, prepend }: { basePath: string; prepend?: Po
       {topic && (
         <p className="flex items-center gap-2 text-sm font-semibold">
           Topik
-          <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">#{topic}</span>
-          <button type="button" onClick={() => setParam({ topic: null })} className="flex items-center gap-1 text-muted">
+          <span className="hl px-1">#{topic}</span>
+          <button type="button" onClick={() => setParam({ topic: null })} className="flex min-h-11 items-center gap-1 px-2 text-muted hover:text-ink">
             <X className="size-4" aria-hidden /> hapus
           </button>
         </p>
@@ -139,19 +128,29 @@ export function FeedView({ basePath, prepend }: { basePath: string; prepend?: Po
       {shown === null ? (
         <div className="flex flex-col gap-3" aria-busy="true" aria-label="Memuat feed">
           {[0, 1].map((i) => (
-            <div key={i} className="card h-48 animate-pulse" />
+            <div key={i} className="card p-4">
+              <div className="flex items-center gap-3">
+                <Skeleton className="size-10 rounded-full" />
+                <Skeleton className="h-4 w-40" />
+              </div>
+              <Skeleton className="mt-4 h-4 w-full" />
+              <Skeleton className="mt-2 h-4 w-5/6" />
+            </div>
           ))}
         </div>
       ) : shown.length === 0 ? (
-        <div className="card p-8 text-center">
-          <Inbox className="mx-auto size-10 text-muted" aria-hidden />
-          <p className="mt-2 font-semibold">Belum ada posting di sini.</p>
-          <Link href="/read" className="mt-3 inline-block font-semibold text-primary">
-            Mulai sesi baca & bagikan catatanmu →
-          </Link>
-        </div>
+        <EmptyState
+          icon={<Inbox className="size-6" />}
+          title="Belum ada catatan di sini"
+          body="Catatan muncul setelah seseorang menyelesaikan sesi baca. Jadilah yang pertama hari ini."
+          action={
+            <Link href="/read" className={`${BUTTON_BASE} ${BUTTON_SIZES.sm} ${BUTTON_VARIANTS.primary}`}>
+              Mulai sesi baca
+            </Link>
+          }
+        />
       ) : (
-        shown.map((post) => <PostCard key={post.id} post={post} />)
+        shown.map((post, i) => <PostCard key={post.id} post={post} priority={i === 0} />)
       )}
 
       {cursor && (

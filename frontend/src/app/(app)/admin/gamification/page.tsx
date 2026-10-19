@@ -119,7 +119,7 @@ export default function AdminGamificationPage() {
           return (
             <div>
               <p className="font-bold">
-                🎯 {String(item.title)}
+ {String(item.title)}
                 <Inactive active={item.is_active} />
               </p>
               <p className="text-xs text-muted">

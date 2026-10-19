@@ -7,13 +7,13 @@
  */
 export const DEFAULT_TEXTS = {
   // Login & daftar
-  "auth.login.title": "Selamat datang kembali 👋",
+  "auth.login.title": "Selamat datang kembali",
   "auth.login.subtitle": "Masuk dengan nomor HP dan PIN-mu.",
   "auth.login.submit": "Masuk",
   "auth.login.forgot_pin": "Lupa PIN? Hubungi Admin tim untuk reset.",
   "auth.login.no_account": "Belum punya akun?",
   "auth.login.register_link": "Daftar di sini",
-  "auth.register.title": "Gabung tim baca 📖",
+  "auth.register.title": "Gabung tim baca",
   "auth.register.subtitle": "Cukup nama, fungsi, nomor HP, dan PIN.",
   "auth.register.name": "Nama",
   "auth.register.function": "Fungsi / bagian",
@@ -33,7 +33,7 @@ export const DEFAULT_TEXTS = {
 
   // Menu navigasi
   "nav.dashboard": "Beranda",
-  "nav.read": "Sesi Baca",
+  "nav.read": "Sesi baca",
   "nav.feed": "Feed",
   "nav.stats": "Statistik Tim",
   "nav.books": "Katalog Buku",
@@ -53,7 +53,7 @@ export const DEFAULT_TEXTS = {
   "nav.search_placeholder": "Cari buku…",
 
   // Beranda (feed)
-  "home.composer_prompt": "Apa yang kamu baca hari ini, {name}?",
+  "home.composer_prompt": "Ada kutipan menarik hari ini, {name}?",
   "home.composer_read": "Sesi baca",
   "home.composer_micro": "Baca 5 menit",
   "home.composer_quote": "Bagikan kutipan",

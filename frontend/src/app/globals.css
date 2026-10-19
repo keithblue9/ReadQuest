@@ -2,39 +2,78 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Palet profesional (terinspirasi Facebook): latar abu-abu muda, kartu putih, satu warna merek.
-   Warna merek bisa diganti Admin (Tampilan → Branding) lewat variabel --brand/--brand-dark. */
+/*
+ * Sistem desain "Stabilo" — jurnal baca: tinta biru tua di atas kertas, satu aksen stabilo kuning.
+ * Sumber tunggal token. Detail & rasio kontras: docs/redesign/DESIGN-SYSTEM.md.
+ * Nama lama (--primary, --foreground, --border, ...) tetap ada sebagai alias.
+ * Warna merek dari Admin hanya mengisi --brand-accent (dikunci ≥4.5:1 oleh BrandingEffects).
+ */
 :root {
-  --background: #f0f2f5;
+  --paper: #f6f7f9;
   --surface: #ffffff;
-  --surface-muted: #f0f2f5;
-  --foreground: #1c1e21;
-  --muted: #65676b;
-  --border: #dddfe2;
-  --primary: var(--brand, #2563eb);
-  --primary-foreground: #ffffff;
-  --accent: #0f766e;
-  --success: #15803d;
-  --danger: #dc2626;
-  --warning: #b45309;
+  --surface-muted: #eef0f4;
+  --ink: #1b2340;
+  --muted: #555c72;
+  --line: #e1e4eb;
+  --highlight: #ffe066;
+  --on-highlight: #1b2340;
+  --leaf: #2a6e50;
+  --danger: #b42318;
+  --rating: #946200;
+  --brand-accent: var(--brand-light, #1b2340);
+
+  --shadow-card: 0 1px 2px rgb(27 35 64 / 0.06);
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: light;
+}
+
+/*
+ * Alias lama. Didefinisikan untuk :root DAN .dark agar var() di-resolve ulang pada setiap
+ * kontainer bertema (mis. pratinjau mode gelap di Admin), bukan sekali di :root.
+ */
+:root,
+.dark {
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --border: var(--line);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --accent: var(--leaf);
+  --success: var(--leaf);
+  --warning: var(--rating);
 }
 
 .dark {
-  --background: #18191a;
-  --surface: #242526;
-  --surface-muted: #3a3b3c;
-  --foreground: #e4e6eb;
-  --muted: #b0b3b8;
-  --border: #3e4042;
-  --primary: var(--brand-dark, #4b8df8);
-  --primary-foreground: #ffffff;
-  --accent: #2dd4bf;
-  --success: #4ade80;
-  --danger: #f87171;
-  --warning: #fbbf24;
+  --paper: #121830;
+  --surface: #1a2140;
+  --surface-muted: #232b4d;
+  --ink: #eceef6;
+  --muted: #a9afc6;
+  --line: #2a3256;
+  --highlight: #f5d547;
+  --on-highlight: #121830;
+  --leaf: #6ccb9c;
+  --danger: #f59a8e;
+  --rating: #f5c84c;
+  --brand-accent: var(--brand-dark, #f5d547);
+
+  --primary: var(--highlight);
+  --primary-foreground: var(--on-highlight);
+
+  --shadow-card: none;
+  color-scheme: dark;
 }
 
 @theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-line: var(--line);
+  --color-highlight: var(--highlight);
+  --color-on-highlight: var(--on-highlight);
+  --color-leaf: var(--leaf);
+  --color-rating: var(--rating);
+  --color-brand: var(--brand-accent);
+
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-muted: var(--surface-muted);
@@ -47,37 +86,111 @@
   --color-success: var(--success);
   --color-danger: var(--danger);
   --color-warning: var(--warning);
-  /* Font sistem: tajam, cepat (tanpa unduhan), dan familiar seperti aplikasi kerja. */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  /* Sudut lebih tegas & profesional (kelas lama rounded-2xl/3xl ikut menyesuaikan). */
-  --radius-xl: 0.625rem;
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-literata), Georgia, "Times New Roman", serif;
+
+  /* Hierarki radius: chip 8 → tombol/input 12 → kartu 16. Kelas lama ikut menyesuaikan. */
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
   --radius-2xl: 0.75rem;
-  --radius-3xl: 0.875rem;
+  --radius-3xl: 1rem;
+}
+
+html {
+  background: var(--paper);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Kartu standar: putih, garis tipis, bayangan halus. */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
-}
-.dark .card {
-  box-shadow: none;
+/*
+ * Aturan komponen di dalam @layer agar utilitas Tailwind (yang ada di layer `utilities`)
+ * tetap bisa menimpanya, mis. `rounded-b-none` pada .card atau `font-sans` pada .prose-note.
+ */
+@layer components {
+  h1,
+  .font-display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+  }
+
+  h1 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* Fokus keyboard konsisten di seluruh app. */
+  :where(a, button, input, select, textarea, summary, [role="tab"], [tabindex]):focus-visible {
+    outline: 3px solid color-mix(in oklab, var(--ink) 70%, var(--highlight));
+    outline-offset: 2px;
+  }
+  .dark :where(a, button, input, select, textarea, summary, [role="tab"], [tabindex]):focus-visible {
+    outline-color: var(--highlight);
+  }
+
+  ::selection {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+
+  /* Kartu standar: putih, garis tipis, bayangan halus (gelap: hanya garis). */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Stabilo: menandai teks seperti di buku. */
+  .hl,
+  mark {
+    background: linear-gradient(transparent 52%, color-mix(in oklab, var(--highlight) 90%, transparent) 52%);
+    color: inherit;
+    padding: 0 0.1em;
+  }
+  .dark .hl,
+  .dark mark {
+    background: var(--highlight);
+    color: var(--on-highlight);
+    border-radius: 2px;
+  }
+
+  /* Isi catatan baca: serif, nyaman dibaca panjang. */
+  .prose-note {
+    font-family: var(--font-display);
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* Background login bawaan (sebelum Admin mengunggah gambar): kertas bergaris halus. */
+  .login-gradient {
+    background:
+      repeating-linear-gradient(transparent 0 31px, color-mix(in oklab, var(--paper) 14%, transparent) 31px 32px),
+      linear-gradient(160deg, #1b2340, #263160 60%, #2a3a6e);
+  }
 }
 
-/* Background login bawaan (sebelum Admin mengunggah gambar). */
-.login-gradient {
-  background:
-    radial-gradient(circle at 20% 15%, color-mix(in oklab, var(--accent) 70%, transparent) 0, transparent 45%),
-    radial-gradient(circle at 85% 80%, color-mix(in oklab, #ffffff 25%, transparent) 0, transparent 40%),
-    linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 55%, var(--accent)));
+/* Goresan stabilo pada progres: hanya sekali, saat tampil. */
+@keyframes marker-swipe {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .marker-fill {
+    transform-origin: left center;
+    animation: marker-swipe 600ms var(--ease-out) both;
+  }
 }
 
 @keyframes pop-in {
@@ -92,12 +205,17 @@ body {
 }
 
 .animate-pop-in {
-  animation: pop-in 220ms ease-out both;
+  animation: pop-in 220ms var(--ease-out) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-pop-in {
     animation: none;
+  }
+  *,
+  ::before,
+  ::after {
+    scroll-behavior: auto !important;
   }
 }
 

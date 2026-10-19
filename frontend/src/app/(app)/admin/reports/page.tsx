@@ -100,7 +100,7 @@ export default function ReportsPage() {
     <section className="flex flex-col gap-4">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Laporan Divisi</h1>
+          <h1 className="text-[26px] leading-tight">Laporan divisi</h1>
           <p className="text-sm text-muted">
             Tren partisipasi membaca per fungsi. Hanya angka agregat; fungsi dengan anggota kurang dari{" "}
             {report?.min_group_size ?? 3} orang digabung agar tidak bisa ditelusuri ke individu.
@@ -165,7 +165,7 @@ export default function ReportsPage() {
                 ))}
               </div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Tabel laporan per fungsi (bisa digulir)">
               <table className="w-full border-separate border-spacing-[2px] text-sm">
                 <thead>
                   <tr className="text-xs text-muted">

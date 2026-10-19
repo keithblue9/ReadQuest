@@ -174,7 +174,7 @@ export default function AdminSettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="text-2xl font-bold">Pengaturan</h1>
+        <h1 className="text-[26px] leading-tight">Pengaturan</h1>
         <p className="text-sm text-muted">Aturan bisnis yang tersimpan di database. Perubahan langsung berlaku.</p>
       </header>
       {GROUPS.map((group) => {

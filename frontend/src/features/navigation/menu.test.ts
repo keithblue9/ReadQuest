@@ -17,11 +17,31 @@ describe("visibleMenus", () => {
 });
 
 describe("splitMobileMenus", () => {
-  it("menaruh 4 menu di bottom nav dan sisanya di Lainnya", () => {
+  it("menaruh 3 menu di bottom nav (tanpa Sesi Baca) dan sisanya di Lainnya", () => {
     const { primary, more } = splitMobileMenus(visibleMenus(DEFAULT_UI_CONFIG.features));
-    expect(primary.map((m) => m.menu)).toEqual(["dashboard", "read", "stats", "books"]);
+    expect(primary.map((m) => m.menu)).toEqual(["dashboard", "stats", "books"]);
     expect(more.map((m) => m.menu)).toContain("profile");
     expect(more.map((m) => m.menu)).toContain("notifications");
+  });
+
+  it("tidak pernah menaruh Sesi Baca di slot atau Lainnya (punya tombol tengah sendiri)", () => {
+    const features = {
+      ...DEFAULT_UI_CONFIG.features,
+      menu_order: ["read" as Menu, ...DEFAULT_UI_CONFIG.features.menu_order.filter((m) => m !== "read")],
+    };
+    const { primary, more } = splitMobileMenus(visibleMenus(features));
+    expect(primary).toHaveLength(3);
+    expect([...primary, ...more].map((m) => m.menu)).not.toContain("read");
+  });
+
+  it("tidak menampilkan menu fitur yang dimatikan Admin", () => {
+    const features = {
+      ...DEFAULT_UI_CONFIG.features,
+      enabled: { ...DEFAULT_UI_CONFIG.features.enabled, books: false },
+    };
+    const { primary, more } = splitMobileMenus(visibleMenus(features));
+    expect([...primary, ...more].map((m) => m.menu)).not.toContain("books");
+    expect(primary.map((m) => m.menu)).toEqual(["dashboard", "stats", "shelf"]);
   });
 });
 

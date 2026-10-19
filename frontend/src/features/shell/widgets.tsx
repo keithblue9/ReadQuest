@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { Avatar } from "@/components/Avatar";
 import { BookCover } from "@/components/BookCover";
+import { ProgressBar } from "@/components/ProgressBar";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { CalendarDialog } from "@/features/calendar/CalendarDialog";
 import { useFeature, useT } from "@/features/ui-config/store";
@@ -27,7 +28,7 @@ export function RailCard({
     <section className="card p-4">
       {title && (
         <header className="mb-3 flex items-center justify-between gap-2">
-          <h2 className="text-[15px] font-semibold text-muted">{title}</h2>
+          <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
           {action}
         </header>
       )}
@@ -55,7 +56,7 @@ export function ProgressRing({ value, max, size = 76 }: { value: number; max: nu
         strokeLinecap="round"
         strokeDasharray={c}
         strokeDashoffset={c * (1 - pct)}
-        className={`transition-[stroke-dashoffset] duration-700 ${done ? "stroke-success" : "stroke-primary"}`}
+        className={`transition-[stroke-dashoffset] duration-700 ${done ? "stroke-leaf" : "stroke-ink dark:stroke-highlight"}`}
       />
     </svg>
   );
@@ -68,7 +69,7 @@ export function TargetCard({ compact = false }: { compact?: boolean }) {
   if (!progress) {
     return (
       <RailCard>
-        <div className="h-20 animate-pulse rounded-lg bg-surface-muted" />
+        <div className="h-[148px] rounded-lg bg-surface-muted motion-safe:animate-pulse" />
       </RailCard>
     );
   }
@@ -88,15 +89,15 @@ export function TargetCard({ compact = false }: { compact?: boolean }) {
           </span>
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold tracking-wide text-muted uppercase">
+          <p className="text-sm font-semibold text-muted">
             {weekly ? "Target minggu ini" : "Target hari ini"}
           </p>
           <p className="text-xl font-bold tabular-nums">
             {value}
             <span className="text-sm font-semibold text-muted"> / {target} menit</span>
           </p>
-          <p className={`text-sm ${left ? "text-muted" : "font-semibold text-success"}`}>
-            {left ? `${left} menit lagi` : "Target tercapai ✓"}
+          <p className={`text-sm ${left ? "text-muted" : "font-semibold text-leaf"}`}>
+            {left ? `${left} menit lagi` : "Target tercapai"}
           </p>
         </div>
       </div>
@@ -104,7 +105,7 @@ export function TargetCard({ compact = false }: { compact?: boolean }) {
       {streak && (
         <div className="mt-3 flex items-center gap-4 border-t border-border pt-3 text-sm">
           <span className="flex items-center gap-1.5 font-semibold">
-            <Flame className={`size-4 ${streak.current ? "text-orange-500" : "text-muted"}`} aria-hidden />
+            <Flame className={`size-4 ${streak.current ? "text-rating" : "text-muted"}`} aria-hidden />
             {streak.current} hari beruntun
           </span>
           {streak.freezes_per_month > 0 && (
@@ -112,7 +113,7 @@ export function TargetCard({ compact = false }: { compact?: boolean }) {
               className="flex items-center gap-1.5 text-muted"
               title="Jatah libur streak bulan ini: hari terlewat otomatis dibekukan"
             >
-              <Snowflake className="size-4 text-sky-500" aria-hidden />
+              <Snowflake className="size-4" aria-hidden />
               {streak.freezes_left} freeze
             </span>
           )}
@@ -123,13 +124,13 @@ export function TargetCard({ compact = false }: { compact?: boolean }) {
         <div className="mt-3 grid grid-cols-2 gap-2">
           <Link
             href="/read?mode=micro"
-            className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-surface-muted text-sm font-semibold hover:brightness-95"
+            className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-surface-muted text-sm font-semibold hover:brightness-95"
           >
-            <Zap className="size-4 text-amber-500" aria-hidden /> {t("nav.micro_reading")}
+            <Zap className="size-4 text-rating" aria-hidden /> {t("nav.micro_reading")}
           </Link>
           <Link
             href="/read"
-            className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-primary text-sm font-semibold text-primary-foreground hover:brightness-110"
+            className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-primary text-sm font-semibold text-primary-foreground hover:brightness-110"
           >
             <Timer className="size-4" aria-hidden /> {t("home.composer_read")}
           </Link>
@@ -156,16 +157,13 @@ export function TeamTodayCard() {
         {readers_today}
         <span className="text-sm font-semibold text-muted"> dari {members} sudah membaca</span>
       </p>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-muted" aria-hidden>
-        <div
-          className="h-full rounded-full bg-primary transition-[width] duration-700"
-          style={{ width: `${members ? Math.max(2, (readers_today / members) * 100) : 0}%` }}
-        />
+      <div className="mt-2">
+        <ProgressBar value={readers_today} max={members} size="sm" label="Rekan yang sudah membaca hari ini" />
       </div>
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
         {reading_now > 0 && (
           <span className="flex items-center gap-1.5">
-            <span className="size-2 animate-pulse rounded-full bg-success" aria-hidden />
+            <span className="size-2 rounded-full bg-leaf motion-safe:animate-pulse" aria-hidden />
             {reading_now} sedang membaca
           </span>
         )}
@@ -216,7 +214,7 @@ export function BookOfMonthCard() {
   }, [on]);
   if (!on || !bom?.book) return null;
   return (
-    <RailCard title="Book of the Month">
+    <RailCard title="Buku bulan ini">
       <Link href={`/books/${bom.book.id}`} className="flex items-center gap-3">
         <BookCover url={bom.book.cover_url} title={bom.book.title} size="sm" />
         <span className="min-w-0">
@@ -239,7 +237,7 @@ export function CalendarCard() {
         onClick={() => setOpen(true)}
         className="card flex w-full items-center gap-3 p-4 text-left transition hover:brightness-[0.98]"
       >
-        <span className="grid size-10 place-items-center rounded-full bg-primary/10 text-primary">
+        <span className="grid size-10 place-items-center rounded-full bg-surface-muted text-ink">
           <CalendarPlus className="size-5" aria-hidden />
         </span>
         <span className="min-w-0 flex-1">

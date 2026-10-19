@@ -44,12 +44,16 @@ export function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/** Jumlah slot bottom nav HP (sisanya masuk "Lainnya"). */
-export const MOBILE_SLOTS = 4;
+/** Jumlah slot menu di bottom nav HP (di luar tombol Baca di tengah dan "Lainnya"). */
+export const MOBILE_SLOTS = 3;
 
-/** Bottom nav HP: menu teratas kecuali Notifikasi & Profil (sudah ada di header). */
+/**
+ * Bottom nav HP: [menu][menu][Baca][menu][Lainnya]. Sesi Baca selalu punya tombol tengah,
+ * jadi tidak ikut slot maupun "Lainnya". Notifikasi & Profil sudah ada di header.
+ */
 export function splitMobileMenus(items: MenuItem[]): { primary: MenuItem[]; more: MenuItem[] } {
-  const candidates = items.filter((i) => i.menu !== "notifications" && i.menu !== "profile");
+  const rest = items.filter((i) => i.menu !== "read");
+  const candidates = rest.filter((i) => i.menu !== "notifications" && i.menu !== "profile");
   const primary = candidates.slice(0, MOBILE_SLOTS);
-  return { primary, more: items.filter((i) => !primary.includes(i)) };
+  return { primary, more: rest.filter((i) => !primary.includes(i)) };
 }
