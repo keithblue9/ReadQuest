@@ -2,9 +2,13 @@
 
 import { useEffect } from "react";
 
+import { brandAccent } from "@/lib/color";
+
 import { useUiConfig } from "./store";
 
 const DEFAULT_NAME = "ReadQuest";
+/** Nilai bawaan backend = "tanpa override" (pakai aksen sistem desain). */
+const DEFAULT_COLOR = "#2563eb";
 
 /**
  * Metadata judul tab dibuat statis saat build ("… · ReadQuest"); komponen ini mengganti nama
@@ -13,16 +17,17 @@ const DEFAULT_NAME = "ReadQuest";
 export function BrandingEffects() {
   const { app_name, primary_color } = useUiConfig().branding;
 
-  // Warna merek dari Admin; versi gelap dicerahkan agar tetap terbaca di latar gelap.
+  // Warna merek dari Admin hanya mengisi aksen merek (tile logo, tautan), dikunci ≥4.5:1
+  // terhadap permukaan terang & gelap. Tinta dan stabilo tetap milik sistem desain.
   useEffect(() => {
     const root = document.documentElement.style;
-    if (!/^#[0-9a-f]{6}$/i.test(primary_color) || primary_color.toLowerCase() === "#2563eb") {
-      root.removeProperty("--brand");
+    if (!/^#[0-9a-f]{6}$/i.test(primary_color) || primary_color.toLowerCase() === DEFAULT_COLOR) {
+      root.removeProperty("--brand-light");
       root.removeProperty("--brand-dark");
       return;
     }
-    root.setProperty("--brand", primary_color);
-    root.setProperty("--brand-dark", `color-mix(in oklab, ${primary_color} 72%, white)`);
+    root.setProperty("--brand-light", brandAccent(primary_color, "#ffffff"));
+    root.setProperty("--brand-dark", brandAccent(primary_color, "#1a2140"));
   }, [primary_color]);
 
   useEffect(() => {

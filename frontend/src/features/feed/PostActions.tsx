@@ -170,7 +170,7 @@ export function PostActions({ post, linkComments = true, commentCount }: Props) 
           aria-label="Pilih reaksi lain"
           aria-expanded={tray}
           onClick={() => setTray((v) => !v)}
-          className="grid h-10 w-8 place-items-center rounded-lg text-xs text-muted hover:bg-surface-muted"
+          className="grid h-11 w-9 place-items-center rounded-lg text-xs text-muted hover:bg-surface-muted"
         >
           ▾
         </button>

@@ -1,4 +1,4 @@
-import { BookOpen, PartyPopper } from "lucide-react";
+import { PartyPopper } from "lucide-react";
 import Link from "next/link";
 
 import { PostActions } from "@/features/feed/PostActions";
@@ -7,6 +7,7 @@ import type { Post } from "@/lib/types";
 import { POST_TYPE_LABEL } from "@/lib/words";
 
 import { Avatar } from "./Avatar";
+import { BookCover } from "./BookCover";
 
 export { Avatar } from "./Avatar";
 
@@ -54,8 +55,8 @@ export function PostCard({
       : null;
 
   return (
-    <article className="card animate-pop-in overflow-hidden">
-      <header className="flex items-start gap-3 px-4 pt-3">
+    <article className="card overflow-hidden">
+      <header className="flex items-start gap-3 px-4 pt-4">
         <Avatar name={post.author.name} url={post.author.avatar_url} userId={post.author.id} />
         <div className="min-w-0 flex-1">
           <p className="text-[15px] leading-snug">
@@ -64,15 +65,15 @@ export function PostCard({
             </Link>{" "}
             <span className="text-muted">{activity(post)}</span>
           </p>
-          <p className="text-xs text-muted">
+          <p className="text-[13px] text-muted">
             <Link href={`/posts/${post.id}`} className="hover:underline">
               <time dateTime={post.created_at}>{timeAgo(post.created_at)}</time>
             </Link>
             {post.type === "takeaway" && post.takeaway_kind && <> · {TAKEAWAY_LABEL[post.takeaway_kind]}</>}
             {post.rating ? (
-              <span className="ml-1 text-amber-500" aria-label={`Rating ${post.rating} dari 5`}>
+              <span className="ml-1 text-rating" role="img" aria-label={`Rating ${post.rating} dari 5`}>
                 · {"★".repeat(post.rating)}
-                <span className="text-border">{"★".repeat(5 - post.rating)}</span>
+                <span className="text-line">{"★".repeat(5 - post.rating)}</span>
               </span>
             ) : null}
           </p>
@@ -80,10 +81,10 @@ export function PostCard({
         {menu}
       </header>
 
-      <div className="px-4 pt-2">
+      <div className="px-4 pt-3">
         {post.type === "quote" && post.quote ? (
-          <figure className="my-1 border-l-4 border-primary bg-primary/5 py-3 pr-3 pl-4">
-            <blockquote className="font-serif text-lg leading-relaxed italic">“{post.quote.text}”</blockquote>
+          <figure className="my-1 border-l-[6px] border-highlight py-1 pr-3 pl-4">
+            <blockquote className="font-display text-xl leading-relaxed">“{post.quote.text}”</blockquote>
             <figcaption className="mt-1.5 text-sm text-muted">
               — {post.book.title}
               {post.quote.page ? `, hlm. ${post.quote.page}` : ""}
@@ -91,14 +92,14 @@ export function PostCard({
           </figure>
         ) : null}
         {(post.type !== "quote" || post.content !== post.quote?.text) && (
-          <p className={`leading-relaxed whitespace-pre-line ${post.type === "takeaway" ? "text-lg" : "text-[15px]"} ${post.type === "quote" ? "mt-2" : ""}`}>
+          <p className={`prose-note whitespace-pre-line ${post.type === "takeaway" ? "text-lg" : ""} ${post.type === "quote" ? "mt-2 font-sans text-[15px]" : ""}`}>
             <RichText text={post.content} mentions={post.mentions} />
           </p>
         )}
         {post.topics.length > 0 && (
           <p className="mt-1.5 flex flex-wrap gap-x-2 text-sm">
             {post.topics.map((topic) => (
-              <Link key={topic} href={`/feed?topic=${encodeURIComponent(topic)}`} className="font-medium text-primary hover:underline">
+              <Link key={topic} href={`/feed?topic=${encodeURIComponent(topic)}`} className="font-semibold text-brand underline-offset-2 hover:underline">
                 #{topic}
               </Link>
             ))}
@@ -107,14 +108,17 @@ export function PostCard({
       </div>
 
       {post.image_urls.length > 0 && (
-        <div className={`mt-3 grid gap-0.5 ${post.image_urls.length > 1 ? "grid-cols-2" : ""}`}>
+        <div className={`mx-4 mt-3 grid gap-1 overflow-hidden rounded-xl ${post.image_urls.length > 1 ? "grid-cols-2" : ""}`}>
           {post.image_urls.map((url) => (
             <img
               key={url}
               src={url}
               alt={`Foto buku ${post.book.title}`}
               loading="lazy"
-              className="aspect-[4/3] w-full bg-surface-muted object-cover"
+              decoding="async"
+              width={640}
+              height={400}
+              className="aspect-[16/10] w-full bg-surface-muted object-cover"
             />
           ))}
         </div>
@@ -123,24 +127,24 @@ export function PostCard({
       {showBook && (
         <Link
           href={`/books/${post.book.id}`}
-          className="mx-4 mt-3 flex items-center gap-3 rounded-lg border border-border bg-surface-muted/60 p-2.5 transition hover:bg-surface-muted"
+          className="mx-4 mt-3 flex items-center gap-3 rounded-xl border border-line p-2.5 transition hover:bg-surface-muted"
         >
-          <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-            <BookOpen className="size-5" aria-hidden />
-          </span>
+          <BookCover url={null} title={post.book.title} size="sm" />
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm font-semibold">{post.book.title}</span>
             <span className="block truncate text-xs text-muted">{post.book.authors.join(", ")}</span>
           </span>
           {post.is_book_finished ? (
-            <span className="flex shrink-0 items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">
+            <span className="flex shrink-0 items-center gap-1 rounded-full bg-leaf/15 px-2 py-0.5 text-xs font-semibold text-leaf">
               <PartyPopper className="size-3.5" aria-hidden /> Selesai
             </span>
           ) : pct !== null ? (
-            <span className="w-20 shrink-0 text-right text-xs text-muted">
-              <span className="block font-semibold tabular-nums">{pct}%</span>
-              <span className="mt-0.5 block h-1.5 overflow-hidden rounded-full bg-border">
-                <span className="block h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+            <span className="w-24 shrink-0 text-right text-xs text-muted">
+              <span className="block tabular-nums">
+                hal. <span className="font-semibold text-ink">{progress?.current_page}</span>/{progress?.total_pages}
+              </span>
+              <span className="mt-1 block h-1.5 overflow-hidden rounded-[2px] bg-line">
+                <span className="block h-full rounded-[2px] bg-highlight" style={{ width: `${pct}%` }} />
               </span>
             </span>
           ) : null}
