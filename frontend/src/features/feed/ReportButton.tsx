@@ -38,7 +38,7 @@ export function ReportButton({ path, what, className = "" }: { path: string; wha
   return (
     <>
       <button type="button" className={`hover:text-danger ${className}`} onClick={() => dialog.current?.showModal()}>
- Laporkan
+        Laporkan
       </button>
       <dialog
         ref={dialog}

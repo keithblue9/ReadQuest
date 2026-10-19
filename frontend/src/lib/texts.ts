@@ -33,7 +33,7 @@ export const DEFAULT_TEXTS = {
 
   // Menu navigasi
   "nav.dashboard": "Beranda",
-  "nav.read": "Sesi Baca",
+  "nav.read": "Sesi baca",
   "nav.feed": "Feed",
   "nav.stats": "Statistik Tim",
   "nav.books": "Katalog Buku",
@@ -53,7 +53,7 @@ export const DEFAULT_TEXTS = {
   "nav.search_placeholder": "Cari buku…",
 
   // Beranda (feed)
-  "home.composer_prompt": "Apa yang kamu baca hari ini, {name}?",
+  "home.composer_prompt": "Ada kutipan menarik hari ini, {name}?",
   "home.composer_read": "Sesi baca",
   "home.composer_micro": "Baca 5 menit",
   "home.composer_quote": "Bagikan kutipan",

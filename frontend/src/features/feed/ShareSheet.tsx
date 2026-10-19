@@ -103,7 +103,7 @@ export function ShareSheet({ post, onClose }: { post: Post; onClose: () => void 
             disabled={busy}
             className="col-span-2 flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary font-bold text-primary-foreground disabled:opacity-60"
           >
- Bagikan kartu
+            Bagikan kartu
           </button>
           {options.map((o) => (
             <a

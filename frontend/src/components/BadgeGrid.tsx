@@ -25,7 +25,7 @@ export function BadgeGrid({ badges, shareable = false }: { badges: Badge[]; shar
                 </span>
                 {!b.earned && (
                   <span className="mt-1 block h-1.5 overflow-hidden rounded-[2px] bg-line">
-                    <span className="block h-full bg-highlight" style={{ width: `${Math.min(100, (b.progress / Math.max(1, b.target)) * 100)}%` }} />
+                    <span className="block h-full border-r-2 border-ink bg-highlight dark:border-r-0" style={{ width: `${Math.min(100, (b.progress / Math.max(1, b.target)) * 100)}%` }} />
                   </span>
                 )}
               </span>

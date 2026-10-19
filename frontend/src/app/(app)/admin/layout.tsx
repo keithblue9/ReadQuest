@@ -41,7 +41,7 @@ export default function AdminLayout({ children }: LayoutProps<"/">) {
 
   return (
     <div className="flex min-h-dvh w-full flex-col bg-paper md:flex-row">
-      <aside aria-label="Menu admin" className="border-b border-line bg-paper md:sticky md:top-0 md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r md:border-b-0">
+      <aside aria-label="Admin" className="border-b border-line bg-paper md:sticky md:top-0 md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r md:border-b-0">
         <div className="flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-3">
           <Link href="/" aria-label="Kembali ke aplikasi">
             <Logo />

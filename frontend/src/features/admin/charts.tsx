@@ -120,7 +120,7 @@ export function DailyBars({ data }: { data: Daily[] }) {
 type HeatRow = { function_id: string; function: string; members: number; values: number[] };
 
 // Satu hue (tinta), terang → gelap. Teks memakai tinta teks / kertas, bukan warna data.
-const STEPS = [0.08, 0.22, 0.4, 0.6, 0.85];
+const STEPS = [0.08, 0.2, 0.34, 0.6, 0.85];
 
 /** Heatmap rata-rata menit per anggota per hari, per fungsi × hari dalam seminggu. */
 export function FunctionHeatmap({ rows, weekdays }: { rows: HeatRow[]; weekdays: string[] }) {

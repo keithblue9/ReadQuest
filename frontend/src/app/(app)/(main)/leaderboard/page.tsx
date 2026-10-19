@@ -26,13 +26,15 @@ const PERIODS: { value: LeaderboardPeriod; label: string }[] = [
 
 function Podium({ entries, unit }: { entries: LeaderboardEntry[]; unit: string }) {
   // Tiga teratas sebagai punggung buku di rak: tinggi mengikuti peringkat, juara 1 ditandai stabilo.
-  const order = [entries[1], entries[0], entries[2]];
-  const heights = ["h-24", "h-32", "h-20"];
+  // DOM berurutan 1-2-3 (dibacakan benar oleh pembaca layar); tampilan 2-1-3 lewat `order`.
+  const order = [entries[0], entries[1], entries[2]];
+  const heights = ["h-32", "h-24", "h-20"];
+  const visual = ["order-2", "order-1", "order-3"];
   return (
     <ol className="grid grid-cols-3 items-end gap-2 border-b-4 border-ink pt-2 dark:border-line" aria-label="Tiga teratas">
       {order.map((entry, i) =>
         entry ? (
-          <li key={entryKey(entry)} className="flex min-w-0 flex-col items-center text-center">
+          <li key={entryKey(entry)} className={`flex min-w-0 flex-col items-center text-center ${visual[i]}`}>
             {entry.user ? (
               <Avatar name={entry.user.name} url={entry.user.avatar_url} userId={entry.user.id} />
             ) : (
@@ -46,7 +48,7 @@ function Podium({ entries, unit }: { entries: LeaderboardEntry[]; unit: string }
             </p>
             <div
               className={`relative mt-2 flex w-[78%] items-start justify-center rounded-t-[4px] pt-2 ${heights[i]} ${
-                i === 1 ? "bg-highlight text-on-highlight" : "bg-ink text-paper dark:bg-surface-muted dark:text-ink"
+                i === 0 ? "bg-highlight text-on-highlight" : "bg-ink text-paper dark:bg-surface-muted dark:text-ink"
               }`}
             >
               <span aria-hidden className="absolute inset-x-0 top-5 h-px bg-current opacity-30" />
@@ -58,7 +60,7 @@ function Podium({ entries, unit }: { entries: LeaderboardEntry[]; unit: string }
             </div>
           </li>
         ) : (
-          <li key={`empty-${i}`} aria-hidden />
+          <li key={`empty-${i}`} className={visual[i]} aria-hidden />
         ),
       )}
     </ol>

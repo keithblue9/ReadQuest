@@ -56,7 +56,7 @@ export function ProgressRing({ value, max, size = 76 }: { value: number; max: nu
         strokeLinecap="round"
         strokeDasharray={c}
         strokeDashoffset={c * (1 - pct)}
-        className={`transition-[stroke-dashoffset] duration-700 ${done ? "stroke-leaf" : "stroke-highlight"}`}
+        className={`transition-[stroke-dashoffset] duration-700 ${done ? "stroke-leaf" : "stroke-ink dark:stroke-highlight"}`}
       />
     </svg>
   );

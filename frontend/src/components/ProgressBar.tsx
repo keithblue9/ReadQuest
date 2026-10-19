@@ -26,7 +26,7 @@ export function ProgressBar({
       aria-valuenow={Math.min(value, max)}
     >
       <div
-        className={`marker-fill h-full rounded-[3px_9px_6px_3px] transition-[width] duration-700 ${done ? "bg-leaf" : "bg-highlight"}`}
+        className={`marker-fill h-full rounded-[3px_9px_6px_3px] transition-[width] duration-700 ${done ? "bg-leaf" : "border-r-[3px] border-ink bg-highlight dark:border-r-0"}`}
         style={{ width: `${pct > 0 ? Math.max(pct, 4) : 0}%` }}
       />
     </div>

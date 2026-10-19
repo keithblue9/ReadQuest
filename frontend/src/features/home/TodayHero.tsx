@@ -23,7 +23,7 @@ const DATE = new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric",
 export function TodayHero() {
   const t = useT();
   const { user } = useAuth();
-  const { progress, points } = useShellData();
+  const { progress, points, progressFailed } = useShellData();
   const [last, setLast] = useState<ReadingSession["book"] | null | undefined>(undefined);
 
   useEffect(() => {
@@ -31,6 +31,22 @@ export function TodayHero() {
       .then((rows) => setLast(rows[0]?.book ?? null))
       .catch(() => setLast(null));
   }, []);
+
+  if ((!progress && progressFailed) && user) {
+    return (
+      <section className="card relative min-h-[348px] p-5 sm:min-h-[268px] sm:p-6" aria-labelledby="today-title">
+        <p className="text-sm font-medium text-muted first-letter:uppercase">{DATE.format(new Date())}</p>
+        <h1 id="today-title" className="mt-1 max-w-[24ch] text-[28px] leading-[1.18] text-balance sm:text-[32px]">
+          Siap membaca hari ini?
+        </h1>
+        <p className="mt-3 text-sm text-muted">Progres hari ini belum bisa dimuat. Sesi baca tetap tercatat seperti biasa.</p>
+        <Link href={last ? `/read?book=${last.id}` : "/read"} className={`${BUTTON_BASE} ${BUTTON_SIZES.md} ${BUTTON_VARIANTS.primary} mt-6 w-full`}>
+          <BookOpen className="size-5 shrink-0" aria-hidden />
+          <span className="truncate">{last ? `Lanjut baca ${last.title}` : t("nav.start_reading")}</span>
+        </Link>
+      </section>
+    );
+  }
 
   if (!progress || !user) {
     return (

@@ -3,7 +3,7 @@
 import { BookOpen, CalendarPlus, Ellipsis, FileChartColumn, Search, Settings, Shield, Timer, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/features/auth/AuthProvider";
 import { allowedSections } from "@/features/admin/sections";
@@ -49,7 +49,7 @@ function SearchBox({ className = "" }: { className?: string }) {
         type="search"
         aria-label={t("nav.search_placeholder")}
         placeholder={t("nav.search_placeholder")}
-        className="h-10 w-full rounded-full border border-transparent bg-surface-muted pr-4 pl-9 text-sm placeholder:text-muted focus:border-line focus:bg-surface focus:outline-none focus-visible:outline-none focus:ring-4 focus:ring-highlight/50"
+        className="h-10 w-full rounded-full border border-transparent bg-surface-muted pr-4 pl-9 text-sm placeholder:text-muted focus:border-ink focus:bg-surface focus:outline-none focus-visible:outline-none focus:ring-4 focus:ring-highlight/50"
       />
     </form>
   );
@@ -88,6 +88,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { features } = useUiConfig();
   const [moreOpen, setMoreOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const moreRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = moreRef.current;
+    if (!dialog) return;
+    if (moreOpen && !dialog.open) dialog.showModal();
+    if (!moreOpen && dialog.open) dialog.close();
+  }, [moreOpen]);
 
   const items = visibleMenus(features);
   const { primary, more } = splitMobileMenus(items);
@@ -253,68 +261,66 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </ul>
       </nav>
 
-      {moreOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMoreOpen(false)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={t("nav.more")}
-            className="animate-pop-in card absolute inset-x-0 bottom-0 rounded-b-none p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-2 flex items-center justify-between">
-              <p className="font-display text-lg font-semibold">{t("nav.more")}</p>
-              <button type="button" aria-label="Tutup" onClick={() => setMoreOpen(false)} className="grid size-11 place-items-center rounded-full bg-surface-muted">
-                <X className="size-5" />
-              </button>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {more.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.menu}
-                                        href={item.href}
-                    onClick={() => setMoreOpen(false)}
-                    className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl bg-surface-muted p-3 text-center text-xs font-semibold"
-                  >
-                    <Icon className="size-6" strokeWidth={1.8} aria-hidden />
-                    {t(item.label)}
-                  </Link>
-                );
-              })}
-              <button
-                type="button"
-                                onClick={() => {
-                  setMoreOpen(false);
-                  setCalendarOpen(true);
-                }}
+      {/* Sheet "Lainnya": <dialog> native → fokus terkurung, Escape, fokus kembali ke pemicu. */}
+      <dialog
+        ref={moreRef}
+        aria-label={t("nav.more")}
+        onClose={() => setMoreOpen(false)}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) setMoreOpen(false);
+        }}
+        className="card m-0 mt-auto w-full max-w-none rounded-b-none p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] text-ink backdrop:bg-black/40 lg:hidden"
+      >
+        <div className="mb-2 flex items-center justify-between">
+          <p className="font-display text-lg font-semibold">{t("nav.more")}</p>
+          <button type="button" aria-label="Tutup" onClick={() => setMoreOpen(false)} className="grid size-11 place-items-center rounded-full bg-surface-muted">
+            <X className="size-5" />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {more.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.menu}
+                href={item.href}
+                onClick={() => setMoreOpen(false)}
                 className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl bg-surface-muted p-3 text-center text-xs font-semibold"
               >
-                <CalendarPlus className="size-6" strokeWidth={1.8} aria-hidden />
-                Kalender baca
-              </button>
-              <div className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl bg-surface-muted p-3 text-center text-xs font-semibold">
-                <ThemeToggle />
-                Tema
-              </div>
-              {canReport && (
-                <Link href="/admin/reports" onClick={() => setMoreOpen(false)} className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl bg-surface-muted p-3 text-center text-xs font-semibold">
-                  <FileChartColumn className="size-6" strokeWidth={1.8} aria-hidden />
-                  {t("nav.reports")}
-                </Link>
-              )}
-              {adminHome && (
-                <Link href={adminHome} onClick={() => setMoreOpen(false)} className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl bg-surface-muted p-3 text-center text-xs font-semibold">
-                  <Shield className="size-6" strokeWidth={1.8} aria-hidden />
-                  {t("nav.admin")}
-                </Link>
-              )}
-            </div>
+                <Icon className="size-6" strokeWidth={1.8} aria-hidden />
+                {t(item.label)}
+              </Link>
+            );
+          })}
+          <button
+            type="button"
+                            onClick={() => {
+              setMoreOpen(false);
+              setCalendarOpen(true);
+            }}
+            className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl bg-surface-muted p-3 text-center text-xs font-semibold"
+          >
+            <CalendarPlus className="size-6" strokeWidth={1.8} aria-hidden />
+            Kalender baca
+          </button>
+          <div className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl bg-surface-muted p-3 text-center text-xs font-semibold">
+            <ThemeToggle />
+            Tema
           </div>
+          {canReport && (
+            <Link href="/admin/reports" onClick={() => setMoreOpen(false)} className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl bg-surface-muted p-3 text-center text-xs font-semibold">
+              <FileChartColumn className="size-6" strokeWidth={1.8} aria-hidden />
+              {t("nav.reports")}
+            </Link>
+          )}
+          {adminHome && (
+            <Link href={adminHome} onClick={() => setMoreOpen(false)} className="flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl bg-surface-muted p-3 text-center text-xs font-semibold">
+              <Shield className="size-6" strokeWidth={1.8} aria-hidden />
+              {t("nav.admin")}
+            </Link>
+          )}
         </div>
-      )}
+      </dialog>
       {calendarOpen && <CalendarDialog onClose={() => setCalendarOpen(false)} />}
     </div>
   );

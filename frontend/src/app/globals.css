@@ -110,65 +110,71 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-h1,
-.font-display {
-  font-family: var(--font-display);
-  font-optical-sizing: auto;
-}
+/*
+ * Aturan komponen di dalam @layer agar utilitas Tailwind (yang ada di layer `utilities`)
+ * tetap bisa menimpanya, mis. `rounded-b-none` pada .card atau `font-sans` pada .prose-note.
+ */
+@layer components {
+  h1,
+  .font-display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+  }
 
-h1 {
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
+  h1 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
 
-/* Fokus keyboard konsisten di seluruh app. */
-:where(a, button, input, select, textarea, summary, [role="tab"], [tabindex]):focus-visible {
-  outline: 3px solid color-mix(in oklab, var(--ink) 70%, var(--highlight));
-  outline-offset: 2px;
-}
-.dark :where(a, button, input, select, textarea, summary, [role="tab"], [tabindex]):focus-visible {
-  outline-color: var(--highlight);
-}
+  /* Fokus keyboard konsisten di seluruh app. */
+  :where(a, button, input, select, textarea, summary, [role="tab"], [tabindex]):focus-visible {
+    outline: 3px solid color-mix(in oklab, var(--ink) 70%, var(--highlight));
+    outline-offset: 2px;
+  }
+  .dark :where(a, button, input, select, textarea, summary, [role="tab"], [tabindex]):focus-visible {
+    outline-color: var(--highlight);
+  }
 
-::selection {
-  background: var(--highlight);
-  color: var(--on-highlight);
-}
+  ::selection {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
 
-/* Kartu standar: putih, garis tipis, bayangan halus (gelap: hanya garis). */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 1rem;
-  box-shadow: var(--shadow-card);
-}
+  /* Kartu standar: putih, garis tipis, bayangan halus (gelap: hanya garis). */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-card);
+  }
 
-/* Stabilo: menandai teks seperti di buku. */
-.hl,
-mark {
-  background: linear-gradient(transparent 52%, color-mix(in oklab, var(--highlight) 90%, transparent) 52%);
-  color: inherit;
-  padding: 0 0.1em;
-}
-.dark .hl,
-.dark mark {
-  background: var(--highlight);
-  color: var(--on-highlight);
-  border-radius: 2px;
-}
+  /* Stabilo: menandai teks seperti di buku. */
+  .hl,
+  mark {
+    background: linear-gradient(transparent 52%, color-mix(in oklab, var(--highlight) 90%, transparent) 52%);
+    color: inherit;
+    padding: 0 0.1em;
+  }
+  .dark .hl,
+  .dark mark {
+    background: var(--highlight);
+    color: var(--on-highlight);
+    border-radius: 2px;
+  }
 
-/* Isi catatan baca: serif, nyaman dibaca panjang. */
-.prose-note {
-  font-family: var(--font-display);
-  font-size: 16px;
-  line-height: 1.7;
-}
+  /* Isi catatan baca: serif, nyaman dibaca panjang. */
+  .prose-note {
+    font-family: var(--font-display);
+    font-size: 16px;
+    line-height: 1.7;
+  }
 
-/* Background login bawaan (sebelum Admin mengunggah gambar): kertas bergaris halus. */
-.login-gradient {
-  background:
-    repeating-linear-gradient(transparent 0 31px, color-mix(in oklab, var(--paper) 14%, transparent) 31px 32px),
-    linear-gradient(160deg, #1b2340, #263160 60%, #2a3a6e);
+  /* Background login bawaan (sebelum Admin mengunggah gambar): kertas bergaris halus. */
+  .login-gradient {
+    background:
+      repeating-linear-gradient(transparent 0 31px, color-mix(in oklab, var(--paper) 14%, transparent) 31px 32px),
+      linear-gradient(160deg, #1b2340, #263160 60%, #2a3a6e);
+  }
 }
 
 /* Goresan stabilo pada progres: hanya sekali, saat tampil. */

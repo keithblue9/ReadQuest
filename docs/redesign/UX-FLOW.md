@@ -48,5 +48,5 @@ Perubahan: satu CTA utama yang menyebut buku terakhir (kurangi 1 langkah), tombo
 
 ## Navigasi
 
-- HP: bottom nav 4 menu (urutan dari Admin, tanpa Sesi Baca) + tombol **Baca** di tengah + "Lainnya".
+- HP: bottom nav `[menu][menu][Sesi baca][menu][Lainnya]` — 3 menu mengikuti urutan Admin, tombol **Sesi baca** selalu di tengah.
 - Desktop: sidebar kiri (item aktif ditandai stabilo), tombol "Mulai membaca" di header, panel kanan ringkasan.

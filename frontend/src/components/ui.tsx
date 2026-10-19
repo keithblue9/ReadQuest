@@ -105,7 +105,7 @@ export function FullScreenSpinner() {
   return (
     <div className="grid min-h-dvh place-items-center" aria-busy="true" aria-label="Memuat">
       <span className="h-3 w-24 overflow-hidden rounded-[3px] bg-line" aria-hidden>
-        <span className="block h-full w-1/2 animate-pulse rounded-[3px] bg-highlight" />
+        <span className="block h-full w-1/2 rounded-[3px] bg-highlight motion-safe:animate-pulse" />
       </span>
     </div>
   );

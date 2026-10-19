@@ -44,9 +44,9 @@
 
 **Files:** Modify `features/profile/ProfileHeader.tsx`, `components/AppShell.tsx`, `features/feed/FeedView.tsx`, `app/(app)/(main)/team/page.tsx`, `app/(app)/(main)/profile/page.tsx`, `components/PostCard.tsx`, `features/navigation/menu.ts`; Test `features/navigation/menu.test.ts`.
 
-**Interfaces:** Produces `splitMobileMenus(items, slots = 4): { primary: MenuItem[]; more: MenuItem[] }` unchanged signature, but `read` is excluded from `primary` (it gets the center action button).
+**Interfaces:** `splitMobileMenus(items): { primary: MenuItem[]; more: MenuItem[] }` unchanged signature; `MOBILE_SLOTS = 3` (bar = 2 menus · Baca · 1 menu · Lainnya) and `read` is excluded from both lists (it gets the center action button).
 
-- [ ] Test: `splitMobileMenus` never puts `read` in `primary`; with `read` + 5 others → `primary.length === 4`, `more` contains the rest except `read`. Run `npm test -- menu` → FAIL.
+- [ ] Test: `splitMobileMenus` never puts `read` in `primary` or `more`; `primary.length === 3`; disabled features absent. Run `npm test -- menu` → FAIL.
 - [ ] Implement in `menu.ts`; run → PASS.
 - [ ] ProfileHeader: name block takes full row on mobile (`basis-full sm:basis-auto`), actions below; `<dt>` before `<dd>`.
 - [ ] AppShell: remove floating "+" FAB; bottom nav gets a raised center "Baca" item linking `/read` (no overlap with content).

@@ -55,7 +55,7 @@ export function PwaManager() {
       role="status"
       className="animate-pop-in fixed inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 mx-auto flex w-fit max-w-[92vw] items-center gap-3 rounded-full bg-foreground py-2 pr-2 pl-4 text-sm font-bold text-background shadow-xl"
     >
- Versi baru {appName} tersedia
+      Versi baru {appName} tersedia
       <button
         type="button"
         className="rounded-full bg-primary px-4 py-1.5 text-primary-foreground"

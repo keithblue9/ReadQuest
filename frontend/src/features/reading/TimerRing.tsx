@@ -27,7 +27,7 @@ export function TimerRing({
           strokeDasharray={circumference}
           strokeDashoffset={circumference * (1 - progress)}
           className={`transition-[stroke-dashoffset] duration-1000 ease-linear ${
-            reached ? "stroke-leaf" : "stroke-highlight"
+            reached ? "stroke-leaf" : "stroke-ink dark:stroke-highlight"
           }`}
         />
       </svg>

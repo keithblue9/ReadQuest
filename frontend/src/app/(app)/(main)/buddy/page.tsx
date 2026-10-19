@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Flame, Hourglass } from "lucide-react";
+import { CheckCircle2, Flame, Hourglass, Megaphone } from "lucide-react";
 
 import { useEffect, useState } from "react";
 
@@ -65,7 +65,7 @@ export default function BuddyPage() {
       )}
 
       {buddy ? (
-        <section className="animate-pop-in rounded-3xl bg-primary p-5 text-primary-foreground shadow-xl shadow-primary/25">
+        <section className="rounded-2xl bg-ink p-5 text-paper dark:bg-surface dark:text-ink dark:ring-1 dark:ring-line">
           <div className="flex items-center gap-3">
             <Avatar name={buddy.user.name} url={buddy.user.avatar_url} />
             <div className="min-w-0">
@@ -74,23 +74,23 @@ export default function BuddyPage() {
             </div>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 text-center">
-            <div className="rounded-2xl bg-white/15 p-3">
-              <p className="text-2xl" aria-hidden>
-                {buddy.read_today ? <CheckCircle2 className="inline size-4 text-leaf" aria-hidden /> : <Hourglass className="inline size-4 text-muted" aria-hidden />}
+            <div className="rounded-xl bg-white/10 p-3 dark:bg-surface-muted">
+              <p className="flex justify-center" aria-hidden>
+                {buddy.read_today ? <CheckCircle2 className="size-7" /> : <Hourglass className="size-7" />}
               </p>
               <p className="text-xs font-semibold">{buddy.read_today ? "Sudah baca hari ini" : "Belum baca hari ini"}</p>
             </div>
-            <div className="rounded-2xl bg-white/15 p-3">
-              <p className="flex items-center gap-1 font-display text-2xl font-semibold">{buddy.streak}<Flame className="size-5 text-rating" aria-hidden /></p>
+            <div className="rounded-xl bg-white/10 p-3 dark:bg-surface-muted">
+              <p className="flex items-center justify-center gap-1 font-display text-2xl font-semibold">{buddy.streak}<Flame className="size-5" aria-hidden /></p>
               <p className="text-xs font-semibold">Streak</p>
             </div>
           </div>
           <button
             type="button"
             onClick={() => run(() => api(`/buddies/${buddy.pair_id}/cheer`, { method: "POST" }), "Semangat terkirim!")}
-            className="mt-4 h-12 w-full rounded-2xl bg-white font-bold text-[#6c4df6] transition active:scale-[0.98]"
+            className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-highlight font-semibold text-on-highlight transition active:scale-[0.98]"
           >
- Semangati {buddy.user.name.split(" ")[0]}
+            <Megaphone className="size-5" aria-hidden /> Semangati {buddy.user.name.split(" ")[0]}
           </button>
           <button
             type="button"

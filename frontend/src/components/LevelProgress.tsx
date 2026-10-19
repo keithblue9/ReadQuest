@@ -25,7 +25,7 @@ export function LevelProgress({ level, points }: { level: Level | null; points: 
         aria-label="Progres level"
       >
         <div
-          className="marker-fill h-full rounded-[3px_9px_6px_3px] bg-highlight transition-[width] duration-700"
+          className="marker-fill h-full rounded-[3px_9px_6px_3px] border-r-[3px] border-ink bg-highlight transition-[width] duration-700 dark:border-r-0"
           style={{ width: `${Math.max(3, progress * 100)}%` }}
         />
       </div>

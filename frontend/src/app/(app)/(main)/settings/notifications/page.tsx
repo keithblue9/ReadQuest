@@ -110,7 +110,7 @@ export default function NotificationSettingsPage() {
 
       {!pushEnabled ? (
         <p className="rounded-3xl border border-dashed border-border p-4 text-sm text-muted">
- Notifikasi push sedang dimatikan Admin. Notifikasi tetap muncul di aplikasi.
+          Notifikasi push sedang dimatikan Admin. Notifikasi tetap muncul di aplikasi.
         </p>
       ) : (
       <section className="rounded-3xl border border-border bg-surface p-4">

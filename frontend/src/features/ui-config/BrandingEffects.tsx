@@ -26,7 +26,7 @@ export function BrandingEffects() {
       root.removeProperty("--brand-dark");
       return;
     }
-    root.setProperty("--brand-light", brandAccent(primary_color, "#ffffff"));
+    root.setProperty("--brand-light", brandAccent(primary_color, "#f6f7f9"));
     root.setProperty("--brand-dark", brandAccent(primary_color, "#1a2140"));
   }, [primary_color]);
 

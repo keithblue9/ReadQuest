@@ -13,13 +13,15 @@ type ShellData = {
   progress: Progress | null;
   points: PointsSummary | null;
   team: TeamDashboard | null;
+  /** true bila /me/progress gagal dimuat (UI menampilkan aksi tanpa angka, bukan skeleton abadi). */
+  progressFailed: boolean;
 };
 
-let state: ShellData = { progress: null, points: null, team: null };
+let state: ShellData = { progress: null, points: null, team: null, progressFailed: false };
 let lastLoad = 0;
 const listeners = new Set<() => void>();
 const STALE_MS = 60_000;
-const EMPTY: ShellData = { progress: null, points: null, team: null };
+const EMPTY: ShellData = { progress: null, points: null, team: null, progressFailed: false };
 
 function emit() {
   for (const l of listeners) l();
@@ -34,7 +36,9 @@ function set(patch: Partial<ShellData>) {
 export function refreshShellData(force = false) {
   if (!force && Date.now() - lastLoad < STALE_MS) return;
   lastLoad = Date.now();
-  api<Progress>("/me/progress").then((progress) => set({ progress })).catch(() => undefined);
+  api<Progress>("/me/progress")
+    .then((progress) => set({ progress, progressFailed: false }))
+    .catch(() => set({ progressFailed: true }));
   api<PointsSummary>("/me/points").then((points) => set({ points })).catch(() => undefined);
   api<TeamDashboard>("/dashboard").then((team) => set({ team })).catch(() => undefined);
 }

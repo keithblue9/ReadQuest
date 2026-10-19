@@ -77,7 +77,7 @@ export function PhotoPicker({ photos, onChange, max = 4, label = "Foto buku", er
               onClick={() => cameraRef.current?.click()}
               className="flex size-20 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-line bg-surface text-xs font-semibold text-muted transition hover:border-ink hover:text-ink"
             >
-<Camera className="size-6" strokeWidth={1.8} aria-hidden />
+              <Camera className="size-6" strokeWidth={1.8} aria-hidden />
               Kamera
             </button>
             <button
@@ -85,7 +85,7 @@ export function PhotoPicker({ photos, onChange, max = 4, label = "Foto buku", er
               onClick={() => galleryRef.current?.click()}
               className="flex size-20 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-line bg-surface text-xs font-semibold text-muted transition hover:border-ink hover:text-ink"
             >
-<ImagePlus className="size-6" strokeWidth={1.8} aria-hidden />
+              <ImagePlus className="size-6" strokeWidth={1.8} aria-hidden />
               Galeri
             </button>
           </>
