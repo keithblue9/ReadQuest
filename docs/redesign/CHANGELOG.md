@@ -28,3 +28,7 @@ Tanpa perubahan API, skema database, atau backend. Semua perubahan di `frontend/
 
 ## Tes
 - Baru: `lib/color.test.ts`, `lib/today.test.ts`, `lib/chart.test.ts`; diperbarui: `features/navigation/menu.test.ts`. Total 44 tes (sebelumnya 27), termasuk tes kontras token (teks ≥4.5:1, penanda progres ≥3:1).
+
+## Screenshot
+Sebelum/sesudah (build lokal, data demo identik) di `docs/redesign/screenshots/`:
+`hp-home.jpg`, `hp-read.jpg`, `hp-leaderboard.jpg`, `hp-profile.jpg`, `hp-stats.jpg`, `hp-notifications.jpg`, `desktop-home.jpg`, `desktop-admin.jpg`, `desktop-login.jpg`, dan `hp-gelap.jpg` (mode gelap).
