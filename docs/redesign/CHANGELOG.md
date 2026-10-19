@@ -27,4 +27,4 @@ Tanpa perubahan API, skema database, atau backend. Semua perubahan di `frontend/
 - CLS: placeholder dengan tinggi terukur di Beranda, Statistik, Profil, daftar Admin.
 
 ## Tes
-- Baru: `lib/color.test.ts`, `lib/today.test.ts`, `lib/chart.test.ts`; diperbarui: `features/navigation/menu.test.ts`. Total 42 tes (sebelumnya 27).
+- Baru: `lib/color.test.ts`, `lib/today.test.ts`, `lib/chart.test.ts`; diperbarui: `features/navigation/menu.test.ts`. Total 44 tes (sebelumnya 27), termasuk tes kontras token (teks ≥4.5:1, penanda progres ≥3:1).

@@ -150,7 +150,7 @@ export function FeedView({ basePath, prepend }: { basePath: string; prepend?: Po
           }
         />
       ) : (
-        shown.map((post) => <PostCard key={post.id} post={post} />)
+        shown.map((post, i) => <PostCard key={post.id} post={post} priority={i === 0} />)
       )}
 
       {cursor && (

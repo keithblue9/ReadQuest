@@ -38,6 +38,8 @@ type PostCardProps = {
   actions?: boolean;
   commentCount?: number;
   menu?: React.ReactNode;
+  /** Kartu pertama di atas lipatan: fotonya kandidat LCP, jadi dimuat segera (bukan lazy). */
+  priority?: boolean;
 };
 
 export function PostCard({
@@ -47,6 +49,7 @@ export function PostCard({
   actions = true,
   commentCount,
   menu,
+  priority = false,
 }: PostCardProps) {
   const progress = post.page_progress;
   const pct =
@@ -114,8 +117,9 @@ export function PostCard({
               key={url}
               src={url}
               alt={`Foto buku ${post.book.title}`}
-              loading="lazy"
-              decoding="async"
+              loading={priority ? "eager" : "lazy"}
+              decoding={priority ? "auto" : "async"}
+              fetchPriority={priority ? "high" : "auto"}
               width={640}
               height={400}
               className="aspect-[16/10] w-full bg-surface-muted object-cover"

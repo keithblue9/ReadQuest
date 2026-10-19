@@ -165,7 +165,7 @@ export default function ReportsPage() {
                 ))}
               </div>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Tabel laporan per fungsi (bisa digulir)">
               <table className="w-full border-separate border-spacing-[2px] text-sm">
                 <thead>
                   <tr className="text-xs text-muted">
