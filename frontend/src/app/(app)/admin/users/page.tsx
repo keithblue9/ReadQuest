@@ -69,14 +69,29 @@ export default function AdminUsersPage() {
   }
 
   async function resetPin(target: AdminUser) {
+    // Akun dari mode masuk tanpa PIN belum punya nomor HP: isi nomor dulu agar bisa login dengan PIN.
+    let phone: string | null = null;
+    if (!target.phone) {
+      phone = window.prompt(`${target.name} belum punya nomor HP. Isi nomor HP-nya (untuk login dengan PIN):`);
+      if (phone === null) return;
+    }
     const pin = window.prompt(`PIN baru untuk ${target.name} (6 angka). Sampaikan ke pengguna secara langsung.`);
     if (pin === null) return;
     setBusy(target.id);
     setError(null);
     setNotice(null);
     try {
-      await api(`/admin/users/${target.id}/pin`, { method: "PUT", json: { pin: pin.trim() } });
-      setData((d) => d && { ...d, items: d.items.map((u) => (u.id === target.id ? { ...u, locked: false } : u)) });
+      await api(`/admin/users/${target.id}/pin`, {
+        method: "PUT",
+        json: phone ? { pin: pin.trim(), phone: phone.trim() } : { pin: pin.trim() },
+      });
+      setData(
+        (d) =>
+          d && {
+            ...d,
+            items: d.items.map((u) => (u.id === target.id ? { ...u, locked: false, phone: phone?.trim() || u.phone } : u)),
+          },
+      );
       setNotice(`PIN ${target.name} sudah di-reset. Semua sesi login-nya dicabut.`);
     } catch (err) {
       setError(errorMessage(err));
@@ -184,7 +199,7 @@ export default function AdminUsersPage() {
                         className="text-sm font-bold text-primary"
                         onClick={() => resetPin(u)}
                       >
-                        Reset PIN
+                        {u.phone ? "Reset PIN" : "Atur nomor & PIN"}
                       </button>
                       <button
                         type="button"

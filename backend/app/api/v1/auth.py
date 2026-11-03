@@ -6,7 +6,16 @@ from app.api.deps import Db, client_info
 from app.core.config import get_settings
 from app.core.rate_limit import rate_limiter
 from app.repositories import catalog
-from app.schemas.auth import FunctionOption, LoginIn, RegisterIn, RegisterOptionsOut, TokenOut
+from app.schemas.auth import (
+    EnterIn,
+    FunctionOption,
+    LoginIn,
+    MemberOption,
+    QuickRegisterIn,
+    RegisterIn,
+    RegisterOptionsOut,
+    TokenOut,
+)
 from app.services import auth_service, user_service
 from app.services.auth_service import ClientInfo, IssuedTokens
 
@@ -63,8 +72,32 @@ async def register_options(db: Db) -> RegisterOptionsOut:
         functions=[
             FunctionOption(id=f["_id"], name=f["name"], parent_id=f.get("parent_id"))
             for f in functions
-        ]
+        ],
+        open_login=await auth_service.open_login_enabled(db),
     )
+
+
+@router.get("/members", response_model=list[MemberOption])
+async def members(db: Db, client: Client) -> list[MemberOption]:
+    """Daftar "pilih namamu" untuk mode masuk tanpa PIN (403 bila mode dimatikan Admin)."""
+    rate_limiter.hit(f"members:ip:{client.ip}", limit=60, window_seconds=60)
+    return await auth_service.list_members(db)
+
+
+@router.post("/enter", response_model=TokenOut)
+async def enter(data: EnterIn, db: Db, response: Response, client: Client) -> TokenOut:
+    rate_limiter.hit(f"enter:ip:{client.ip}", limit=60, window_seconds=60)
+    issued = await auth_service.enter(db, data.user_id, client)
+    return await _token_response(db, response, issued)
+
+
+@router.post("/quick-register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
+async def quick_register(
+    data: QuickRegisterIn, db: Db, response: Response, client: Client
+) -> TokenOut:
+    rate_limiter.hit(f"register:ip:{client.ip}", limit=30, window_seconds=60)
+    issued = await auth_service.quick_register(db, data, client)
+    return await _token_response(db, response, issued)
 
 
 @router.post("/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)

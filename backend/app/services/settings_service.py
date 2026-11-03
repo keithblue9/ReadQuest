@@ -22,6 +22,12 @@ def _int(lo: int, hi: int) -> Callable[[Any], int]:
     return check
 
 
+def _bool(v: Any) -> bool:
+    if not isinstance(v, bool):
+        raise ValueError("harus true atau false")
+    return v
+
+
 def _ratio(v: Any) -> float:
     if isinstance(v, bool) or not isinstance(v, int | float) or not 0 <= v <= 1:
         raise ValueError("harus angka 0–1")
@@ -91,6 +97,7 @@ VALIDATORS: dict[str, Callable[[Any], Any]] = {
     "notifications.schedule": _schedule,
     "auth.max_pin_attempts": _int(3, 20),
     "auth.lockout_minutes": _int(1, 1440),
+    "auth.open_login": _bool,
     "session.micro_min_minutes": _int(1, 30),
     "streak.freezes_per_month": _int(0, 10),
     "onboarding.default_weekly_target_minutes": _int(30, 1200),

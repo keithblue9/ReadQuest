@@ -7,7 +7,7 @@ from pymongo.errors import DuplicateKeyError
 
 from app.core import clock
 from app.core.config import get_settings
-from app.core.errors import AppError, unauthorized
+from app.core.errors import AppError, forbidden, unauthorized
 from app.core.security import (
     create_access_token,
     hash_password,
@@ -16,7 +16,7 @@ from app.core.security import (
     verify_password,
 )
 from app.repositories import catalog, refresh_tokens, users
-from app.schemas.auth import ChangePinIn, LoginIn, RegisterIn
+from app.schemas.auth import ChangePinIn, LoginIn, MemberOption, QuickRegisterIn, RegisterIn
 from app.services import permissions
 from app.services.user_service import daily_target_bounds
 
@@ -54,29 +54,47 @@ async def _issue(
     return IssuedTokens(user, access, expires_in, refresh)
 
 
-async def register(db: AsyncDatabase, data: RegisterIn, client: ClientInfo) -> IssuedTokens:
-    if await users.find_by_phone(db, data.phone) is not None:
-        raise AppError(409, "phone_taken", "Nomor HP sudah terdaftar")
-    if await catalog.get_active_function(db, data.function_id) is None:
+OPEN_LOGIN_KEY = "auth.open_login"
+
+
+async def open_login_enabled(db: AsyncDatabase) -> bool:
+    """Mode masuk tanpa PIN (pilih nama → langsung masuk). Diatur Admin di Pengaturan."""
+    return bool(await catalog.get_setting(db, OPEN_LOGIN_KEY, False))
+
+
+async def _require_open_login(db: AsyncDatabase) -> None:
+    if not await open_login_enabled(db):
+        raise forbidden("Masuk tanpa PIN sedang dimatikan Admin. Gunakan nomor HP dan PIN.")
+
+
+async def _new_member_doc(
+    db: AsyncDatabase,
+    *,
+    name: str,
+    function_id,
+    timezone: str,
+    phone: str | None,
+    pin: str | None,
+) -> dict:
+    if await catalog.get_active_function(db, function_id) is None:
         raise AppError(422, "invalid_function", "Fungsi/bagian tidak ditemukan")
     member = await catalog.get_role_by_code(db, "member")
     if member is None:
         raise AppError(500, "role_missing", "Role Member belum tersedia, jalankan seed")
-
     _, default_target = await daily_target_bounds(db)
     now = datetime.now(UTC)
-    doc = {
-        "phone": data.phone,
-        # PIN 6 angka di-hash argon2 (nama field tetap `password_hash`).
-        "password_hash": hash_password(data.pin),
+    return {
+        "phone": phone,
+        # PIN 6 angka di-hash argon2 (nama field tetap `password_hash`); None di mode tanpa PIN.
+        "password_hash": hash_password(pin) if pin else None,
         "sso": None,
-        "name": data.name,
+        "name": name,
         "avatar_url": None,
         "role_id": member["_id"],
-        "function_id": data.function_id,
+        "function_id": function_id,
         "interests": [],
         "daily_target_minutes": default_target,
-        "timezone": data.timezone,
+        "timezone": timezone,
         "onboarding_completed_at": None,
         "stats": {
             "points_total": 0,
@@ -92,11 +110,74 @@ async def register(db: AsyncDatabase, data: RegisterIn, client: ClientInfo) -> I
         "created_at": now,
         "updated_at": now,
     }
+
+
+async def register(db: AsyncDatabase, data: RegisterIn, client: ClientInfo) -> IssuedTokens:
+    if await users.find_by_phone(db, data.phone) is not None:
+        raise AppError(409, "phone_taken", "Nomor HP sudah terdaftar")
+    doc = await _new_member_doc(
+        db,
+        name=data.name,
+        function_id=data.function_id,
+        timezone=data.timezone,
+        phone=data.phone,
+        pin=data.pin,
+    )
     try:
         doc["_id"] = await users.insert(db, doc)
     except DuplicateKeyError as exc:
         raise AppError(409, "phone_taken", "Nomor HP sudah terdaftar") from exc
     return await _issue(db, doc, client)
+
+
+async def quick_register(
+    db: AsyncDatabase, data: QuickRegisterIn, client: ClientInfo
+) -> IssuedTokens:
+    """Mode tanpa PIN: anggota baru cukup nama + fungsi (tanpa nomor HP/PIN)."""
+    await _require_open_login(db)
+    doc = await _new_member_doc(
+        db,
+        name=data.name,
+        function_id=data.function_id,
+        timezone=data.timezone,
+        phone=None,
+        pin=None,
+    )
+    doc["_id"] = await users.insert(db, doc)
+    return await _issue(db, doc, client)
+
+
+async def enter(db: AsyncDatabase, user_id, client: ClientInfo) -> IssuedTokens:
+    """Mode tanpa PIN: masuk sebagai anggota yang dipilih dari daftar."""
+    await _require_open_login(db)
+    user = await users.find_by_id(db, user_id)
+    if user is None:
+        raise AppError(404, "user_not_found", "Anggota tidak ditemukan")
+    if user["status"] != "active":
+        raise AppError(403, "account_suspended", "Akun dinonaktifkan")
+    await db["users"].update_one({"_id": user["_id"]}, {"$set": {"last_active_at": clock.now()}})
+    return await _issue(db, user, client)
+
+
+async def list_members(db: AsyncDatabase) -> list[MemberOption]:
+    """Daftar "pilih namamu": anggota aktif, urut nama, tanpa data kontak."""
+    await _require_open_login(db)
+    functions = {f["_id"]: f["name"] for f in await catalog.list_active_functions(db)}
+    rows = (
+        await db["users"]
+        .find({"status": "active"}, {"name": 1, "function_id": 1, "avatar_url": 1})
+        .to_list()
+    )
+    rows.sort(key=lambda u: u["name"].casefold())
+    return [
+        MemberOption(
+            id=u["_id"],
+            name=u["name"],
+            function=functions.get(u.get("function_id")),
+            avatar_url=u.get("avatar_url"),
+        )
+        for u in rows
+    ]
 
 
 async def _lockout_policy(db: AsyncDatabase) -> tuple[int, int]:

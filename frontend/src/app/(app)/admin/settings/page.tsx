@@ -9,6 +9,7 @@ import { errorMessage } from "@/lib/errors";
 type Setting = { key: string; value: unknown; description: string };
 
 const GROUPS: { title: string; keys: string[] }[] = [
+  { title: "Akses masuk", keys: ["auth.open_login"] },
   {
     title: "Sesi baca",
     keys: [
@@ -53,6 +54,7 @@ const LABELS: Record<string, string> = {
   "onboarding.default_daily_target_minutes": "Target harian default (menit)",
   "leaderboard.cache_seconds": "Cache leaderboard (detik)",
   "upload.max_bytes": "Ukuran foto maksimum (byte)",
+  "auth.open_login": "Masuk tanpa PIN (pilih nama → langsung masuk)",
 };
 
 const SUB_LABELS: Record<string, string> = {
@@ -108,7 +110,23 @@ function SettingRow({ setting, onSaved }: { setting: Setting; onSaved: (s: Setti
   );
 
   let editor: React.ReactNode;
-  if (typeof setting.value === "number") {
+  if (typeof setting.value === "boolean") {
+    editor = (
+      <label className="flex min-h-11 items-center gap-3 text-sm font-semibold">
+        <input
+          type="checkbox"
+          role="switch"
+          className="size-5 accent-[var(--ink)]"
+          checked={value === true}
+          onChange={(e) => {
+            setSaved(false);
+            setValue(e.target.checked);
+          }}
+        />
+        {value === true ? "Aktif: siapa pun bisa masuk dengan memilih nama" : "Nonaktif: masuk wajib nomor HP + PIN"}
+      </label>
+    );
+  } else if (typeof setting.value === "number") {
     editor = numberInput(value, setValue, LABELS[setting.key] ?? setting.key);
   } else if (typeof setting.value === "string") {
     editor = (
