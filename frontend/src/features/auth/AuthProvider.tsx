@@ -22,11 +22,17 @@ export type RegisterInput = {
   timezone: string;
 };
 
+export type QuickRegisterInput = { name: string; function_id: string; timezone: string };
+
 type AuthContextValue = {
   status: AuthStatus;
   user: Me | null;
   login: (phone: string, pin: string) => Promise<Me>;
   register: (input: RegisterInput) => Promise<Me>;
+  /** Mode masuk tanpa PIN: masuk sebagai anggota yang dipilih dari daftar. */
+  enter: (userId: string) => Promise<Me>;
+  /** Mode masuk tanpa PIN: daftar cukup dengan nama + fungsi. */
+  quickRegister: (input: QuickRegisterInput) => Promise<Me>;
   logout: () => Promise<void>;
   setUser: (user: Me) => void;
   refreshUser: () => Promise<void>;
@@ -105,6 +111,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [applySession],
   );
 
+  const enter = useCallback(
+    async (userId: string) =>
+      applySession(
+        await api<TokenResponse>("/auth/enter", { method: "POST", json: { user_id: userId }, auth: false }),
+      ),
+    [applySession],
+  );
+
+  const quickRegister = useCallback(
+    async (input: QuickRegisterInput) =>
+      applySession(
+        await api<TokenResponse>("/auth/quick-register", { method: "POST", json: input, auth: false }),
+      ),
+    [applySession],
+  );
+
   const logout = useCallback(async () => {
     try {
       await api<void>("/auth/logout", { method: "POST", auth: false });
@@ -124,8 +146,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, user, login, register, logout, setUser, refreshUser, retry }),
-    [status, user, login, register, logout, setUser, refreshUser, retry],
+    () => ({ status, user, login, register, enter, quickRegister, logout, setUser, refreshUser, retry }),
+    [status, user, login, register, enter, quickRegister, logout, setUser, refreshUser, retry],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

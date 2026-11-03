@@ -262,3 +262,22 @@ ulang oleh Vercel dan Render.
 Buat kunci VAPID sekali di komputer yang punya Python + `uv`:
 `cd backend && uv run python -m app.scripts.generate_vapid`. Isi `VAPID_PUBLIC_KEY`,
 `VAPID_PRIVATE_KEY`, dan `VAPID_SUBJECT` (`mailto:email-admin`) di Render, lalu deploy ulang.
+
+## Mode masuk tanpa PIN (`auth.open_login`)
+
+Pengaturan di **Admin → Pengaturan → Akses masuk**, tersimpan di koleksi `app_settings`
+(ikut tercatat di audit log). Seed menambahkannya otomatis saat deploy pertama setelah fitur
+ini (`$setOnInsert`, default **aktif**); nilai yang sudah ada tidak pernah ditimpa seed.
+
+- **Aktif:** halaman login menampilkan daftar anggota aktif (nama, fungsi, foto; tanpa nomor HP).
+  Siapa pun yang membuka aplikasi bisa memilih nama mana pun dan langsung masuk, **termasuk
+  akun Admin**. Anggota baru cukup isi nama + fungsi (tanpa nomor HP/PIN).
+  Endpoint publik: `GET /auth/members`, `POST /auth/enter`, `POST /auth/quick-register`
+  (rate limit per IP).
+- **Nonaktif:** ketiga endpoint di atas mengembalikan 403 dan login kembali wajib nomor HP + PIN.
+  Akun yang dibuat tanpa PIN tidak punya nomor HP; sebelum akun itu bisa masuk lagi, Admin
+  membuka **Admin → Pengguna → "Atur nomor & PIN"** untuk mengisi nomor HP dan PIN barunya.
+
+Risiko yang diterima saat aktif: tidak ada autentikasi. Poin, peringkat, catatan, dan
+pengaturan Admin bisa diubah oleh siapa pun yang tahu URL aplikasi. Cocok hanya bila URL
+tidak dibagikan di luar tim, atau aplikasi berada di balik jaringan/proxy internal.

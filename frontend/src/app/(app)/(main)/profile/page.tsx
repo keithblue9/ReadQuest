@@ -442,7 +442,7 @@ export default function ProfilePage() {
               </Link>
             )}
           </nav>
-          <ChangePinCard />
+          {user.phone && <ChangePinCard />}
           <InstallCard />
           <Button variant="ghost" onClick={() => logout()}>
             <LogOut className="size-4" aria-hidden /> Keluar

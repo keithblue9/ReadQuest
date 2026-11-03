@@ -316,6 +316,12 @@ APP_SETTINGS: list[tuple[str, object, str]] = [
     ),
     ("auth.max_pin_attempts", 5, "Jumlah PIN salah berturut-turut sebelum akun dikunci"),
     ("auth.lockout_minutes", 15, "Lama akun terkunci setelah PIN salah berulang (menit)"),
+    (
+        "auth.open_login",
+        True,
+        "Masuk tanpa PIN: siapa pun yang membuka aplikasi bisa memilih nama dan langsung masuk "
+        "(termasuk akun Admin). Matikan untuk kembali ke nomor HP + PIN.",
+    ),
     ("session.micro_min_minutes", 5, "Durasi minimal sesi baca kilat (menit)"),
     ("streak.freezes_per_month", 2, "Jatah hari libur streak (freeze) per bulan"),
     (

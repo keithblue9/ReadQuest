@@ -5,12 +5,13 @@ from datetime import UTC
 from typing import Literal
 
 from bson import ObjectId
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from pymongo.asynchronous.database import AsyncDatabase
 
 from app.core import clock
 from app.core.errors import AppError
-from app.core.phone_pin import validate_pin
+from app.core.phone_pin import normalize_phone, validate_pin
+from app.repositories import users
 from app.schemas.common import PyObjectId
 from app.services import audit_service, auth_service
 
@@ -23,8 +24,11 @@ class AdminUserUpdateIn(BaseModel):
 
 class ResetPinIn(BaseModel):
     pin: str
+    # Wajib untuk akun yang dibuat lewat mode masuk tanpa PIN (belum punya nomor HP).
+    phone: str | None = Field(default=None, max_length=32)
 
     _pin = field_validator("pin")(lambda cls, v: validate_pin(v))
+    _phone = field_validator("phone")(lambda cls, v: normalize_phone(v) if v else None)
 
 
 def _is_locked(user: dict) -> bool:
@@ -125,8 +129,21 @@ async def update_user(
 async def reset_pin(
     db: AsyncDatabase, actor: dict, user_id: ObjectId, data: ResetPinIn, meta: dict
 ) -> None:
-    if await db["users"].find_one({"_id": user_id}, {"_id": 1}) is None:
+    user = await db["users"].find_one({"_id": user_id}, {"_id": 1, "phone": 1})
+    if user is None:
         raise AppError(404, "user_not_found", "Pengguna tidak ditemukan")
+    phone = data.phone if data.phone and data.phone != user.get("phone") else None
+    if not user.get("phone") and phone is None:
+        raise AppError(
+            422, "phone_required", "Akun ini belum punya nomor HP. Isi nomor HP bersama PIN baru."
+        )
+    if phone is not None:
+        other = await users.find_by_phone(db, phone)
+        if other is not None and other["_id"] != user_id:
+            raise AppError(409, "phone_taken", "Nomor HP sudah dipakai akun lain")
+        await db["users"].update_one(
+            {"_id": user_id}, {"$set": {"phone": phone, "updated_at": clock.now()}}
+        )
     await auth_service.set_pin(db, user_id, data.pin)
     await audit_service.log(
         db,
@@ -134,6 +151,6 @@ async def reset_pin(
         action="user.reset_pin",
         entity_type="users",
         entity_id=user_id,
-        after={"pin_reset": True},
+        after={"pin_reset": True, **({"phone_set": True} if phone else {})},
         **meta,
     )
